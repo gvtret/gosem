@@ -15,6 +15,10 @@ const (
 	TagConfirmedServiceError    cosemTag = 14
 	TagUnconfirmedWriteRequest  cosemTag = 22
 	TagInformationReportRequest cosemTag = 24
+	TagAARQ                     cosemTag = 96
+	TagAARE                     cosemTag = 97
+	TagRLRQ                     cosemTag = 98
+	TagRLRE                     cosemTag = 99
 	// --- APDUs used for data communication services
 	TagGetRequest               cosemTag = 192
 	TagSetRequest               cosemTag = 193
