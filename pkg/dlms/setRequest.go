@@ -75,9 +75,9 @@ type SetRequestNormal struct {
 	Value               axdr.DlmsData
 }
 
-func CreateSetRequestNormal(invokeId uint8, att AttributeDescriptor, acc *SelectiveAccessDescriptor, dt axdr.DlmsData) *SetRequestNormal {
+func CreateSetRequestNormal(invokeID uint8, att AttributeDescriptor, acc *SelectiveAccessDescriptor, dt axdr.DlmsData) *SetRequestNormal {
 	return &SetRequestNormal{
-		InvokePriority:      invokeId,
+		InvokePriority:      invokeID,
 		AttributeInfo:       att,
 		SelectiveAccessInfo: acc,
 		Value:               dt,
@@ -165,9 +165,9 @@ type SetRequestWithFirstDataBlock struct {
 	DataBlock           DataBlockSA
 }
 
-func CreateSetRequestWithFirstDataBlock(invokeId uint8, att AttributeDescriptor, acc *SelectiveAccessDescriptor, dt DataBlockSA) *SetRequestWithFirstDataBlock {
+func CreateSetRequestWithFirstDataBlock(invokeID uint8, att AttributeDescriptor, acc *SelectiveAccessDescriptor, dt DataBlockSA) *SetRequestWithFirstDataBlock {
 	return &SetRequestWithFirstDataBlock{
-		InvokePriority:      invokeId,
+		InvokePriority:      invokeID,
 		AttributeInfo:       att,
 		SelectiveAccessInfo: acc,
 		DataBlock:           dt,
@@ -253,9 +253,9 @@ type SetRequestWithDataBlock struct {
 	DataBlock      DataBlockSA
 }
 
-func CreateSetRequestWithDataBlock(invokeId uint8, dt DataBlockSA) *SetRequestWithDataBlock {
+func CreateSetRequestWithDataBlock(invokeID uint8, dt DataBlockSA) *SetRequestWithDataBlock {
 	return &SetRequestWithDataBlock{
-		InvokePriority: invokeId,
+		InvokePriority: invokeID,
 		DataBlock:      dt,
 	}
 }
@@ -305,7 +305,7 @@ type SetRequestWithList struct {
 	ValueList         []axdr.DlmsData
 }
 
-func CreateSetRequestWithList(invokeId uint8, attList []AttributeDescriptorWithSelection, valList []axdr.DlmsData) *SetRequestWithList {
+func CreateSetRequestWithList(invokeID uint8, attList []AttributeDescriptorWithSelection, valList []axdr.DlmsData) *SetRequestWithList {
 	if len(attList) < 1 || len(attList) > 255 {
 		panic("AttributeInfoList cannot have zero or >255 member")
 	}
@@ -313,7 +313,7 @@ func CreateSetRequestWithList(invokeId uint8, attList []AttributeDescriptorWithS
 		panic("ValueList cannot have zero or >255 member")
 	}
 	return &SetRequestWithList{
-		InvokePriority:    invokeId,
+		InvokePriority:    invokeID,
 		AttributeCount:    uint8(len(attList)),
 		AttributeInfoList: attList,
 		ValueCount:        uint8(len(valList)),
@@ -397,12 +397,12 @@ type SetRequestWithListAndFirstDataBlock struct {
 	DataBlock         DataBlockSA
 }
 
-func CreateSetRequestWithListAndFirstDataBlock(invokeId uint8, attList []AttributeDescriptorWithSelection, dt DataBlockSA) *SetRequestWithListAndFirstDataBlock {
+func CreateSetRequestWithListAndFirstDataBlock(invokeID uint8, attList []AttributeDescriptorWithSelection, dt DataBlockSA) *SetRequestWithListAndFirstDataBlock {
 	if len(attList) < 1 || len(attList) > 255 {
 		panic("AttributeInfoList cannot have zero or >255 member")
 	}
 	return &SetRequestWithListAndFirstDataBlock{
-		InvokePriority:    invokeId,
+		InvokePriority:    invokeID,
 		AttributeCount:    uint8(len(attList)),
 		AttributeInfoList: attList,
 		DataBlock:         dt,

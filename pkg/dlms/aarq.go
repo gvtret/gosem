@@ -5,37 +5,37 @@ import (
 	"encoding/binary"
 )
 
-type DlmsAuthentication byte
+type Authentication byte
 
 // Authentication mechanism definitions
 const (
-	DlmsAuthenticationNone       DlmsAuthentication = 0 // No authentication is used.
-	DlmsAuthenticationLow        DlmsAuthentication = 1 // Low authentication is used.
-	DlmsAuthenticationHigh       DlmsAuthentication = 2 // High authentication is used.
-	DlmsAuthenticationHighMD5    DlmsAuthentication = 3 // High authentication is used. Password is hashed with MD5.
-	DlmsAuthenticationHighSHA1   DlmsAuthentication = 4 // High authentication is used. Password is hashed with SHA1.
-	DlmsAuthenticationHighGmac   DlmsAuthentication = 5 // High authentication is used. Password is hashed with GMAC.
-	DlmsAuthenticationHighSha256 DlmsAuthentication = 6 // High authentication is used. Password is hashed with SHA-256.
-	DlmsAuthenticationHighEcdsa  DlmsAuthentication = 7 // High authentication is used. Password is hashed with ECDSA.
+	AuthenticationNone       Authentication = 0 // No authentication is used.
+	AuthenticationLow        Authentication = 1 // Low authentication is used.
+	AuthenticationHigh       Authentication = 2 // High authentication is used.
+	AuthenticationHighMD5    Authentication = 3 // High authentication is used. Password is hashed with MD5.
+	AuthenticationHighSHA1   Authentication = 4 // High authentication is used. Password is hashed with SHA1.
+	AuthenticationHighGmac   Authentication = 5 // High authentication is used. Password is hashed with GMAC.
+	AuthenticationHighSha256 Authentication = 6 // High authentication is used. Password is hashed with SHA-256.
+	AuthenticationHighEcdsa  Authentication = 7 // High authentication is used. Password is hashed with ECDSA.
 )
 
-type DlmsSecurity byte
+type Security byte
 
 const (
-	DlmsSecurityNone                     DlmsSecurity = 0    // Transport security is not used.
-	DlmsSecurityAuthentication           DlmsSecurity = 0x10 // Authentication security is used.
-	DlmsSecurityEncryption               DlmsSecurity = 0x20 // Encryption security is used.
-	DlmsSecurityAuthenticationEncryption DlmsSecurity = 0x30 // Authentication and encryption security are used.
+	SecurityNone                     Security = 0    // Transport security is not used.
+	SecurityAuthentication           Security = 0x10 // Authentication security is used.
+	SecurityEncryption               Security = 0x20 // Encryption security is used.
+	SecurityAuthenticationEncryption Security = 0x30 // Authentication and encryption security are used.
 )
 
 type Ciphering struct {
-	Security     DlmsSecurity
+	Security     Security
 	SystemTitle  []byte
 	DedicatedKey []byte
 }
 
 type Settings struct {
-	Authentication DlmsAuthentication
+	Authentication Authentication
 	Password       []byte
 	Ciphering      Ciphering
 	MaxPduSize     int
@@ -47,12 +47,12 @@ const (
 	PduTypeApplicationContextName     = 1
 	PduTypeCalledAPTitle              = 2
 	PduTypeCalledAEQualifier          = 3
-	PduTypeCalledAPInvocationId       = 4
-	PduTypeCalledAEInvocationId       = 5
+	PduTypeCalledAPInvocationID       = 4
+	PduTypeCalledAEInvocationID       = 5
 	PduTypeCallingAPTitle             = 6
 	PduTypeCallingAEQualifier         = 7
-	PduTypeCallingAPInvocationId      = 8
-	PduTypeCallingAEInvocationId      = 9
+	PduTypeCallingAPInvocationID      = 8
+	PduTypeCallingAEInvocationID      = 9
 	PduTypeSenderAcseRequirements     = 10
 	PduTypeMechanismName              = 11
 	PduTypeCallingAuthenticationValue = 12
@@ -102,7 +102,7 @@ func generateApplicationContextName(settings *Settings) (out []byte) {
 	// Application context name
 	buf.WriteByte(BERTypeContext | BERTypeConstructed | PduTypeApplicationContextName)
 	buf.Write([]byte{0x09, 0x06, 0x07, 0x60, 0x85, 0x74, 0x05, 0x08, 0x01})
-	if settings.Ciphering.Security == DlmsSecurityNone || len(settings.Ciphering.SystemTitle) > 0 {
+	if settings.Ciphering.Security == SecurityNone || len(settings.Ciphering.SystemTitle) > 0 {
 		buf.Write([]byte{ApplicationContextLNNoCiphering})
 	} else {
 		buf.Write([]byte{ApplicationContextLNCiphering})
@@ -123,7 +123,7 @@ func generateApplicationContextName(settings *Settings) (out []byte) {
 func generateAuthentication(settings *Settings) (out []byte) {
 	var buf bytes.Buffer
 
-	if settings.Authentication != DlmsAuthenticationNone {
+	if settings.Authentication != AuthenticationNone {
 		// Add sender ACSE-requirements field component.
 		buf.WriteByte(BERTypeContext | PduTypeSenderAcseRequirements)
 		buf.Write([]byte{0x02, 0x07, 0x80})
@@ -171,7 +171,7 @@ func getInitiateRequest(settings *Settings) (out []byte) {
 	// Application Association Request
 	buf.WriteByte(byte(TagInitiateRequest))
 
-	if settings.Ciphering.Security == DlmsSecurityNone || len(settings.Ciphering.DedicatedKey) == 0 {
+	if settings.Ciphering.Security == SecurityNone || len(settings.Ciphering.DedicatedKey) == 0 {
 		buf.WriteByte(0x00)
 	} else {
 		buf.WriteByte(0x01)

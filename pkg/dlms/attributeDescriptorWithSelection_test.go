@@ -42,15 +42,15 @@ func TestDecode_AttributeDescriptorWithSelection(t *testing.T) {
 	var sad SelectiveAccessDescriptor = *CreateSelectiveAccessDescriptor(AccessSelectorEntry, []uint32{0, 5})
 	var b AttributeDescriptorWithSelection = *CreateAttributeDescriptorWithSelection(1, "1.0.0.3.0.255", 2, &sad)
 
-	if a.ClassId != b.ClassId {
-		t.Errorf("ClassId get: %v, should:%v", a.ClassId, b.ClassId)
+	if a.ClassID != b.ClassID {
+		t.Errorf("ClassID get: %v, should:%v", a.ClassID, b.ClassID)
 	}
-	res := bytes.Compare(a.InstanceId.Bytes(), b.InstanceId.Bytes())
+	res := bytes.Compare(a.InstanceID.Bytes(), b.InstanceID.Bytes())
 	if res != 0 {
-		t.Errorf("InstanceId get: %v, should:%v", a.InstanceId.Bytes(), b.InstanceId.Bytes())
+		t.Errorf("InstanceID get: %v, should:%v", a.InstanceID.Bytes(), b.InstanceID.Bytes())
 	}
-	if a.AttributeId != b.AttributeId {
-		t.Errorf("AttributeId get: %v, should:%v", a.AttributeId, b.AttributeId)
+	if a.AttributeID != b.AttributeID {
+		t.Errorf("AttributeID get: %v, should:%v", a.AttributeID, b.AttributeID)
 	}
 
 	if a.AccessDescriptor.AccessSelector != b.AccessDescriptor.AccessSelector {

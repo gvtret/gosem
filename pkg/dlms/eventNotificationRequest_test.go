@@ -54,15 +54,15 @@ func TestDecode_EventNotificationRequest(t *testing.T) {
 		t.Errorf("t1 err Time. get: %v, should: %v", a.Time, b.Time)
 	}
 
-	if a.AttributeInfo.ClassId != b.AttributeInfo.ClassId {
-		t.Errorf("t1 Failed. AttributeInfo.ClassId get: %v, should:%v", a.AttributeInfo.ClassId, b.AttributeInfo.ClassId)
+	if a.AttributeInfo.ClassID != b.AttributeInfo.ClassID {
+		t.Errorf("t1 Failed. AttributeInfo.ClassID get: %v, should:%v", a.AttributeInfo.ClassID, b.AttributeInfo.ClassID)
 	}
-	res := bytes.Compare(a.AttributeInfo.InstanceId.Bytes(), b.AttributeInfo.InstanceId.Bytes())
+	res := bytes.Compare(a.AttributeInfo.InstanceID.Bytes(), b.AttributeInfo.InstanceID.Bytes())
 	if res != 0 {
-		t.Errorf("t1 Failed. AttributeInfo.InstanceId get: %v, should:%v", a.AttributeInfo.InstanceId.Bytes(), b.AttributeInfo.InstanceId.Bytes())
+		t.Errorf("t1 Failed. AttributeInfo.InstanceID get: %v, should:%v", a.AttributeInfo.InstanceID.Bytes(), b.AttributeInfo.InstanceID.Bytes())
 	}
-	if a.AttributeInfo.AttributeId != b.AttributeInfo.AttributeId {
-		t.Errorf("t1 Failed. AttributeInfo.AttributeId get: %v, should:%v", a.AttributeInfo.AttributeId, b.AttributeInfo.AttributeId)
+	if a.AttributeInfo.AttributeID != b.AttributeInfo.AttributeID {
+		t.Errorf("t1 Failed. AttributeInfo.AttributeID get: %v, should:%v", a.AttributeInfo.AttributeID, b.AttributeInfo.AttributeID)
 	}
 
 	if a.AttributeValue.Tag != b.AttributeValue.Tag {

@@ -118,9 +118,8 @@ func EncodeStructure(data []*DlmsData) ([]byte, error) {
 func EncodeBoolean(data bool) ([]byte, error) {
 	if data {
 		return []byte{0xFF}, nil
-	} else {
-		return []byte{0x00}, nil
 	}
+	return []byte{0x00}, nil
 }
 
 // Encodes string of binary into byte. If length of bitstring

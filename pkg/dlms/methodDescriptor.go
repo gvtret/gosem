@@ -7,24 +7,24 @@ import (
 )
 
 type MethodDescriptor struct {
-	ClassId    uint16
-	InstanceId Obis
-	MethodId   int8
+	ClassID    uint16
+	InstanceID Obis
+	MethodID   int8
 }
 
 func CreateMethodDescriptor(c uint16, i string, a int8) *MethodDescriptor {
 	var ob Obis = *CreateObis(i)
 
-	return &MethodDescriptor{ClassId: c, InstanceId: ob, MethodId: a}
+	return &MethodDescriptor{ClassID: c, InstanceID: ob, MethodID: a}
 }
 
 func (ad MethodDescriptor) Encode() (out []byte, err error) {
 	var output []byte
 	var c [2]byte
-	binary.BigEndian.PutUint16(c[:], ad.ClassId)
+	binary.BigEndian.PutUint16(c[:], ad.ClassID)
 	output = append(output, c[:]...)
-	output = append(output, ad.InstanceId.Bytes()...)
-	output = append(output, byte(ad.MethodId))
+	output = append(output, ad.InstanceID.Bytes()...)
+	output = append(output, byte(ad.MethodID))
 
 	out = output
 	return
@@ -38,15 +38,15 @@ func DecodeMethodDescriptor(ori *[]byte) (out MethodDescriptor, err error) {
 		return
 	}
 
-	_, out.ClassId, err = axdr.DecodeLongUnsigned(&src)
+	_, out.ClassID, err = axdr.DecodeLongUnsigned(&src)
 	if err != nil {
 		return
 	}
-	out.InstanceId, err = DecodeObis(&src)
+	out.InstanceID, err = DecodeObis(&src)
 	if err != nil {
 		return
 	}
-	out.MethodId = int8(src[0])
+	out.MethodID = int8(src[0])
 	src = src[1:]
 
 	(*ori) = (*ori)[len((*ori))-len(src):]

@@ -65,9 +65,9 @@ type GetRequestNormal struct {
 	SelectiveAccessInfo *SelectiveAccessDescriptor
 }
 
-func CreateGetRequestNormal(invokeId uint8, att AttributeDescriptor, acc *SelectiveAccessDescriptor) *GetRequestNormal {
+func CreateGetRequestNormal(invokeID uint8, att AttributeDescriptor, acc *SelectiveAccessDescriptor) *GetRequestNormal {
 	return &GetRequestNormal{
-		InvokePriority:      invokeId,
+		InvokePriority:      invokeID,
 		AttributeInfo:       att,
 		SelectiveAccessInfo: acc,
 	}
@@ -143,9 +143,9 @@ type GetRequestNext struct {
 	BlockNum       uint32
 }
 
-func CreateGetRequestNext(invokeId uint8, blockNum uint32) *GetRequestNext {
+func CreateGetRequestNext(invokeID uint8, blockNum uint32) *GetRequestNext {
 	return &GetRequestNext{
-		InvokePriority: invokeId,
+		InvokePriority: invokeID,
 		BlockNum:       blockNum,
 	}
 }
@@ -194,12 +194,12 @@ type GetRequestWithList struct {
 	AttributeInfoList []AttributeDescriptorWithSelection
 }
 
-func CreateGetRequestWithList(invokeId uint8, attList []AttributeDescriptorWithSelection) *GetRequestWithList {
+func CreateGetRequestWithList(invokeID uint8, attList []AttributeDescriptorWithSelection) *GetRequestWithList {
 	if len(attList) < 1 || len(attList) > 255 {
 		panic("AttributeInfoList cannot have zero or >255 member")
 	}
 	return &GetRequestWithList{
-		InvokePriority:    invokeId,
+		InvokePriority:    invokeID,
 		AttributeCount:    uint8(len(attList)),
 		AttributeInfoList: attList,
 	}

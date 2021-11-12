@@ -97,15 +97,15 @@ func TestDecode_GetRequestNormal(t *testing.T) {
 	if a.InvokePriority != b.InvokePriority {
 		t.Errorf("t1 Failed. InvokePriority get: %v, should:%v", a.InvokePriority, b.InvokePriority)
 	}
-	if a.AttributeInfo.ClassId != b.AttributeInfo.ClassId {
-		t.Errorf("t1 Failed. AttributeInfo.ClassId get: %v, should:%v", a.AttributeInfo.ClassId, b.AttributeInfo.ClassId)
+	if a.AttributeInfo.ClassID != b.AttributeInfo.ClassID {
+		t.Errorf("t1 Failed. AttributeInfo.ClassID get: %v, should:%v", a.AttributeInfo.ClassID, b.AttributeInfo.ClassID)
 	}
-	res := bytes.Compare(a.AttributeInfo.InstanceId.Bytes(), b.AttributeInfo.InstanceId.Bytes())
+	res := bytes.Compare(a.AttributeInfo.InstanceID.Bytes(), b.AttributeInfo.InstanceID.Bytes())
 	if res != 0 {
-		t.Errorf("t1 Failed. AttributeInfo.InstanceId get: %v, should:%v", a.AttributeInfo.InstanceId.Bytes(), b.AttributeInfo.InstanceId.Bytes())
+		t.Errorf("t1 Failed. AttributeInfo.InstanceID get: %v, should:%v", a.AttributeInfo.InstanceID.Bytes(), b.AttributeInfo.InstanceID.Bytes())
 	}
-	if a.AttributeInfo.AttributeId != b.AttributeInfo.AttributeId {
-		t.Errorf("t1 Failed. AttributeInfo.AttributeId get: %v, should:%v", a.AttributeInfo.AttributeId, b.AttributeInfo.AttributeId)
+	if a.AttributeInfo.AttributeID != b.AttributeInfo.AttributeID {
+		t.Errorf("t1 Failed. AttributeInfo.AttributeID get: %v, should:%v", a.AttributeInfo.AttributeID, b.AttributeInfo.AttributeID)
 	}
 	if a.SelectiveAccessInfo.AccessSelector != b.SelectiveAccessInfo.AccessSelector {
 		t.Errorf("t1 Failed. SelectiveAccessInfo.AccessSelector get: %v, should:%v", a.SelectiveAccessInfo.AccessSelector, b.SelectiveAccessInfo.AccessSelector)
@@ -136,15 +136,15 @@ func TestDecode_GetRequestNormal(t *testing.T) {
 	if a.InvokePriority != b.InvokePriority {
 		t.Errorf("t1 Failed. InvokePriority get: %v, should:%v", a.InvokePriority, b.InvokePriority)
 	}
-	if a.AttributeInfo.ClassId != b.AttributeInfo.ClassId {
-		t.Errorf("t1 Failed. AttributeInfo.ClassId get: %v, should:%v", a.AttributeInfo.ClassId, b.AttributeInfo.ClassId)
+	if a.AttributeInfo.ClassID != b.AttributeInfo.ClassID {
+		t.Errorf("t1 Failed. AttributeInfo.ClassID get: %v, should:%v", a.AttributeInfo.ClassID, b.AttributeInfo.ClassID)
 	}
-	res = bytes.Compare(a.AttributeInfo.InstanceId.Bytes(), b.AttributeInfo.InstanceId.Bytes())
+	res = bytes.Compare(a.AttributeInfo.InstanceID.Bytes(), b.AttributeInfo.InstanceID.Bytes())
 	if res != 0 {
-		t.Errorf("t1 Failed. AttributeInfo.InstanceId get: %v, should:%v", a.AttributeInfo.InstanceId.Bytes(), b.AttributeInfo.InstanceId.Bytes())
+		t.Errorf("t1 Failed. AttributeInfo.InstanceID get: %v, should:%v", a.AttributeInfo.InstanceID.Bytes(), b.AttributeInfo.InstanceID.Bytes())
 	}
-	if a.AttributeInfo.AttributeId != b.AttributeInfo.AttributeId {
-		t.Errorf("t1 Failed. AttributeInfo.AttributeId get: %v, should:%v", a.AttributeInfo.AttributeId, b.AttributeInfo.AttributeId)
+	if a.AttributeInfo.AttributeID != b.AttributeInfo.AttributeID {
+		t.Errorf("t1 Failed. AttributeInfo.AttributeID get: %v, should:%v", a.AttributeInfo.AttributeID, b.AttributeInfo.AttributeID)
 	}
 	if a.SelectiveAccessInfo != nilAccsDesc {
 		t.Errorf("t1 Failed. SelectiveAccessInfo.AccessSelector should be nil get: %v", a.SelectiveAccessInfo)
@@ -194,10 +194,10 @@ func TestDecode_GetRequestWithList(t *testing.T) {
 	if a.AttributeCount != b.AttributeCount {
 		t.Errorf("t1 Failed. AttributeCount get: %v, should:%v", a.AttributeCount, b.AttributeCount)
 	}
-	aDescObis := a.AttributeInfoList[0].InstanceId.String()
-	bDescObis := b.AttributeInfoList[0].InstanceId.String()
+	aDescObis := a.AttributeInfoList[0].InstanceID.String()
+	bDescObis := b.AttributeInfoList[0].InstanceID.String()
 	if aDescObis != bDescObis {
-		t.Errorf("t1 Failed. AttributeInfoList[0].InstanceId get: %v, should:%v", aDescObis, bDescObis)
+		t.Errorf("t1 Failed. AttributeInfoList[0].InstanceID get: %v, should:%v", aDescObis, bDescObis)
 	}
 	if len(src) > 0 {
 		t.Errorf("t1 Failed. src should be empty. get: %v", src)
@@ -222,15 +222,15 @@ func TestDecode_GetRequestWithList(t *testing.T) {
 	if a.AttributeCount != b.AttributeCount {
 		t.Errorf("t1 Failed. AttributeCount get: %v, should:%v", a.AttributeCount, b.AttributeCount)
 	}
-	aDescObis = a.AttributeInfoList[0].InstanceId.String()
-	bDescObis = b.AttributeInfoList[0].InstanceId.String()
+	aDescObis = a.AttributeInfoList[0].InstanceID.String()
+	bDescObis = b.AttributeInfoList[0].InstanceID.String()
 	if aDescObis != bDescObis {
-		t.Errorf("t1 Failed. AttributeInfoList[0].InstanceId get: %v, should:%v", aDescObis, bDescObis)
+		t.Errorf("t1 Failed. AttributeInfoList[0].InstanceID get: %v, should:%v", aDescObis, bDescObis)
 	}
-	aDescObis = a.AttributeInfoList[1].InstanceId.String()
-	bDescObis = b.AttributeInfoList[1].InstanceId.String()
+	aDescObis = a.AttributeInfoList[1].InstanceID.String()
+	bDescObis = b.AttributeInfoList[1].InstanceID.String()
 	if aDescObis != bDescObis {
-		t.Errorf("t1 Failed. AttributeInfoList[1].InstanceId get: %v, should:%v", aDescObis, bDescObis)
+		t.Errorf("t1 Failed. AttributeInfoList[1].InstanceID get: %v, should:%v", aDescObis, bDescObis)
 	}
 	if len(src) > 0 {
 		t.Errorf("t1 Failed. src should be empty. get: %v", src)

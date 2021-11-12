@@ -7,9 +7,9 @@ import (
 )
 
 type AttributeDescriptorWithSelection struct {
-	ClassId          uint16
-	InstanceId       Obis
-	AttributeId      int8
+	ClassID          uint16
+	InstanceID       Obis
+	AttributeID      int8
 	AccessDescriptor *SelectiveAccessDescriptor
 }
 
@@ -18,16 +18,16 @@ type AttributeDescriptorWithSelection struct {
 func CreateAttributeDescriptorWithSelection(c uint16, i string, a int8, sad *SelectiveAccessDescriptor) *AttributeDescriptorWithSelection {
 	var ob Obis = *CreateObis(i)
 
-	return &AttributeDescriptorWithSelection{ClassId: c, InstanceId: ob, AttributeId: a, AccessDescriptor: sad}
+	return &AttributeDescriptorWithSelection{ClassID: c, InstanceID: ob, AttributeID: a, AccessDescriptor: sad}
 }
 
 func (ad AttributeDescriptorWithSelection) Encode() (out []byte, err error) {
 	var output []byte
 	var c [2]byte
-	binary.BigEndian.PutUint16(c[:], ad.ClassId)
+	binary.BigEndian.PutUint16(c[:], ad.ClassID)
 	output = append(output, c[:]...)
-	output = append(output, ad.InstanceId.Bytes()...)
-	output = append(output, byte(ad.AttributeId))
+	output = append(output, ad.InstanceID.Bytes()...)
+	output = append(output, byte(ad.AttributeID))
 	if ad.AccessDescriptor == nil {
 		output = append(output, 0)
 	} else {
@@ -52,17 +52,17 @@ func DecodeAttributeDescriptorWithSelection(ori *[]byte) (out AttributeDescripto
 		return
 	}
 
-	_, out.ClassId, err = axdr.DecodeLongUnsigned(&src)
+	_, out.ClassID, err = axdr.DecodeLongUnsigned(&src)
 	if err != nil {
 		return
 	}
 
-	out.InstanceId, err = DecodeObis(&src)
+	out.InstanceID, err = DecodeObis(&src)
 	if err != nil {
 		return
 	}
 
-	out.AttributeId = int8(src[0])
+	out.AttributeID = int8(src[0])
 	haveAccDesc := src[1]
 	src = src[2:]
 

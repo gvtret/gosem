@@ -62,9 +62,9 @@ type GetResponseNormal struct {
 	Result         GetDataResult
 }
 
-func CreateGetResponseNormal(invokeId uint8, res GetDataResult) *GetResponseNormal {
+func CreateGetResponseNormal(invokeID uint8, res GetDataResult) *GetResponseNormal {
 	return &GetResponseNormal{
-		InvokePriority: invokeId,
+		InvokePriority: invokeID,
 		Result:         res,
 	}
 }
@@ -111,9 +111,9 @@ type GetResponseWithDataBlock struct {
 	Result         DataBlockG
 }
 
-func CreateGetResponseWithDataBlock(invokeId uint8, res DataBlockG) *GetResponseWithDataBlock {
+func CreateGetResponseWithDataBlock(invokeID uint8, res DataBlockG) *GetResponseWithDataBlock {
 	return &GetResponseWithDataBlock{
-		InvokePriority: invokeId,
+		InvokePriority: invokeID,
 		Result:         res,
 	}
 }
@@ -161,12 +161,12 @@ type GetResponseWithList struct {
 	ResultList     []GetDataResult
 }
 
-func CreateGetResponseWithList(invokeId uint8, resList []GetDataResult) *GetResponseWithList {
+func CreateGetResponseWithList(invokeID uint8, resList []GetDataResult) *GetResponseWithList {
 	if len(resList) < 1 || len(resList) > 255 {
 		panic("ResultList cannot have zero or >255 member")
 	}
 	return &GetResponseWithList{
-		InvokePriority: invokeId,
+		InvokePriority: invokeID,
 		ResultCount:    uint8(len(resList)),
 		ResultList:     resList,
 	}

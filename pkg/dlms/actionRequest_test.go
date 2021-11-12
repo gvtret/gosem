@@ -161,15 +161,15 @@ func TestDecode_ActionRequestNormal(t *testing.T) {
 	if a.InvokePriority != b.InvokePriority {
 		t.Errorf("t1 Failed. InvokePriority get: %v, should:%v", a.InvokePriority, b.InvokePriority)
 	}
-	if a.MethodInfo.ClassId != b.MethodInfo.ClassId {
-		t.Errorf("t1 Failed. MethodInfo.ClassId get: %v, should:%v", a.MethodInfo.ClassId, b.MethodInfo.ClassId)
+	if a.MethodInfo.ClassID != b.MethodInfo.ClassID {
+		t.Errorf("t1 Failed. MethodInfo.ClassID get: %v, should:%v", a.MethodInfo.ClassID, b.MethodInfo.ClassID)
 	}
-	res := bytes.Compare(a.MethodInfo.InstanceId.Bytes(), b.MethodInfo.InstanceId.Bytes())
+	res := bytes.Compare(a.MethodInfo.InstanceID.Bytes(), b.MethodInfo.InstanceID.Bytes())
 	if res != 0 {
-		t.Errorf("t1 Failed. MethodInfo.InstanceId get: %v, should:%v", a.MethodInfo.InstanceId.Bytes(), b.MethodInfo.InstanceId.Bytes())
+		t.Errorf("t1 Failed. MethodInfo.InstanceID get: %v, should:%v", a.MethodInfo.InstanceID.Bytes(), b.MethodInfo.InstanceID.Bytes())
 	}
-	if a.MethodInfo.MethodId != b.MethodInfo.MethodId {
-		t.Errorf("t1 Failed. MethodInfo.MethodId get: %v, should:%v", a.MethodInfo.MethodId, b.MethodInfo.MethodId)
+	if a.MethodInfo.MethodID != b.MethodInfo.MethodID {
+		t.Errorf("t1 Failed. MethodInfo.MethodID get: %v, should:%v", a.MethodInfo.MethodID, b.MethodInfo.MethodID)
 	}
 
 	if a.MethodParam.Tag != b.MethodParam.Tag {
@@ -236,10 +236,10 @@ func TestDecode_ActionRequestWithList(t *testing.T) {
 	if a.MethodInfoCount != b.MethodInfoCount {
 		t.Errorf("t1 Failed. MethodInfoCount get: %v, should:%v", a.MethodInfoCount, b.MethodInfoCount)
 	}
-	aDescObis := a.MethodInfoList[0].InstanceId.String()
-	bDescObis := b.MethodInfoList[0].InstanceId.String()
+	aDescObis := a.MethodInfoList[0].InstanceID.String()
+	bDescObis := b.MethodInfoList[0].InstanceID.String()
 	if aDescObis != bDescObis {
-		t.Errorf("t1 Failed. MethodInfoList[0].InstanceId get: %v, should:%v", aDescObis, bDescObis)
+		t.Errorf("t1 Failed. MethodInfoList[0].InstanceID get: %v, should:%v", aDescObis, bDescObis)
 	}
 	if len(a.MethodParamList) != len(b.MethodParamList) {
 		t.Errorf("t1 Failed. MethodParamList count get: %v, should:%v", len(a.MethodParamList), len(b.MethodParamList))
@@ -274,10 +274,10 @@ func TestDecode_ActionRequestWithList(t *testing.T) {
 	if a.MethodInfoCount != b.MethodInfoCount {
 		t.Errorf("t2 Failed. MethodInfoCount get: %v, should:%v", a.MethodInfoCount, b.MethodInfoCount)
 	}
-	aDescObis = a.MethodInfoList[1].InstanceId.String()
-	bDescObis = b.MethodInfoList[1].InstanceId.String()
+	aDescObis = a.MethodInfoList[1].InstanceID.String()
+	bDescObis = b.MethodInfoList[1].InstanceID.String()
 	if aDescObis != bDescObis {
-		t.Errorf("t2 Failed. MethodInfoList[1].InstanceId get: %v, should:%v", aDescObis, bDescObis)
+		t.Errorf("t2 Failed. MethodInfoList[1].InstanceID get: %v, should:%v", aDescObis, bDescObis)
 	}
 	if len(a.MethodParamList) != len(b.MethodParamList) {
 		t.Errorf("t2 Failed. MethodParamList count get: %v, should:%v", len(a.MethodParamList), len(b.MethodParamList))
@@ -311,15 +311,15 @@ func TestDecode_ActionRequestWithFirstPBlock(t *testing.T) {
 		t.Errorf("t1 Failed. InvokePriority get: %v, should:%v", a.InvokePriority, b.InvokePriority)
 	}
 
-	if a.MethodInfo.ClassId != b.MethodInfo.ClassId {
-		t.Errorf("t1 Failed. MethodInfo.ClassId get: %v, should:%v", a.MethodInfo.ClassId, b.MethodInfo.ClassId)
+	if a.MethodInfo.ClassID != b.MethodInfo.ClassID {
+		t.Errorf("t1 Failed. MethodInfo.ClassID get: %v, should:%v", a.MethodInfo.ClassID, b.MethodInfo.ClassID)
 	}
-	res := bytes.Compare(a.MethodInfo.InstanceId.Bytes(), b.MethodInfo.InstanceId.Bytes())
+	res := bytes.Compare(a.MethodInfo.InstanceID.Bytes(), b.MethodInfo.InstanceID.Bytes())
 	if res != 0 {
-		t.Errorf("t1 Failed. MethodInfo.InstanceId get: %v, should:%v", a.MethodInfo.InstanceId.Bytes(), b.MethodInfo.InstanceId.Bytes())
+		t.Errorf("t1 Failed. MethodInfo.InstanceID get: %v, should:%v", a.MethodInfo.InstanceID.Bytes(), b.MethodInfo.InstanceID.Bytes())
 	}
-	if a.MethodInfo.MethodId != b.MethodInfo.MethodId {
-		t.Errorf("t1 Failed. MethodInfo.MethodId get: %v, should:%v", a.MethodInfo.MethodId, b.MethodInfo.MethodId)
+	if a.MethodInfo.MethodID != b.MethodInfo.MethodID {
+		t.Errorf("t1 Failed. MethodInfo.MethodID get: %v, should:%v", a.MethodInfo.MethodID, b.MethodInfo.MethodID)
 	}
 
 	if a.PBlock.LastBlock != b.PBlock.LastBlock {
@@ -359,10 +359,10 @@ func TestDecode_ActionRequestWithListAndFirstPBlock(t *testing.T) {
 	if a.MethodInfoCount != b.MethodInfoCount {
 		t.Errorf("t1 Failed. MethodInfoCount get: %v, should:%v", a.MethodInfoCount, b.MethodInfoCount)
 	}
-	aDescObis := a.MethodInfoList[0].InstanceId.String()
-	bDescObis := b.MethodInfoList[0].InstanceId.String()
+	aDescObis := a.MethodInfoList[0].InstanceID.String()
+	bDescObis := b.MethodInfoList[0].InstanceID.String()
 	if aDescObis != bDescObis {
-		t.Errorf("t1 Failed. MethodInfoList[0].InstanceId get: %v, should:%v", aDescObis, bDescObis)
+		t.Errorf("t1 Failed. MethodInfoList[0].InstanceID get: %v, should:%v", aDescObis, bDescObis)
 	}
 
 	if a.PBlock.LastBlock != b.PBlock.LastBlock {
@@ -396,10 +396,10 @@ func TestDecode_ActionRequestWithListAndFirstPBlock(t *testing.T) {
 	if a.MethodInfoCount != b.MethodInfoCount {
 		t.Errorf("t2 Failed. MethodInfoCount get: %v, should:%v", a.MethodInfoCount, b.MethodInfoCount)
 	}
-	aDescObis = a.MethodInfoList[1].InstanceId.String()
-	bDescObis = b.MethodInfoList[1].InstanceId.String()
+	aDescObis = a.MethodInfoList[1].InstanceID.String()
+	bDescObis = b.MethodInfoList[1].InstanceID.String()
 	if aDescObis != bDescObis {
-		t.Errorf("t2 Failed. MethodInfoList[1].InstanceId get: %v, should:%v", aDescObis, bDescObis)
+		t.Errorf("t2 Failed. MethodInfoList[1].InstanceID get: %v, should:%v", aDescObis, bDescObis)
 	}
 
 	if len(src) > 0 {

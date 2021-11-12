@@ -30,31 +30,31 @@ func CreateSelectiveAccessDescriptor(as accesSelector, ap interface{}) *Selectiv
 		ranges := ap.([]time.Time)
 		// selector range should be of:
 		// structure { structure {classid, obis, attributeid, dataidx}, range-start, range-end, selected val }
-		var classId axdr.DlmsData = *axdr.CreateAxdrLongUnsigned(8)
+		var ClassID axdr.DlmsData = *axdr.CreateAxdrLongUnsigned(8)
 		var obisCode axdr.DlmsData = *axdr.CreateAxdrOctetString("0.0.1.0.0.255") // obis of clock
-		var attributeId axdr.DlmsData = *axdr.CreateAxdrInteger(2)
+		var AttributeID axdr.DlmsData = *axdr.CreateAxdrInteger(2)
 		var dataIdx axdr.DlmsData = *axdr.CreateAxdrLongUnsigned(0)
 		var rangeStart axdr.DlmsData = *axdr.CreateAxdrDateTime(ranges[0])
 		var rangeEnd axdr.DlmsData = *axdr.CreateAxdrDateTime(ranges[1])
 		var selectedValue axdr.DlmsData = *axdr.CreateAxdrArray([]*axdr.DlmsData{})
 
-		var restrictingObject axdr.DlmsData = *axdr.CreateAxdrStructure([]*axdr.DlmsData{&classId, &obisCode, &attributeId, &dataIdx})
+		var restrictingObject axdr.DlmsData = *axdr.CreateAxdrStructure([]*axdr.DlmsData{&ClassID, &obisCode, &AttributeID, &dataIdx})
 		var rangeDescriptor axdr.DlmsData = *axdr.CreateAxdrStructure([]*axdr.DlmsData{&restrictingObject, &rangeStart, &rangeEnd, &selectedValue})
 
 		return &SelectiveAccessDescriptor{AccessSelector: as, AccessParameter: rangeDescriptor}
-	} else {
-		// make sure AccessParameter is a [2]uint32
-		entries := ap.([]uint32)
-		// selector enty should be of:
-		// structure {fromEntry, toEntry, fromSelectedValue, toSelectedValue}
-		var fromEntry axdr.DlmsData = *axdr.CreateAxdrDoubleLongUnsigned(entries[0])
-		var toEntry axdr.DlmsData = *axdr.CreateAxdrDoubleLongUnsigned(entries[1])
-		var fromSelectedValue axdr.DlmsData = *axdr.CreateAxdrLongUnsigned(0)
-		var toSelectedValue axdr.DlmsData = *axdr.CreateAxdrLongUnsigned(0)
-
-		var entryDescriptor axdr.DlmsData = *axdr.CreateAxdrStructure([]*axdr.DlmsData{&fromEntry, &toEntry, &fromSelectedValue, &toSelectedValue})
-		return &SelectiveAccessDescriptor{AccessSelector: as, AccessParameter: entryDescriptor}
 	}
+
+	// make sure AccessParameter is a [2]uint32
+	entries := ap.([]uint32)
+	// selector enty should be of:
+	// structure {fromEntry, toEntry, fromSelectedValue, toSelectedValue}
+	var fromEntry axdr.DlmsData = *axdr.CreateAxdrDoubleLongUnsigned(entries[0])
+	var toEntry axdr.DlmsData = *axdr.CreateAxdrDoubleLongUnsigned(entries[1])
+	var fromSelectedValue axdr.DlmsData = *axdr.CreateAxdrLongUnsigned(0)
+	var toSelectedValue axdr.DlmsData = *axdr.CreateAxdrLongUnsigned(0)
+
+	var entryDescriptor axdr.DlmsData = *axdr.CreateAxdrStructure([]*axdr.DlmsData{&fromEntry, &toEntry, &fromSelectedValue, &toSelectedValue})
+	return &SelectiveAccessDescriptor{AccessSelector: as, AccessParameter: entryDescriptor}
 }
 
 func (s SelectiveAccessDescriptor) Encode() (out []byte, err error) {

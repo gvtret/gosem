@@ -234,21 +234,21 @@ func DecodeLength(src *[]byte) (outByte []byte, outVal uint64, err error) {
 		if len(realLength) > 8 {
 			err = fmt.Errorf("length value is bigger than uint64 max value. This Decoder is limited to uint64")
 			return
-		} else {
-			outByte = (*src)[0 : lOfLength+1] // L-of-length and length
-
-			buf := []byte{0, 0, 0, 0, 0, 0, 0, 0}
-			bufStart := 7
-			outStart := len(realLength) - 1
-			for outStart >= 0 {
-				buf[bufStart] = realLength[outStart]
-				outStart--
-				bufStart--
-			}
-
-			outVal = binary.BigEndian.Uint64(buf)
-			(*src) = (*src)[1+len(realLength):]
 		}
+
+		outByte = (*src)[0 : lOfLength+1] // L-of-length and length
+
+		buf := []byte{0, 0, 0, 0, 0, 0, 0, 0}
+		bufStart := 7
+		outStart := len(realLength) - 1
+		for outStart >= 0 {
+			buf[bufStart] = realLength[outStart]
+			outStart--
+			bufStart--
+		}
+
+		outVal = binary.BigEndian.Uint64(buf)
+		(*src) = (*src)[1+len(realLength):]
 	} else {
 		outByte = append(outByte, (*src)[0])
 		outVal = uint64((*src)[0])

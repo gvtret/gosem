@@ -79,9 +79,9 @@ type ActionRequestNormal struct {
 	MethodParam    *axdr.DlmsData
 }
 
-func CreateActionRequestNormal(invokeId uint8, mth MethodDescriptor, dt *axdr.DlmsData) *ActionRequestNormal {
+func CreateActionRequestNormal(invokeID uint8, mth MethodDescriptor, dt *axdr.DlmsData) *ActionRequestNormal {
 	return &ActionRequestNormal{
-		InvokePriority: invokeId,
+		InvokePriority: invokeID,
 		MethodInfo:     mth,
 		MethodParam:    dt,
 	}
@@ -157,9 +157,9 @@ type ActionRequestNextPBlock struct {
 	BlockNum       uint32
 }
 
-func CreateActionRequestNextPBlock(invokeId uint8, blockNum uint32) *ActionRequestNextPBlock {
+func CreateActionRequestNextPBlock(invokeID uint8, blockNum uint32) *ActionRequestNextPBlock {
 	return &ActionRequestNextPBlock{
-		InvokePriority: invokeId,
+		InvokePriority: invokeID,
 		BlockNum:       blockNum,
 	}
 }
@@ -210,7 +210,7 @@ type ActionRequestWithList struct {
 	MethodParamList  []axdr.DlmsData
 }
 
-func CreateActionRequestWithList(invokeId uint8, mthList []MethodDescriptor, valList []axdr.DlmsData) *ActionRequestWithList {
+func CreateActionRequestWithList(invokeID uint8, mthList []MethodDescriptor, valList []axdr.DlmsData) *ActionRequestWithList {
 	if len(mthList) < 1 || len(mthList) > 255 {
 		panic("MethodInfoList cannot have zero or >255 member")
 	}
@@ -218,7 +218,7 @@ func CreateActionRequestWithList(invokeId uint8, mthList []MethodDescriptor, val
 		panic("MethodParamList cannot have zero or >255 member")
 	}
 	return &ActionRequestWithList{
-		InvokePriority:   invokeId,
+		InvokePriority:   invokeID,
 		MethodInfoCount:  uint8(len(mthList)),
 		MethodInfoList:   mthList,
 		MethodParamCount: uint8(len(valList)),
@@ -301,9 +301,9 @@ type ActionRequestWithFirstPBlock struct {
 	PBlock         DataBlockSA
 }
 
-func CreateActionRequestWithFirstPBlock(invokeId uint8, mth MethodDescriptor, dt DataBlockSA) *ActionRequestWithFirstPBlock {
+func CreateActionRequestWithFirstPBlock(invokeID uint8, mth MethodDescriptor, dt DataBlockSA) *ActionRequestWithFirstPBlock {
 	return &ActionRequestWithFirstPBlock{
-		InvokePriority: invokeId,
+		InvokePriority: invokeID,
 		MethodInfo:     mth,
 		PBlock:         dt,
 	}
@@ -363,12 +363,12 @@ type ActionRequestWithListAndFirstPBlock struct {
 	PBlock          DataBlockSA
 }
 
-func CreateActionRequestWithListAndFirstPBlock(invokeId uint8, mthList []MethodDescriptor, dt DataBlockSA) *ActionRequestWithListAndFirstPBlock {
+func CreateActionRequestWithListAndFirstPBlock(invokeID uint8, mthList []MethodDescriptor, dt DataBlockSA) *ActionRequestWithListAndFirstPBlock {
 	if len(mthList) < 1 || len(mthList) > 255 {
 		panic("MethodInfoList cannot have zero or >255 member")
 	}
 	return &ActionRequestWithListAndFirstPBlock{
-		InvokePriority:  invokeId,
+		InvokePriority:  invokeID,
 		MethodInfoCount: uint8(len(mthList)),
 		MethodInfoList:  mthList,
 		PBlock:          dt,
@@ -436,9 +436,9 @@ type ActionRequestWithPBlock struct {
 	PBlock         DataBlockSA
 }
 
-func CreateActionRequestWithPBlock(invokeId uint8, dt DataBlockSA) *ActionRequestWithPBlock {
+func CreateActionRequestWithPBlock(invokeID uint8, dt DataBlockSA) *ActionRequestWithPBlock {
 	return &ActionRequestWithPBlock{
-		InvokePriority: invokeId,
+		InvokePriority: invokeID,
 		PBlock:         dt,
 	}
 }

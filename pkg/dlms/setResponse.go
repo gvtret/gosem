@@ -73,9 +73,9 @@ type SetResponseNormal struct {
 	Result         AccessResultTag
 }
 
-func CreateSetResponseNormal(invokeId uint8, result AccessResultTag) *SetResponseNormal {
+func CreateSetResponseNormal(invokeID uint8, result AccessResultTag) *SetResponseNormal {
 	return &SetResponseNormal{
-		InvokePriority: invokeId,
+		InvokePriority: invokeID,
 		Result:         result,
 	}
 }
@@ -119,9 +119,9 @@ type SetResponseDataBlock struct {
 	BlockNum       uint32
 }
 
-func CreateSetResponseDataBlock(invokeId uint8, blockNum uint32) *SetResponseDataBlock {
+func CreateSetResponseDataBlock(invokeID uint8, blockNum uint32) *SetResponseDataBlock {
 	return &SetResponseDataBlock{
-		InvokePriority: invokeId,
+		InvokePriority: invokeID,
 		BlockNum:       blockNum,
 	}
 }
@@ -165,9 +165,9 @@ type SetResponseLastDataBlock struct {
 	BlockNum       uint32
 }
 
-func CreateSetResponseLastDataBlock(invokeId uint8, result AccessResultTag, blockNum uint32) *SetResponseLastDataBlock {
+func CreateSetResponseLastDataBlock(invokeID uint8, result AccessResultTag, blockNum uint32) *SetResponseLastDataBlock {
 	return &SetResponseLastDataBlock{
-		InvokePriority: invokeId,
+		InvokePriority: invokeID,
 		Result:         result,
 		BlockNum:       blockNum,
 	}
@@ -218,12 +218,12 @@ type SetResponseLastDataBlockWithList struct {
 	BlockNum       uint32
 }
 
-func CreateSetResponseLastDataBlockWithList(invokeId uint8, resList []AccessResultTag, blockNum uint32) *SetResponseLastDataBlockWithList {
+func CreateSetResponseLastDataBlockWithList(invokeID uint8, resList []AccessResultTag, blockNum uint32) *SetResponseLastDataBlockWithList {
 	if len(resList) < 1 || len(resList) > 255 {
 		panic("ResultList cannot have zero or >255 member")
 	}
 	return &SetResponseLastDataBlockWithList{
-		InvokePriority: invokeId,
+		InvokePriority: invokeID,
 		ResultCount:    uint8(len(resList)),
 		ResultList:     resList,
 		BlockNum:       blockNum,
@@ -284,12 +284,12 @@ type SetResponseWithList struct {
 	ResultList     []AccessResultTag
 }
 
-func CreateSetResponseWithList(invokeId uint8, resList []AccessResultTag) *SetResponseWithList {
+func CreateSetResponseWithList(invokeID uint8, resList []AccessResultTag) *SetResponseWithList {
 	if len(resList) < 1 || len(resList) > 255 {
 		panic("ResultList cannot have zero or >255 member")
 	}
 	return &SetResponseWithList{
-		InvokePriority: invokeId,
+		InvokePriority: invokeID,
 		ResultCount:    uint8(len(resList)),
 		ResultList:     resList,
 	}

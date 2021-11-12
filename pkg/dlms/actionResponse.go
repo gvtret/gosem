@@ -67,9 +67,9 @@ type ActionResponseNormal struct {
 	Response       ActResponse
 }
 
-func CreateActionResponseNormal(invokeId uint8, res ActResponse) *ActionResponseNormal {
+func CreateActionResponseNormal(invokeID uint8, res ActResponse) *ActionResponseNormal {
 	return &ActionResponseNormal{
-		InvokePriority: invokeId,
+		InvokePriority: invokeID,
 		Response:       res,
 	}
 }
@@ -115,9 +115,9 @@ type ActionResponseWithPBlock struct {
 	PBlock         DataBlockSA
 }
 
-func CreateActionResponseWithPBlock(invokeId uint8, dt DataBlockSA) *ActionResponseWithPBlock {
+func CreateActionResponseWithPBlock(invokeID uint8, dt DataBlockSA) *ActionResponseWithPBlock {
 	return &ActionResponseWithPBlock{
-		InvokePriority: invokeId,
+		InvokePriority: invokeID,
 		PBlock:         dt,
 	}
 }
@@ -164,12 +164,12 @@ type ActionResponseWithList struct {
 	ResponseList   []ActResponse
 }
 
-func CreateActionResponseWithList(invokeId uint8, resList []ActResponse) *ActionResponseWithList {
+func CreateActionResponseWithList(invokeID uint8, resList []ActResponse) *ActionResponseWithList {
 	if len(resList) < 1 || len(resList) > 255 {
 		panic("ResponseList cannot have zero or >255 member")
 	}
 	return &ActionResponseWithList{
-		InvokePriority: invokeId,
+		InvokePriority: invokeID,
 		ResponseCount:  uint8(len(resList)),
 		ResponseList:   resList,
 	}
@@ -227,9 +227,9 @@ type ActionResponseNextPBlock struct {
 	BlockNum       uint32
 }
 
-func CreateActionResponseNextPBlock(invokeId uint8, blockNum uint32) *ActionResponseNextPBlock {
+func CreateActionResponseNextPBlock(invokeID uint8, blockNum uint32) *ActionResponseNextPBlock {
 	return &ActionResponseNextPBlock{
-		InvokePriority: invokeId,
+		InvokePriority: invokeID,
 		BlockNum:       blockNum,
 	}
 }

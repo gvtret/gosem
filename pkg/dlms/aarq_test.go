@@ -7,7 +7,7 @@ import (
 
 func TestEncodeAARQWithoutAuthentication(t *testing.T) {
 	settings := &Settings{
-		Authentication: DlmsAuthenticationNone,
+		Authentication: AuthenticationNone,
 		MaxPduSize:     512,
 	}
 
@@ -24,7 +24,7 @@ func TestEncodeAARQWithoutAuthentication(t *testing.T) {
 
 func TestEncodeAARQWithLowAuthentication(t *testing.T) {
 	settings := &Settings{
-		Authentication: DlmsAuthenticationLow,
+		Authentication: AuthenticationLow,
 		MaxPduSize:     256,
 		Password:       []byte("12345678"),
 	}
