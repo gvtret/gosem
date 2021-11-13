@@ -66,7 +66,7 @@ func generateApplicationContextName(settings *Settings) (out []byte) {
 	// Application context name
 	buf.WriteByte(BERTypeContext | BERTypeConstructed | PduTypeApplicationContextName)
 	buf.Write([]byte{0x09, 0x06, 0x07, 0x60, 0x85, 0x74, 0x05, 0x08, 0x01})
-	if settings.Ciphering.Security == SecurityNone || len(settings.Ciphering.SystemTitle) > 0 {
+	if settings.Ciphering.Security == SecurityNone && len(settings.Ciphering.SystemTitle) == 0 {
 		buf.Write([]byte{ApplicationContextLNNoCiphering})
 	} else {
 		buf.Write([]byte{ApplicationContextLNCiphering})
@@ -137,7 +137,7 @@ func getInitiateRequest(settings *Settings) (out []byte) {
 	// Application Association Request
 	buf.WriteByte(byte(TagInitiateRequest))
 
-	if settings.Ciphering.Security == SecurityNone || len(settings.Ciphering.DedicatedKey) == 0 {
+	if settings.Ciphering.Security == SecurityNone && len(settings.Ciphering.DedicatedKey) == 0 {
 		buf.WriteByte(0x00)
 	} else {
 		buf.WriteByte(0x01)

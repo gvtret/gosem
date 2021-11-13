@@ -11,14 +11,14 @@ func TestEncodeAARQWithoutAuthentication(t *testing.T) {
 		MaxPduSize:     512,
 	}
 
-	t1, err := EncodeAARQ(settings)
+	out, err := EncodeAARQ(settings)
 	if err != nil {
-		t.Errorf("t1 Encode Failed. err: %v", err)
+		t.Errorf("Encode Failed. err: %v", err)
 	}
-	result := []byte{0x60, 0x1D, 0xA1, 0x09, 0x06, 0x07, 0x60, 0x85, 0x74, 0x05, 0x08, 0x01, 0x01, 0xBE, 0x10, 0x04, 0x0E, 0x01, 0x00, 0x00, 0x00, 0x06, 0x5F, 0x1F, 0x04, 0x00, 0x00, 0x18, 0x1F, 0x02, 0x00}
-	res := bytes.Compare(t1, result)
+	result := decodeHexString("601DA109060760857405080101BE10040E01000000065F1F040000181F0200")
+	res := bytes.Compare(out, result)
 	if res != 0 {
-		t.Errorf("t1 Failed. get: %d, should:%v", t1, result)
+		t.Errorf("Failed. get: %s, should: %s", encodeHexString(out), encodeHexString(result))
 	}
 }
 
@@ -29,13 +29,41 @@ func TestEncodeAARQWithLowAuthentication(t *testing.T) {
 		Password:       []byte("12345678"),
 	}
 
-	t1, err := EncodeAARQ(settings)
+	out, err := EncodeAARQ(settings)
 	if err != nil {
-		t.Errorf("t1 Encode Failed. err: %v", err)
+		t.Errorf("Encode Failed. err: %v", err)
 	}
-	result := []byte{0x60, 0x36, 0xA1, 0x09, 0x06, 0x07, 0x60, 0x85, 0x74, 0x05, 0x08, 0x01, 0x01, 0x8A, 0x02, 0x07, 0x80, 0x8B, 0x07, 0x60, 0x85, 0x74, 0x05, 0x08, 0x02, 0x01, 0xAC, 0x0A, 0x80, 0x08, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0xBE, 0x10, 0x04, 0x0E, 0x01, 0x00, 0x00, 0x00, 0x06, 0x5F, 0x1F, 0x04, 0x00, 0x00, 0x18, 0x1F, 0x01, 0x00}
-	res := bytes.Compare(t1, result)
+	result := decodeHexString("6036A1090607608574050801018A0207808B0760857405080201AC0A80083132333435363738BE10040E01000000065F1F040000181F0100")
+	res := bytes.Compare(out, result)
 	if res != 0 {
-		t.Errorf("t1 Failed. get: %d, should:%v", t1, result)
+		t.Errorf("Failed. get: %s, should: %s", encodeHexString(out), encodeHexString(result))
+	}
+}
+
+func TestEncodeAARQWithLowAuthenticationAndCipher(t *testing.T) {
+	ciphering := Ciphering{
+		Security:          SecurityAuthenticationEncryption,
+		SystemTitle:       decodeHexString("4349520000000001"),
+		BlockCipherKey:    decodeHexString("00112233445566778899AABBCCDDEEFF"),
+		AuthenticationKey: decodeHexString("00112233445566778899AABBCCDDEEFF"),
+		DedicatedKey:      decodeHexString("E803739DBE338C3A790D8D1B12C63FE2"),
+		InvocationCounter: 0x00000107,
+	}
+
+	settings := &Settings{
+		Authentication: AuthenticationLow,
+		Password:       []byte("JuS66BCZ"),
+		Ciphering:      ciphering,
+		MaxPduSize:     512,
+	}
+
+	out, err := EncodeAARQ(settings)
+	if err != nil {
+		t.Errorf("Encode Failed. err: %v", err)
+	}
+	result := decodeHexString("6066A109060760857405080103A60A040843495200000000018A0207808B0760857405080201AC0A80084A7553363642435ABE340432213030000001078E6341442275404C816C6BED3E33AE809EC51E1D0E428BE8F5F643E26C3DD89FD2E3F2220097124F58E0F4")
+	res := bytes.Compare(out, result)
+	if res != 0 {
+		t.Errorf("Failed. get: %s, should: %s", encodeHexString(out), encodeHexString(result))
 	}
 }

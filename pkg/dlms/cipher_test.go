@@ -3,6 +3,7 @@ package dlms
 import (
 	"bytes"
 	"encoding/hex"
+	"strings"
 	"testing"
 )
 
@@ -20,11 +21,15 @@ func TestCipherData(t *testing.T) {
 	out := CipherData(&ciphering, data, TagGloInitiateRequest, false)
 	res := bytes.Compare(out, result)
 	if res != 0 {
-		t.Errorf("Failed. get: %s, should: %s", hex.EncodeToString(out), hex.EncodeToString(result))
+		t.Errorf("Failed. get: %s, should: %s", encodeHexString(out), encodeHexString(result))
 	}
 }
 
 func decodeHexString(s string) []byte {
 	b, _ := hex.DecodeString(s)
 	return b
+}
+
+func encodeHexString(b []byte) string {
+	return strings.ToUpper(hex.EncodeToString(b))
 }
