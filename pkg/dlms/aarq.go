@@ -3,6 +3,7 @@ package dlms
 import (
 	"bytes"
 	"encoding/binary"
+	"errors"
 )
 
 // APDU types
@@ -49,8 +50,18 @@ func EncodeAARQ(settings *Settings) (out []byte, err error) {
 	buf.WriteByte(0x00)
 
 	buf.Write(generateApplicationContextName(settings))
-	buf.Write(generateAuthentication(settings))
-	buf.Write(generateUserInformation(settings))
+
+	auth, err := generateAuthentication(settings)
+	if err != nil {
+		return nil, err
+	}
+	buf.Write(auth)
+
+	userInfo, err := generateUserInformation(settings)
+	if err != nil {
+		return nil, err
+	}
+	buf.Write(userInfo)
 
 	out = buf.Bytes()
 
@@ -84,7 +95,7 @@ func generateApplicationContextName(settings *Settings) (out []byte) {
 	return
 }
 
-func generateAuthentication(settings *Settings) (out []byte) {
+func generateAuthentication(settings *Settings) (out []byte, err error) {
 	var buf bytes.Buffer
 
 	if settings.Authentication != AuthenticationNone {
@@ -96,6 +107,10 @@ func generateAuthentication(settings *Settings) (out []byte) {
 		buf.WriteByte(BERTypeContext | PduTypeMechanismName)
 		buf.Write([]byte{0x07, 0x60, 0x85, 0x74, 0x05, 0x08, 0x02})
 		buf.WriteByte(byte(settings.Authentication))
+
+		if len(settings.Password) == 0 {
+			err = errors.New("password is required for authentication")
+		}
 
 		// Add Calling authentication information.
 		buf.WriteByte(BERTypeContext | BERTypeConstructed | PduTypeCallingAuthenticationValue)
@@ -110,7 +125,7 @@ func generateAuthentication(settings *Settings) (out []byte) {
 	return
 }
 
-func generateUserInformation(settings *Settings) (out []byte) {
+func generateUserInformation(settings *Settings) (out []byte, err error) {
 	var buf bytes.Buffer
 
 	// User information
@@ -118,7 +133,10 @@ func generateUserInformation(settings *Settings) (out []byte) {
 	initiateRequest := getInitiateRequest(settings)
 
 	if settings.Ciphering.Security != SecurityNone {
-		initiateRequest = CipherData(&settings.Ciphering, initiateRequest, TagGloInitiateRequest, false)
+		initiateRequest, err = CipherData(&settings.Ciphering, initiateRequest, TagGloInitiateRequest, false)
+		if err != nil {
+			return
+		}
 	}
 
 	buf.WriteByte(byte(2 + len(initiateRequest)))
@@ -137,7 +155,7 @@ func getInitiateRequest(settings *Settings) (out []byte) {
 	// Application Association Request
 	buf.WriteByte(byte(TagInitiateRequest))
 
-	if settings.Ciphering.Security == SecurityNone && len(settings.Ciphering.DedicatedKey) == 0 {
+	if settings.Ciphering.Security == SecurityNone || len(settings.Ciphering.DedicatedKey) == 0 {
 		buf.WriteByte(0x00)
 	} else {
 		buf.WriteByte(0x01)

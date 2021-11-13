@@ -38,6 +38,12 @@ func TestEncodeAARQWithLowAuthentication(t *testing.T) {
 	if res != 0 {
 		t.Errorf("Failed. get: %s, should: %s", encodeHexString(out), encodeHexString(result))
 	}
+
+	settings.Password = nil
+	_, err = EncodeAARQ(settings)
+	if err == nil {
+		t.Errorf("Should be error")
+	}
 }
 
 func TestEncodeAARQWithLowAuthenticationAndCipher(t *testing.T) {
@@ -65,5 +71,11 @@ func TestEncodeAARQWithLowAuthenticationAndCipher(t *testing.T) {
 	res := bytes.Compare(out, result)
 	if res != 0 {
 		t.Errorf("Failed. get: %s, should: %s", encodeHexString(out), encodeHexString(result))
+	}
+
+	settings.Ciphering.BlockCipherKey = nil
+	_, err = EncodeAARQ(settings)
+	if err == nil {
+		t.Errorf("Should be error")
 	}
 }

@@ -7,7 +7,7 @@ import (
 	"gosem/pkg/axdr"
 )
 
-func CipherData(ciphering *Ciphering, data []byte, tag cosemTag, useDedicatedKey bool) (out []byte) {
+func CipherData(ciphering *Ciphering, data []byte, tag cosemTag, useDedicatedKey bool) ([]byte, error) {
 	var key []byte
 	if useDedicatedKey {
 		key = ciphering.DedicatedKey
@@ -18,14 +18,14 @@ func CipherData(ciphering *Ciphering, data []byte, tag cosemTag, useDedicatedKey
 	// Generate a new AES cipher using our 32 byte long key
 	c, err := aes.NewCipher(key)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	// GCM or Galois/Counter Mode, is a mode of operation for symmetric key cryptographic block ciphers
 	// - https://en.wikipedia.org/wiki/Galois/Counter_Mode
 	gcm, err := cipher.NewGCMWithTagSize(c, 12)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	// Initialization vector (or Nonce)
@@ -47,5 +47,5 @@ func CipherData(ciphering *Ciphering, data []byte, tag cosemTag, useDedicatedKey
 	binary.BigEndian.PutUint32(dst[2+len(size):], ciphering.InvocationCounter)
 
 	// Encrypt data
-	return gcm.Seal(dst, iv, data, ad)
+	return gcm.Seal(dst, iv, data, ad), nil
 }

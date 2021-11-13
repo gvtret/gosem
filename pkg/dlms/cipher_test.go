@@ -18,10 +18,24 @@ func TestCipherData(t *testing.T) {
 	data := decodeHexString("01011000112233445566778899AABBCCDDEEFF0000065F1F0400007E1F04B0")
 	result := decodeHexString("21303001234567801302FF8A7874133D414CED25B42534D28DB0047720606B175BD52211BE6841DB204D39EE6FDB8E356855")
 
-	out := CipherData(&ciphering, data, TagGloInitiateRequest, false)
+	out, err := CipherData(&ciphering, data, TagGloInitiateRequest, false)
+	if err != nil {
+		t.Errorf("Got an error when ciphering: %v", err)
+	}
+
 	res := bytes.Compare(out, result)
 	if res != 0 {
 		t.Errorf("Failed. get: %s, should: %s", encodeHexString(out), encodeHexString(result))
+	}
+}
+
+func TestCipherError(t *testing.T) {
+	ciphering := Ciphering{}
+	data := decodeHexString("01011000112233445566778899AABBCCDDEEFF0000065F1F0400007E1F04B0")
+
+	_, err := CipherData(&ciphering, data, TagGloInitiateRequest, false)
+	if err == nil {
+		t.Errorf("Should get an error when ciphering")
 	}
 }
 
