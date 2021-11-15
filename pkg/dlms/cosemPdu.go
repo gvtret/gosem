@@ -16,6 +16,10 @@ const (
 	TagUnconfirmedWriteRequest  cosemTag = 22
 	TagInformationReportRequest cosemTag = 24
 	TagGloInitiateRequest       cosemTag = 33
+	TagAARQ                     cosemTag = 96
+	TagAARE                     cosemTag = 97
+	TagRLRQ                     cosemTag = 98
+	TagRLRE                     cosemTag = 99
 	// --- APDUs used for data communication services
 	TagGetRequest               cosemTag = 192
 	TagSetRequest               cosemTag = 193
@@ -47,8 +51,12 @@ func ErrWrongTag(idx int, get byte, correct byte) error {
 	return fmt.Errorf("wrong data tag on index %v, expecting %v instead of %v", idx, correct, get)
 }
 
-func ErrWrongLength(current int, correct byte) error {
-	return fmt.Errorf("wrong data length, received %d, expecting %v", current, correct)
+func ErrWrongLength(current int, correct int) error {
+	return fmt.Errorf("wrong data length, received %d, expecting %d", current, correct)
+}
+
+func ErrWrongSlice(current []byte, correct []byte) error {
+	return fmt.Errorf("wrong data, received %v, expecting %v", current, correct)
 }
 
 // Value will return primitive value of the target.

@@ -32,12 +32,14 @@ const (
 	BERTypeConstructed = 0x20
 )
 
+type ApplicationContext uint8
+
 // Application context definitions
 const (
-	ApplicationContextLNNoCiphering = 1
-	ApplicationContextSNNoCiphering = 2
-	ApplicationContextLNCiphering   = 3
-	ApplicationContextSNCiphering   = 4
+	ApplicationContextLNNoCiphering ApplicationContext = 1
+	ApplicationContextSNNoCiphering ApplicationContext = 2
+	ApplicationContextLNCiphering   ApplicationContext = 3
+	ApplicationContextSNCiphering   ApplicationContext = 4
 )
 
 func EncodeAARQ(settings *Settings) (out []byte, err error) {
@@ -74,17 +76,17 @@ func EncodeAARQ(settings *Settings) (out []byte, err error) {
 func generateApplicationContextName(settings *Settings) (out []byte) {
 	var buf bytes.Buffer
 
-	// Application context name
+	// Application context name - 0xA1
 	buf.WriteByte(BERTypeContext | BERTypeConstructed | PduTypeApplicationContextName)
 	buf.Write([]byte{0x09, 0x06, 0x07, 0x60, 0x85, 0x74, 0x05, 0x08, 0x01})
 	if settings.Ciphering.Security == SecurityNone && len(settings.Ciphering.SystemTitle) == 0 {
-		buf.Write([]byte{ApplicationContextLNNoCiphering})
+		buf.WriteByte(byte(ApplicationContextLNNoCiphering))
 	} else {
-		buf.Write([]byte{ApplicationContextLNCiphering})
+		buf.WriteByte(byte(ApplicationContextLNCiphering))
 	}
 
 	if len(settings.Ciphering.SystemTitle) > 0 {
-		// Add calling-AP-title
+		// Add calling-AP-title - 0xA6
 		buf.WriteByte(BERTypeContext | BERTypeConstructed | PduTypeCallingAPTitle)
 		buf.Write([]byte{0x0A, 0x04, 0x08})
 		buf.Write(settings.Ciphering.SystemTitle)
@@ -99,11 +101,11 @@ func generateAuthentication(settings *Settings) (out []byte, err error) {
 	var buf bytes.Buffer
 
 	if settings.Authentication != AuthenticationNone {
-		// Add sender ACSE-requirements field component.
+		// Add sender ACSE-requirements field component - 0x8A
 		buf.WriteByte(BERTypeContext | PduTypeSenderAcseRequirements)
 		buf.Write([]byte{0x02, 0x07, 0x80})
 
-		// Add mechanism name.
+		// Add mechanism name - 0x8B
 		buf.WriteByte(BERTypeContext | PduTypeMechanismName)
 		buf.Write([]byte{0x07, 0x60, 0x85, 0x74, 0x05, 0x08, 0x02})
 		buf.WriteByte(byte(settings.Authentication))
@@ -112,7 +114,7 @@ func generateAuthentication(settings *Settings) (out []byte, err error) {
 			err = errors.New("password is required for authentication")
 		}
 
-		// Add Calling authentication information.
+		// Add Calling authentication information - 0xAC
 		buf.WriteByte(BERTypeContext | BERTypeConstructed | PduTypeCallingAuthenticationValue)
 		buf.WriteByte(byte(2 + len(settings.Password)))
 		buf.WriteByte(0x80)
@@ -128,7 +130,7 @@ func generateAuthentication(settings *Settings) (out []byte, err error) {
 func generateUserInformation(settings *Settings) (out []byte, err error) {
 	var buf bytes.Buffer
 
-	// User information
+	// User information - 0xBE
 	buf.WriteByte(BERTypeContext | BERTypeConstructed | PduTypeUserInformation)
 	initiateRequest := getInitiateRequest(settings)
 
