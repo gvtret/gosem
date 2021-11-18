@@ -7,7 +7,7 @@ import (
 
 func TestDecodeAARQ(t *testing.T) {
 	src := decodeHexString("6129A109060760857405080101A203020100A305A103020100BE10040E0800065F1F040000101D00800007")
-	a, err := DecodeAARE(&src)
+	a, err := DecodeAARE(nil, &src)
 	if err != nil {
 		t.Errorf("Failed on DecodeAARE. Err: %v", err)
 	}
@@ -26,10 +26,19 @@ func TestDecodeAARQ(t *testing.T) {
 }
 
 func TestDecodeAARQWithSecurity(t *testing.T) {
-	src := decodeHexString("6148A109060760857405080103A203020100A305A103020100A40A04084C475A2022604828BE230421281F300000003149963E23D6DA824A369644B66A9A17C60C3CA3F63E58608FA192")
-	// Decoded: 08 00 06 5F 1F 04 00 00 18 1F 00 FA 00 07
+	ciphering := Ciphering{
+		Security:          SecurityAuthenticationEncryption,
+		SourceSystemTitle: decodeHexString("4349520000000001"),
+		BlockCipherKey:    decodeHexString("00112233445566778899AABBCCDDEEFF"),
+		AuthenticationKey: decodeHexString("00112233445566778899AABBCCDDEEFF"),
+	}
 
-	a, err := DecodeAARE(&src)
+	settings := &Settings{
+		Ciphering: ciphering,
+	}
+
+	src := decodeHexString("6148A109060760857405080103A203020100A305A103020100A40A04084C475A2022604828BE230421281F300000003149963E23D6DA824A369644B66A9A17C60C3CA3F63E58608FA192")
+	a, err := DecodeAARE(settings, &src)
 	if err != nil {
 		t.Errorf("Failed on DecodeAARE. Err: %v", err)
 	}

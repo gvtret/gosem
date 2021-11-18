@@ -73,6 +73,10 @@ func TestEncodeAARQWithLowAuthenticationAndCipher(t *testing.T) {
 		t.Errorf("Failed. get: %s, should: %s", encodeHexString(out), encodeHexString(result))
 	}
 
+	if settings.Ciphering.InvocationCounter != 0x00000108 {
+		t.Errorf("Failed. InvocationCounter: %d", settings.Ciphering.InvocationCounter)
+	}
+
 	settings.Ciphering.BlockCipherKey = nil
 	_, err = EncodeAARQ(settings)
 	if err == nil {

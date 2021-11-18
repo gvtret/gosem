@@ -16,6 +16,8 @@ const (
 	TagUnconfirmedWriteRequest  cosemTag = 22
 	TagInformationReportRequest cosemTag = 24
 	TagGloInitiateRequest       cosemTag = 33
+	TagGloInitiateResponse      cosemTag = 40
+	TagGloConfirmedServiceError cosemTag = 14
 	TagAARQ                     cosemTag = 96
 	TagAARE                     cosemTag = 97
 	TagRLRQ                     cosemTag = 98

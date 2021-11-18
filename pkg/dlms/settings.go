@@ -26,6 +26,7 @@ const (
 type Ciphering struct {
 	Security          Security
 	SystemTitle       []byte
+	SourceSystemTitle []byte
 	BlockCipherKey    []byte
 	AuthenticationKey []byte
 	InvocationCounter uint32

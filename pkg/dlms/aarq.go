@@ -135,7 +135,17 @@ func generateUserInformation(settings *Settings) (out []byte, err error) {
 	initiateRequest := getInitiateRequest(settings)
 
 	if settings.Ciphering.Security != SecurityNone {
-		initiateRequest, err = CipherData(&settings.Ciphering, initiateRequest, TagGloInitiateRequest, false)
+		cfg := Cipher{
+			Tag:          TagGloInitiateRequest,
+			Security:     settings.Ciphering.Security,
+			SystemTitle:  settings.Ciphering.SystemTitle,
+			Key:          settings.Ciphering.BlockCipherKey,
+			AuthKey:      settings.Ciphering.AuthenticationKey,
+			FrameCounter: settings.Ciphering.InvocationCounter,
+		}
+		settings.Ciphering.InvocationCounter++
+
+		initiateRequest, err = CipherData(cfg, initiateRequest)
 		if err != nil {
 			return
 		}
