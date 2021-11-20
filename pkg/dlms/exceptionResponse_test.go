@@ -6,44 +6,41 @@ import (
 )
 
 func TestNew_ExceptionResponse(t *testing.T) {
-	var a ExceptionResponse = *CreateExceptionResponse(TagExcServiceNotAllowed, TagExcServiceNotSupported)
-	t1, e := a.Encode()
-	if e != nil {
-		t.Errorf("t1 Encode Failed. err: %v", e)
+	var er ExceptionResponse = *CreateExceptionResponse(TagExcServiceNotAllowed, TagExcServiceNotSupported)
+	out, err := er.Encode()
+	if err != nil {
+		t.Errorf("t1 Encode Failed. err: %v", err)
 	}
-	result := []byte{216, 1, 2}
-	res := bytes.Compare(t1, result)
-	if res != 0 {
-		t.Errorf("t1 Failed. get: %d, should:%v", t1, result)
+	result := decodeHexString("D80102")
+	if !bytes.Equal(out, result) {
+		t.Errorf("Failed. Get: %s, should: %s", encodeHexString(out), encodeHexString(result))
 	}
 }
 
 func TestDecode_ExceptionResponse(t *testing.T) {
-	src := []byte{216, 2, 3}
-	a, err := DecodeExceptionResponse(&src)
+	src := decodeHexString("D80203")
+	er, err := DecodeExceptionResponse(&src)
 	if err != nil {
-		t.Errorf("t1 failed on DecodeExceptionResponse. Err: %v", err)
+		t.Errorf("Failed on DecodeExceptionResponse. Err: %v", err)
 	}
 
-	var b ExceptionResponse = *CreateExceptionResponse(TagExcServiceUnknown, TagExcOtherReason)
-
-	if a.StateError != b.StateError {
-		t.Errorf("t1 err StateError. get: %v, should: %v", a.StateError, b.StateError)
+	if er.StateError != TagExcServiceUnknown {
+		t.Errorf("Invalid StateError. Get: %v", er.StateError)
 	}
 
-	if a.ServiceError != b.ServiceError {
-		t.Errorf("t1 err ServiceError. get: %v, should: %v", a.ServiceError, b.ServiceError)
+	if er.ServiceError != TagExcOtherReason {
+		t.Errorf("Invalid ServiceError. Get: %v", er.ServiceError)
 	}
 
-	src = []byte{216, 1}
+	src = decodeHexString("D801")
 	_, err = DecodeExceptionResponse(&src)
 	if err == nil {
-		t.Errorf("t1 should failed on DecodeExceptionResponse. Err: %v", err)
+		t.Errorf("Should failed on DecodeExceptionResponse")
 	}
 
-	src = []byte{217, 1, 2}
+	src = decodeHexString("D90102")
 	_, err = DecodeExceptionResponse(&src)
 	if err == nil {
-		t.Errorf("t1 should failed on DecodeExceptionResponse. Err: %v", err)
+		t.Errorf("Should failed on DecodeExceptionResponse")
 	}
 }

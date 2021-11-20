@@ -6,48 +6,45 @@ import (
 )
 
 func TestNew_ConfirmedServiceError(t *testing.T) {
-	var a ConfirmedServiceError = *CreateConfirmedServiceError(TagErrInitiateError, TagErrInitiate, 1)
-	t1, e := a.Encode()
-	if e != nil {
-		t.Errorf("t1 Encode Failed. err: %v", e)
+	var cse ConfirmedServiceError = *CreateConfirmedServiceError(TagErrInitiateError, TagErrInitiate, 1)
+	out, err := cse.Encode()
+	if err != nil {
+		t.Errorf("Encode Failed. Err: %v", err)
 	}
-	result := []byte{14, 1, 6, 1}
-	res := bytes.Compare(t1, result)
-	if res != 0 {
-		t.Errorf("t1 Failed. get: %d, should:%v", t1, result)
+	result := decodeHexString("0E010601")
+	if !bytes.Equal(out, result) {
+		t.Errorf("Failed. Get: %s, should: %s", encodeHexString(out), encodeHexString(result))
 	}
 }
 
 func TestDecode_ConfirmedServiceError(t *testing.T) {
-	src := []byte{14, 1, 6, 1}
-	a, err := DecodeConfirmedServiceError(&src)
+	src := decodeHexString("0E010601")
+	cse, err := DecodeConfirmedServiceError(&src)
 	if err != nil {
-		t.Errorf("t1 failed on DecodeConfirmedServiceError. Err: %v", err)
+		t.Errorf("Failed on DecodeConfirmedServiceError. Err: %v", err)
 	}
 
-	var b ConfirmedServiceError = *CreateConfirmedServiceError(TagErrInitiateError, TagErrInitiate, 1)
-
-	if a.ConfirmedServiceError != b.ConfirmedServiceError {
-		t.Errorf("t1 err ConfirmedServiceError. get: %v, should: %v", a.ConfirmedServiceError, b.ConfirmedServiceError)
+	if cse.ConfirmedServiceError != TagErrInitiateError {
+		t.Errorf("Invalid ConfirmedServiceError. Get: %v", cse.ConfirmedServiceError)
 	}
 
-	if a.ServiceError != b.ServiceError {
-		t.Errorf("t1 err ServiceError. get: %v, should: %v", a.ServiceError, b.ServiceError)
+	if cse.ServiceError != TagErrInitiate {
+		t.Errorf("Invalid ServiceError. Get: %v", cse.ServiceError)
 	}
 
-	if a.Value != b.Value {
-		t.Errorf("t1 err Value. get: %v, should: %v", a.Value, b.Value)
+	if cse.Value != 1 {
+		t.Errorf("Invalid Value. Get: %v", cse.Value)
 	}
 
-	src = []byte{14, 1, 6}
+	src = decodeHexString("0E0106")
 	_, err = DecodeConfirmedServiceError(&src)
 	if err == nil {
-		t.Errorf("t1 should failed on DecodeConfirmedServiceError. Err: %v", err)
+		t.Errorf("Should failed on DecodeConfirmedServiceError")
 	}
 
-	src = []byte{15, 1, 6, 1}
+	src = decodeHexString("0F010601")
 	_, err = DecodeConfirmedServiceError(&src)
 	if err == nil {
-		t.Errorf("t1 should failed on DecodeConfirmedServiceError. Err: %v", err)
+		t.Errorf("Should failed on DecodeConfirmedServiceError")
 	}
 }

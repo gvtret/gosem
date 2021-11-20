@@ -13,8 +13,7 @@ func TestNew_InitiateResponse(t *testing.T) {
 	}
 
 	result := decodeHexString("0800065F1F040000101D00800007")
-	res := bytes.Compare(out, result)
-	if res != 0 {
+	if !bytes.Equal(out, result) {
 		t.Errorf("Failed. Get: %s, should: %s", encodeHexString(out), encodeHexString(result))
 	}
 
@@ -26,8 +25,7 @@ func TestNew_InitiateResponse(t *testing.T) {
 	}
 
 	result = decodeHexString("080102065F1F040000101D00800007")
-	res = bytes.Compare(out, result)
-	if res != 0 {
+	if !bytes.Equal(out, result) {
 		t.Errorf("Failed. Get: %s, should: %s", encodeHexString(out), encodeHexString(result))
 	}
 }

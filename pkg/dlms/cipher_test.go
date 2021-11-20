@@ -24,9 +24,8 @@ func TestCipherData(t *testing.T) {
 		t.Errorf("Got an error when ciphering: %v", err)
 	}
 
-	res := bytes.Compare(out, result)
-	if res != 0 {
-		t.Errorf("Failed. get: %s, should: %s", encodeHexString(out), encodeHexString(result))
+	if !bytes.Equal(out, result) {
+		t.Errorf("Failed. Get: %s, should: %s", encodeHexString(out), encodeHexString(result))
 	}
 }
 
@@ -58,9 +57,8 @@ func TestDecipherData(t *testing.T) {
 		t.Errorf("Got an error when deciphering: %v", err)
 	}
 
-	res := bytes.Compare(out, result)
-	if res != 0 {
-		t.Errorf("Failed. get: %s, should: %s", encodeHexString(out), encodeHexString(result))
+	if !bytes.Equal(out, result) {
+		t.Errorf("Failed. Get: %s, should: %s", encodeHexString(out), encodeHexString(result))
 	}
 
 	_, err = DecipherData(cfg, data[:len(data)-1])
