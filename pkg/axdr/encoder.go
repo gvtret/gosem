@@ -146,7 +146,7 @@ func EncodeBitString(data string) ([]byte, error) {
 		}
 		thisByte, err := strconv.ParseUint(str, 2, 8)
 		if err != nil {
-			return []byte{}, err
+			return []byte{}, fmt.Errorf("error encoding bit string: %w", err)
 		}
 		dataBytes.WriteByte(byte(thisByte))
 	}

@@ -37,10 +37,10 @@ linters:
     - tparallel
     - unparam
     - whitespace
+    - wrapcheck
   disable:
     - gomnd
     - gci
-    - wrapcheck
     - testpackage
     - paralleltest
     - nlreturn

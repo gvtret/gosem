@@ -5,6 +5,7 @@ import (
 	"crypto/cipher"
 	"encoding/binary"
 	"errors"
+	"fmt"
 	"gosem/pkg/axdr"
 )
 
@@ -21,14 +22,14 @@ func CipherData(cfg Cipher, data []byte) ([]byte, error) {
 	// Generate a new AES cipher using our 32 byte long key
 	c, err := aes.NewCipher(cfg.Key)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to create AES cipher: %w", err)
 	}
 
 	// GCM or Galois/Counter Mode, is a mode of operation for symmetric key cryptographic block ciphers
 	// - https://en.wikipedia.org/wiki/Galois/Counter_Mode
 	gcm, err := cipher.NewGCMWithTagSize(c, 12)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to create GCM cipher: %w", err)
 	}
 
 	// Initialization vector (or Nonce)
@@ -63,7 +64,7 @@ func DecipherData(cfg Cipher, data []byte) ([]byte, error) {
 	// Check length
 	_, length, err := axdr.DecodeLength(&data)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to decode length: %w", err)
 	}
 
 	if len(data) != int(length) {
@@ -80,14 +81,14 @@ func DecipherData(cfg Cipher, data []byte) ([]byte, error) {
 	// Generate a new AES cipher using our 32 byte long key
 	c, err := aes.NewCipher(cfg.Key)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to create AES cipher: %w", err)
 	}
 
 	// GCM or Galois/Counter Mode, is a mode of operation for symmetric key cryptographic block ciphers
 	// - https://en.wikipedia.org/wiki/Galois/Counter_Mode
 	gcm, err := cipher.NewGCMWithTagSize(c, 12)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to create GCM cipher: %w", err)
 	}
 
 	// Initialization vector (or Nonce)

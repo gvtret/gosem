@@ -21,7 +21,7 @@ func (o *Obis) Set(str string) error {
 	for i, v := range s {
 		bt, err := strconv.ParseUint(v, 10, 8)
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to parse input as byte for Obis: %w", err)
 		}
 		bv[i] = uint8(bt)
 	}
