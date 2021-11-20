@@ -103,7 +103,7 @@ func DecodeSetResponseNormal(ori *[]byte) (out SetResponseNormal, err error) {
 		return
 	}
 	out.InvokePriority = src[2]
-	out.Result, err = GetAccessTag(uint8(src[3]))
+	out.Result, err = GetAccessTag(src[3])
 	if err != nil {
 		return
 	}
@@ -198,7 +198,7 @@ func DecodeSetResponseLastDataBlock(ori *[]byte) (out SetResponseLastDataBlock, 
 		return
 	}
 	out.InvokePriority = src[2]
-	out.Result, err = GetAccessTag(uint8(src[3]))
+	out.Result, err = GetAccessTag(src[3])
 	if err != nil {
 		return
 	}
@@ -259,10 +259,10 @@ func DecodeSetResponseLastDataBlockWithList(ori *[]byte) (out SetResponseLastDat
 	}
 	out.InvokePriority = src[2]
 
-	out.ResultCount = uint8(src[3])
+	out.ResultCount = src[3]
 	src = src[4:]
 	for i := 0; i < int(out.ResultCount); i++ {
-		v, e := GetAccessTag(uint8(src[0]))
+		v, e := GetAccessTag(src[0])
 		if e != nil {
 			err = e
 			return
@@ -322,10 +322,10 @@ func DecodeSetResponseWithList(ori *[]byte) (out SetResponseWithList, err error)
 	}
 	out.InvokePriority = src[2]
 
-	out.ResultCount = uint8(src[3])
+	out.ResultCount = src[3]
 	src = src[4:]
 	for i := 0; i < int(out.ResultCount); i++ {
-		v, e := GetAccessTag(uint8(src[0]))
+		v, e := GetAccessTag(src[0])
 		if e != nil {
 			err = e
 			return

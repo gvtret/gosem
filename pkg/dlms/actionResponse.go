@@ -78,7 +78,7 @@ func (ar ActionResponseNormal) Encode() (out []byte, err error) {
 	var buf bytes.Buffer
 	buf.WriteByte(byte(TagActionResponse))
 	buf.WriteByte(byte(TagActionResponseNormal))
-	buf.WriteByte(byte(ar.InvokePriority))
+	buf.WriteByte(ar.InvokePriority)
 	val, e := ar.Response.Encode()
 	if e != nil {
 		err = e
@@ -126,7 +126,7 @@ func (ar ActionResponseWithPBlock) Encode() (out []byte, err error) {
 	var buf bytes.Buffer
 	buf.WriteByte(byte(TagActionResponse))
 	buf.WriteByte(byte(TagActionResponseWithPBlock))
-	buf.WriteByte(byte(ar.InvokePriority))
+	buf.WriteByte(ar.InvokePriority)
 	val, e := ar.PBlock.Encode()
 	if e != nil {
 		err = e
@@ -179,8 +179,8 @@ func (ar ActionResponseWithList) Encode() (out []byte, err error) {
 	var buf bytes.Buffer
 	buf.WriteByte(byte(TagActionResponse))
 	buf.WriteByte(byte(TagActionResponseWithList))
-	buf.WriteByte(byte(ar.InvokePriority))
-	buf.WriteByte(byte(ar.ResponseCount))
+	buf.WriteByte(ar.InvokePriority)
+	buf.WriteByte(ar.ResponseCount)
 	for _, res := range ar.ResponseList {
 		val, e := res.Encode()
 		if e != nil {
@@ -207,7 +207,7 @@ func DecodeActionResponseWithList(ori *[]byte) (out ActionResponseWithList, err 
 	}
 	out.InvokePriority = src[2]
 
-	out.ResponseCount = uint8(src[3])
+	out.ResponseCount = src[3]
 	src = src[4:]
 	for i := 0; i < int(out.ResponseCount); i++ {
 		v, e := DecodeActResponse(&src)
@@ -238,7 +238,7 @@ func (ar ActionResponseNextPBlock) Encode() (out []byte, err error) {
 	var buf bytes.Buffer
 	buf.WriteByte(byte(TagActionResponse))
 	buf.WriteByte(byte(TagActionResponseNextPBlock))
-	buf.WriteByte(byte(ar.InvokePriority))
+	buf.WriteByte(ar.InvokePriority)
 	blockNum, _ := axdr.EncodeDoubleLongUnsigned(ar.BlockNum)
 	buf.Write(blockNum)
 

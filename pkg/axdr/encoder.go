@@ -242,7 +242,7 @@ func EncodeBCDs(data string) ([]byte, error) {
 
 	// shift 4 bits to the left if number of digit is not even
 	// 12345 >> is 3 bytes, last byte for 5 should be 01010000
-	if len(db)-(2*int(len(db)/2)) > 0 {
+	if len(db)-(2*(len(db)/2)) > 0 {
 		output[dl-1] = (output[dl-1] << 4) + 0&0xf
 	}
 
@@ -263,7 +263,7 @@ func EncodeLong(data int16) ([]byte, error) {
 
 func EncodeUnsigned(data uint8) ([]byte, error) {
 	output := make([]byte, 1)
-	output[0] = byte(data)
+	output[0] = data
 	return output, nil
 }
 

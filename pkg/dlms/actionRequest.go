@@ -91,7 +91,7 @@ func (ar ActionRequestNormal) Encode() (out []byte, err error) {
 	var buf bytes.Buffer
 	buf.WriteByte(byte(TagActionRequest))
 	buf.WriteByte(byte(TagActionRequestNormal))
-	buf.WriteByte(byte(ar.InvokePriority))
+	buf.WriteByte(ar.InvokePriority)
 	val, e := ar.MethodInfo.Encode()
 	if e != nil {
 		err = e
@@ -168,7 +168,7 @@ func (ar ActionRequestNextPBlock) Encode() (out []byte, err error) {
 	var buf bytes.Buffer
 	buf.WriteByte(byte(TagActionRequest))
 	buf.WriteByte(byte(TagActionRequestNextPBlock))
-	buf.WriteByte(byte(ar.InvokePriority))
+	buf.WriteByte(ar.InvokePriority)
 	blockNum, _ := axdr.EncodeDoubleLongUnsigned(ar.BlockNum)
 	buf.Write(blockNum)
 
@@ -230,8 +230,8 @@ func (ar ActionRequestWithList) Encode() (out []byte, err error) {
 	var buf bytes.Buffer
 	buf.WriteByte(byte(TagActionRequest))
 	buf.WriteByte(byte(TagActionRequestWithList))
-	buf.WriteByte(byte(ar.InvokePriority))
-	buf.WriteByte(byte(ar.MethodInfoCount))
+	buf.WriteByte(ar.InvokePriority)
+	buf.WriteByte(ar.MethodInfoCount)
 	for _, val := range ar.MethodInfoList {
 		mthInfo, e := val.Encode()
 		if e != nil {
@@ -240,7 +240,7 @@ func (ar ActionRequestWithList) Encode() (out []byte, err error) {
 		}
 		buf.Write(mthInfo)
 	}
-	buf.WriteByte(byte(ar.MethodParamCount))
+	buf.WriteByte(ar.MethodParamCount)
 	for _, val := range ar.MethodParamList {
 		mthParam, e := val.Encode()
 		if e != nil {
@@ -267,7 +267,7 @@ func DecodeActionRequestWithList(ori *[]byte) (out ActionRequestWithList, err er
 	}
 	out.InvokePriority = src[2]
 
-	out.MethodInfoCount = uint8(src[3])
+	out.MethodInfoCount = src[3]
 	src = src[4:]
 	for i := 0; i < int(out.MethodInfoCount); i++ {
 		v, e := DecodeMethodDescriptor(&src)
@@ -278,7 +278,7 @@ func DecodeActionRequestWithList(ori *[]byte) (out ActionRequestWithList, err er
 		out.MethodInfoList = append(out.MethodInfoList, v)
 	}
 
-	out.MethodParamCount = uint8(src[0])
+	out.MethodParamCount = src[0]
 	src = src[1:]
 	for i := 0; i < int(out.MethodParamCount); i++ {
 		decoder := axdr.NewDataDecoder(&src)
@@ -313,7 +313,7 @@ func (ar ActionRequestWithFirstPBlock) Encode() (out []byte, err error) {
 	var buf bytes.Buffer
 	buf.WriteByte(byte(TagActionRequest))
 	buf.WriteByte(byte(TagActionRequestWithFirstPBlock))
-	buf.WriteByte(byte(ar.InvokePriority))
+	buf.WriteByte(ar.InvokePriority)
 	mthInfo, e := ar.MethodInfo.Encode()
 	if e != nil {
 		err = e
@@ -379,8 +379,8 @@ func (ar ActionRequestWithListAndFirstPBlock) Encode() (out []byte, err error) {
 	var buf bytes.Buffer
 	buf.WriteByte(byte(TagActionRequest))
 	buf.WriteByte(byte(TagActionRequestWithListAndFirstPBlock))
-	buf.WriteByte(byte(ar.InvokePriority))
-	buf.WriteByte(byte(ar.MethodInfoCount))
+	buf.WriteByte(ar.InvokePriority)
+	buf.WriteByte(ar.MethodInfoCount)
 	for _, val := range ar.MethodInfoList {
 		mthInfo, e := val.Encode()
 		if e != nil {
@@ -413,7 +413,7 @@ func DecodeActionRequestWithListAndFirstPBlock(ori *[]byte) (out ActionRequestWi
 	}
 	out.InvokePriority = src[2]
 
-	out.MethodInfoCount = uint8(src[3])
+	out.MethodInfoCount = src[3]
 	src = src[4:]
 	for i := 0; i < int(out.MethodInfoCount); i++ {
 		v, e := DecodeMethodDescriptor(&src)
@@ -447,7 +447,7 @@ func (ar ActionRequestWithPBlock) Encode() (out []byte, err error) {
 	var buf bytes.Buffer
 	buf.WriteByte(byte(TagActionRequest))
 	buf.WriteByte(byte(TagActionRequestWithPBlock))
-	buf.WriteByte(byte(ar.InvokePriority))
+	buf.WriteByte(ar.InvokePriority)
 	pb, e := ar.PBlock.Encode()
 	if e != nil {
 		err = e

@@ -60,7 +60,7 @@ func NewDataDecoder(in interface{}) *Decoder {
 		return &Decoder{tag: src}
 
 	case *[]byte:
-		tag := getDataTag(uint8((*src)[0]))
+		tag := getDataTag((*src)[0])
 		(*src) = (*src)[1:]
 		return &Decoder{tag: tag}
 
@@ -394,7 +394,7 @@ func DecodeLong(src *[]byte) (outByte []byte, outVal int16, err error) {
 
 func DecodeUnsigned(src *[]byte) (outByte []byte, outVal uint8, err error) {
 	outByte = (*src)[:1]
-	outVal = uint8(outByte[0])
+	outVal = outByte[0]
 	(*src) = (*src)[1:]
 	return
 }
@@ -449,7 +449,7 @@ func DecodeLong64Unsigned(src *[]byte) (outByte []byte, outVal uint64, err error
 
 func DecodeEnum(src *[]byte) (outByte []byte, outVal uint8, err error) {
 	outByte = (*src)[:1]
-	outVal = uint8(outByte[0])
+	outVal = outByte[0]
 	(*src) = (*src)[1:]
 	return
 }

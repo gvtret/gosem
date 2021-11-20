@@ -88,7 +88,7 @@ func (sr SetRequestNormal) Encode() (out []byte, err error) {
 	var buf bytes.Buffer
 	buf.WriteByte(byte(TagSetRequest))
 	buf.WriteByte(byte(TagSetRequestNormal))
-	buf.WriteByte(byte(sr.InvokePriority))
+	buf.WriteByte(sr.InvokePriority)
 	attInfo, e := sr.AttributeInfo.Encode()
 	if e != nil {
 		err = e
@@ -178,7 +178,7 @@ func (sr SetRequestWithFirstDataBlock) Encode() (out []byte, err error) {
 	var buf bytes.Buffer
 	buf.WriteByte(byte(TagSetRequest))
 	buf.WriteByte(byte(TagSetRequestWithFirstDataBlock))
-	buf.WriteByte(byte(sr.InvokePriority))
+	buf.WriteByte(sr.InvokePriority)
 	attInfo, e := sr.AttributeInfo.Encode()
 	if e != nil {
 		err = e
@@ -264,7 +264,7 @@ func (sr SetRequestWithDataBlock) Encode() (out []byte, err error) {
 	var buf bytes.Buffer
 	buf.WriteByte(byte(TagSetRequest))
 	buf.WriteByte(byte(TagSetRequestWithDataBlock))
-	buf.WriteByte(byte(sr.InvokePriority))
+	buf.WriteByte(sr.InvokePriority)
 	val, e := sr.DataBlock.Encode()
 	if e != nil {
 		err = e
@@ -325,8 +325,8 @@ func (sr SetRequestWithList) Encode() (out []byte, err error) {
 	var buf bytes.Buffer
 	buf.WriteByte(byte(TagSetRequest))
 	buf.WriteByte(byte(TagSetRequestWithList))
-	buf.WriteByte(byte(sr.InvokePriority))
-	buf.WriteByte(byte(sr.AttributeCount))
+	buf.WriteByte(sr.InvokePriority)
+	buf.WriteByte(sr.AttributeCount)
 	for _, attr := range sr.AttributeInfoList {
 		attInfo, e := attr.Encode()
 		if e != nil {
@@ -335,7 +335,7 @@ func (sr SetRequestWithList) Encode() (out []byte, err error) {
 		}
 		buf.Write(attInfo)
 	}
-	buf.WriteByte(byte(sr.ValueCount))
+	buf.WriteByte(sr.ValueCount)
 	for _, val := range sr.ValueList {
 		dt, e := val.Encode()
 		if e != nil {
@@ -362,7 +362,7 @@ func DecodeSetRequestWithList(ori *[]byte) (out SetRequestWithList, err error) {
 	}
 	out.InvokePriority = src[2]
 
-	out.AttributeCount = uint8(src[3])
+	out.AttributeCount = src[3]
 	src = src[4:]
 	for i := 0; i < int(out.AttributeCount); i++ {
 		v, e := DecodeAttributeDescriptorWithSelection(&src)
@@ -373,7 +373,7 @@ func DecodeSetRequestWithList(ori *[]byte) (out SetRequestWithList, err error) {
 		out.AttributeInfoList = append(out.AttributeInfoList, v)
 	}
 
-	out.ValueCount = uint8(src[0])
+	out.ValueCount = src[0]
 	src = src[1:]
 	for i := 0; i < int(out.ValueCount); i++ {
 		decoder := axdr.NewDataDecoder(&src)
@@ -413,8 +413,8 @@ func (sr SetRequestWithListAndFirstDataBlock) Encode() (out []byte, err error) {
 	var buf bytes.Buffer
 	buf.WriteByte(byte(TagSetRequest))
 	buf.WriteByte(byte(TagSetRequestWithListAndFirstDataBlock))
-	buf.WriteByte(byte(sr.InvokePriority))
-	buf.WriteByte(byte(sr.AttributeCount))
+	buf.WriteByte(sr.InvokePriority)
+	buf.WriteByte(sr.AttributeCount)
 	for _, attr := range sr.AttributeInfoList {
 		val, e := attr.Encode()
 		if e != nil {
@@ -447,7 +447,7 @@ func DecodeSetRequestWithListAndFirstDataBlock(ori *[]byte) (out SetRequestWithL
 	}
 	out.InvokePriority = src[2]
 
-	out.AttributeCount = uint8(src[3])
+	out.AttributeCount = src[3]
 	src = src[4:]
 	for i := 0; i < int(out.AttributeCount); i++ {
 		v, e := DecodeAttributeDescriptorWithSelection(&src)

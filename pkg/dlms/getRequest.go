@@ -77,7 +77,7 @@ func (gr GetRequestNormal) Encode() (out []byte, err error) {
 	var buf bytes.Buffer
 	buf.WriteByte(byte(TagGetRequest))
 	buf.WriteByte(byte(TagGetRequestNormal))
-	buf.WriteByte(byte(gr.InvokePriority))
+	buf.WriteByte(gr.InvokePriority)
 	attInfo, e := gr.AttributeInfo.Encode()
 	if e != nil {
 		err = e
@@ -154,7 +154,7 @@ func (gr GetRequestNext) Encode() (out []byte, err error) {
 	var buf bytes.Buffer
 	buf.WriteByte(byte(TagGetRequest))
 	buf.WriteByte(byte(TagGetRequestNext))
-	buf.WriteByte(byte(gr.InvokePriority))
+	buf.WriteByte(gr.InvokePriority)
 	blockNum, _ := axdr.EncodeDoubleLongUnsigned(gr.BlockNum)
 	buf.Write(blockNum)
 
@@ -209,7 +209,7 @@ func (gr GetRequestWithList) Encode() (out []byte, err error) {
 	var buf bytes.Buffer
 	buf.WriteByte(byte(TagGetRequest))
 	buf.WriteByte(byte(TagGetRequestWithList))
-	buf.WriteByte(byte(gr.InvokePriority))
+	buf.WriteByte(gr.InvokePriority)
 	buf.WriteByte(byte(len(gr.AttributeInfoList)))
 	for _, attr := range gr.AttributeInfoList {
 		val, e := attr.Encode()
@@ -237,7 +237,7 @@ func DecodeGetRequestWithList(ori *[]byte) (out GetRequestWithList, err error) {
 	}
 	out.InvokePriority = src[2]
 
-	out.AttributeCount = uint8(src[3])
+	out.AttributeCount = src[3]
 	src = src[4:]
 	for i := 0; i < int(out.AttributeCount); i++ {
 		v, e := DecodeAttributeDescriptorWithSelection(&src)

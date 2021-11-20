@@ -73,7 +73,7 @@ func (gr GetResponseNormal) Encode() (out []byte, err error) {
 	var buf bytes.Buffer
 	buf.WriteByte(byte(TagGetResponse))
 	buf.WriteByte(byte(TagGetResponseNormal))
-	buf.WriteByte(byte(gr.InvokePriority))
+	buf.WriteByte(gr.InvokePriority)
 	res, e := gr.Result.Encode()
 	if e != nil {
 		err = e
@@ -122,7 +122,7 @@ func (gr GetResponseWithDataBlock) Encode() (out []byte, err error) {
 	var buf bytes.Buffer
 	buf.WriteByte(byte(TagGetResponse))
 	buf.WriteByte(byte(TagGetResponseWithDataBlock))
-	buf.WriteByte(byte(gr.InvokePriority))
+	buf.WriteByte(gr.InvokePriority)
 	val, e := gr.Result.Encode()
 	if e != nil {
 		err = e
@@ -176,7 +176,7 @@ func (gr GetResponseWithList) Encode() (out []byte, err error) {
 	var buf bytes.Buffer
 	buf.WriteByte(byte(TagGetResponse))
 	buf.WriteByte(byte(TagGetResponseWithList))
-	buf.WriteByte(byte(gr.InvokePriority))
+	buf.WriteByte(gr.InvokePriority)
 	buf.WriteByte(byte(len(gr.ResultList)))
 	for _, res := range gr.ResultList {
 		val, e := res.Encode()
@@ -204,7 +204,7 @@ func DecodeGetResponseWithList(ori *[]byte) (out GetResponseWithList, err error)
 	}
 	out.InvokePriority = src[2]
 
-	out.ResultCount = uint8(src[3])
+	out.ResultCount = src[3]
 	src = src[4:]
 	for i := 0; i < int(out.ResultCount); i++ {
 		v, e := DecodeGetDataResult(&src)

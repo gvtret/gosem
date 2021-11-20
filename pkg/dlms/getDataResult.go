@@ -77,7 +77,7 @@ func DecodeGetDataResult(ori *[]byte) (out GetDataResult, err error) {
 
 	if src[0] == 0x0 {
 		out.IsData = false
-		out.Value, err = GetAccessTag(uint8(src[1]))
+		out.Value, err = GetAccessTag(src[1])
 		if err == nil {
 			src = src[2:]
 		}
@@ -214,11 +214,11 @@ func DecodeDataBlockG(ori *[]byte) (out DataBlockG, err error) {
 	src = src[1:]
 
 	if out.IsResult {
-		out.Result, err = GetAccessTag(uint8(src[0]))
+		out.Result, err = GetAccessTag(src[0])
 		src = src[0:]
 	} else {
 		// not sure if length is limited only 1 byte, or does it follow KLV as in axdr
-		val := uint8(src[0])
+		val := src[0]
 		out.Result = src[1 : 1+val]
 		src = src[1+val:]
 	}
@@ -288,7 +288,7 @@ func DecodeDataBlockSA(ori *[]byte) (out DataBlockSA, err error) {
 	_, out.BlockNumber, err = axdr.DecodeDoubleLongUnsigned(&src)
 
 	// not sure if length is limited only 1 byte, or does it follow KLV as in axdr
-	val := uint8(src[0])
+	val := src[0]
 	out.Raw = src[1 : val+1]
 	src = src[val+1:]
 

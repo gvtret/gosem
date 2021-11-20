@@ -35,6 +35,7 @@ linters:
     - stylecheck
     - thelper
     - tparallel
+    - unconvert
     - unparam
     - whitespace
     - wrapcheck
@@ -49,7 +50,6 @@ linters:
     - exhaustivestruct
     - cyclop
     - wsl
-    - unconvert
     - maligned
     - lll
     - godot
