@@ -13,15 +13,61 @@ func TestDecodeAARQ(t *testing.T) {
 	}
 
 	if aare.ApplicationContext != ApplicationContextLNNoCiphering {
-		t.Errorf("ApplicationContext is not correct. Get %v", aare.ApplicationContext)
+		t.Errorf("Invalid ApplicationContext. Get %v", aare.ApplicationContext)
 	}
 
 	if aare.AssociationResult != AssociationResultAccepted {
-		t.Errorf("AssociationResult is not accepted. Get %v", aare.AssociationResult)
+		t.Errorf("Invalid AssociationResult. Get %v", aare.AssociationResult)
 	}
 
 	if aare.SourceDiagnostic != SourceDiagnosticNone {
-		t.Errorf("SourceDiagnostic is not None. Get %v", aare.AssociationResult)
+		t.Errorf("Invalid SourceDiagnostic. Get %v", aare.SourceDiagnostic)
+	}
+
+	if aare.InitiateResponse == nil {
+		t.Errorf("InitiateResponse is nil")
+		return
+	}
+
+	if aare.ConfirmedServiceError != nil {
+		t.Errorf("ConfirmedServiceError is not nil")
+	}
+
+	if aare.InitiateResponse.ServerMaxReceivePduSize != 128 {
+		t.Errorf("Invalid ServerMaxReceivePduSize. Get %v", aare.InitiateResponse.ServerMaxReceivePduSize)
+	}
+}
+
+func TestDecodeRejectedAARQ(t *testing.T) {
+	src := decodeHexString("611FA109060760857405080101A203020101A305A10302010DBE0604040E010600")
+	aare, err := DecodeAARE(nil, &src)
+	if err != nil {
+		t.Errorf("Failed on DecodeAARE. Err: %v", err)
+	}
+
+	if aare.ApplicationContext != ApplicationContextLNNoCiphering {
+		t.Errorf("Invalid ApplicationContext. Get %v", aare.ApplicationContext)
+	}
+
+	if aare.AssociationResult != AssociationResultPermanentRejected {
+		t.Errorf("Invalid AssociationResult. Get %v", aare.AssociationResult)
+	}
+
+	if aare.SourceDiagnostic != SourceDiagnosticAuthenticationFailure {
+		t.Errorf("Invalid SourceDiagnostic. Get %v", aare.SourceDiagnostic)
+	}
+
+	if aare.InitiateResponse != nil {
+		t.Errorf("InitiateResponse is not nil")
+	}
+
+	if aare.ConfirmedServiceError == nil {
+		t.Errorf("ConfirmedServiceError is nil")
+		return
+	}
+
+	if aare.ConfirmedServiceError.ConfirmedServiceError != TagErrInitiateError {
+		t.Errorf("Invalid confirmed service error. Get %v", aare.ConfirmedServiceError.ConfirmedServiceError)
 	}
 }
 

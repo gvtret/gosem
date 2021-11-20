@@ -34,10 +34,12 @@ const (
 )
 
 type AARE struct {
-	ApplicationContext ApplicationContext
-	AssociationResult  AssociationResult
-	SourceDiagnostic   SourceDiagnostic
-	SourceSystemTitle  []byte
+	ApplicationContext    ApplicationContext
+	AssociationResult     AssociationResult
+	SourceDiagnostic      SourceDiagnostic
+	SourceSystemTitle     []byte
+	InitiateResponse      *InitiateResponse
+	ConfirmedServiceError *ConfirmedServiceError
 }
 
 func DecodeAARE(settings *Settings, ori *[]byte) (out AARE, err error) {
@@ -97,7 +99,7 @@ func DecodeAARE(settings *Settings, ori *[]byte) (out AARE, err error) {
 			}
 		case BERTypeContext | BERTypeConstructed | PduTypeUserInformation:
 			// User information - 0xBE
-			err = parseUserInformation(settings, tagLength, src)
+			out.InitiateResponse, out.ConfirmedServiceError, err = parseUserInformation(settings, tagLength, src)
 		}
 
 		if err != nil {
@@ -169,7 +171,7 @@ func parseAPTitle(tagLength int, src []byte) (out []byte, err error) {
 	return
 }
 
-func parseUserInformation(settings *Settings, tagLength int, src []byte) (err error) {
+func parseUserInformation(settings *Settings, tagLength int, src []byte) (ir *InitiateResponse, cse *ConfirmedServiceError, err error) {
 	if tagLength < 6 {
 		err = ErrWrongLength(tagLength, 10)
 		return
@@ -180,7 +182,7 @@ func parseUserInformation(settings *Settings, tagLength int, src []byte) (err er
 	}
 	src = src[4:]
 
-	if cosemTag(src[0]) == TagGloInitiateResponse && settings != nil {
+	if src[0] == TagGloInitiateResponse.Value() && settings != nil {
 		cfg := Cipher{
 			Tag:         TagGloInitiateResponse,
 			Security:    settings.Ciphering.Security,
@@ -195,9 +197,17 @@ func parseUserInformation(settings *Settings, tagLength int, src []byte) (err er
 		}
 	}
 
-	if cosemTag(src[0]) != TagInitiateResponse {
-		err = errors.New("unexpected user information tag")
+	if src[0] == TagInitiateResponse.Value() {
+		ir, err := DecodeInitiateResponse(&src)
+		return &ir, nil, err
 	}
+
+	if src[0] == TagConfirmedServiceError.Value() {
+		cse, err := DecodeConfirmedServiceError(&src)
+		return nil, &cse, err
+	}
+
+	err = errors.New("unexpected user information tag")
 
 	return
 }
