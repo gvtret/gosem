@@ -6,29 +6,20 @@ import (
 )
 
 func TestEncodeAARQWithoutAuthentication(t *testing.T) {
-	settings := &Settings{
-		Authentication: AuthenticationNone,
-		MaxPduSize:     512,
-	}
-
-	out, err := EncodeAARQ(settings)
+	settings, _ := NewSettingsWithoutAuthentication()
+	out, err := EncodeAARQ(&settings)
 	if err != nil {
 		t.Errorf("Encode Failed. Err: %v", err)
 	}
-	result := decodeHexString("601DA109060760857405080101BE10040E01000000065F1F040000181F0200")
+	result := decodeHexString("601DA109060760857405080101BE10040E01000000065F1F040000181F0100")
 	if !bytes.Equal(out, result) {
 		t.Errorf("Failed. Get: %s, should: %s", encodeHexString(out), encodeHexString(result))
 	}
 }
 
 func TestEncodeAARQWithLowAuthentication(t *testing.T) {
-	settings := &Settings{
-		Authentication: AuthenticationLow,
-		MaxPduSize:     256,
-		Password:       []byte("12345678"),
-	}
-
-	out, err := EncodeAARQ(settings)
+	settings, _ := NewSettingsWithLowAuthentication([]byte("12345678"))
+	out, err := EncodeAARQ(&settings)
 	if err != nil {
 		t.Errorf("Encode Failed. Err: %v", err)
 	}
@@ -38,7 +29,7 @@ func TestEncodeAARQWithLowAuthentication(t *testing.T) {
 	}
 
 	settings.Password = nil
-	_, err = EncodeAARQ(settings)
+	_, err = EncodeAARQ(&settings)
 	if err == nil {
 		t.Errorf("Should be error")
 	}
@@ -48,20 +39,16 @@ func TestEncodeAARQWithLowAuthenticationAndCipher(t *testing.T) {
 	ciphering := Ciphering{
 		Security:          SecurityAuthenticationEncryption,
 		SystemTitle:       decodeHexString("4349520000000001"),
-		BlockCipherKey:    decodeHexString("00112233445566778899AABBCCDDEEFF"),
+		UnicastKey:        decodeHexString("00112233445566778899AABBCCDDEEFF"),
 		AuthenticationKey: decodeHexString("00112233445566778899AABBCCDDEEFF"),
 		DedicatedKey:      decodeHexString("E803739DBE338C3A790D8D1B12C63FE2"),
 		InvocationCounter: 0x00000107,
 	}
 
-	settings := &Settings{
-		Authentication: AuthenticationLow,
-		Password:       []byte("JuS66BCZ"),
-		Ciphering:      ciphering,
-		MaxPduSize:     512,
-	}
+	settings, _ := NewSettingsWithLowAuthenticationAndCiphering([]byte("JuS66BCZ"), ciphering)
+	settings.MaxPduSize = 512
 
-	out, err := EncodeAARQ(settings)
+	out, err := EncodeAARQ(&settings)
 	if err != nil {
 		t.Errorf("Encode Failed. Err: %v", err)
 	}
@@ -74,8 +61,8 @@ func TestEncodeAARQWithLowAuthenticationAndCipher(t *testing.T) {
 		t.Errorf("Failed. InvocationCounter: %d", settings.Ciphering.InvocationCounter)
 	}
 
-	settings.Ciphering.BlockCipherKey = nil
-	_, err = EncodeAARQ(settings)
+	settings.Ciphering.UnicastKey = nil
+	_, err = EncodeAARQ(&settings)
 	if err == nil {
 		t.Errorf("Should be error")
 	}

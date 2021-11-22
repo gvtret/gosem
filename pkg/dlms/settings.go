@@ -1,5 +1,7 @@
 package dlms
 
+import "fmt"
+
 type Authentication byte
 
 // Authentication mechanism definitions
@@ -27,7 +29,7 @@ type Ciphering struct {
 	Security          Security
 	SystemTitle       []byte
 	SourceSystemTitle []byte
-	BlockCipherKey    []byte
+	UnicastKey        []byte
 	AuthenticationKey []byte
 	InvocationCounter uint32
 	DedicatedKey      []byte
@@ -38,4 +40,60 @@ type Settings struct {
 	Password       []byte
 	Ciphering      Ciphering
 	MaxPduSize     int
+}
+
+func NewSettingsWithoutAuthentication() (Settings, error) {
+	s := Settings{
+		Authentication: AuthenticationNone,
+		Password:       nil,
+		Ciphering:      Ciphering{},
+		MaxPduSize:     256,
+	}
+
+	return s, nil
+}
+
+func NewSettingsWithLowAuthentication(password []byte) (Settings, error) {
+	return NewSettingsWithLowAuthenticationAndCiphering(password, Ciphering{})
+}
+
+func NewSettingsWithLowAuthenticationAndCiphering(password []byte, cipher Ciphering) (Settings, error) {
+	if len(password) == 0 {
+		return Settings{}, fmt.Errorf("password must not be empty")
+	}
+
+	s := Settings{
+		Authentication: AuthenticationLow,
+		Password:       password,
+		Ciphering:      cipher,
+		MaxPduSize:     256,
+	}
+
+	return s, nil
+}
+
+func NewCiphering(security Security, systemTitle []byte, unicastKey []byte, authenticationKey []byte) (Ciphering, error) {
+	if len(systemTitle) != 8 {
+		return Ciphering{}, fmt.Errorf("system title must be 8 bytes long")
+	}
+
+	if len(unicastKey) != 16 {
+		return Ciphering{}, fmt.Errorf("unicast key must be 16 bytes long")
+	}
+
+	if len(authenticationKey) != 16 {
+		return Ciphering{}, fmt.Errorf("authentication key must be 16 bytes long")
+	}
+
+	c := Ciphering{
+		Security:          security,
+		SystemTitle:       systemTitle,
+		SourceSystemTitle: nil,
+		UnicastKey:        unicastKey,
+		AuthenticationKey: authenticationKey,
+		InvocationCounter: 0,
+		DedicatedKey:      nil,
+	}
+
+	return c, nil
 }

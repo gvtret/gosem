@@ -72,12 +72,11 @@ func TestDecodeRejectedAARQ(t *testing.T) {
 }
 
 func TestDecodeAARQWithSecurity(t *testing.T) {
-	ciphering := Ciphering{
-		Security:          SecurityAuthenticationEncryption,
-		SourceSystemTitle: decodeHexString("4349520000000001"),
-		BlockCipherKey:    decodeHexString("00112233445566778899AABBCCDDEEFF"),
-		AuthenticationKey: decodeHexString("00112233445566778899AABBCCDDEEFF"),
-	}
+	ciphering, _ := NewCiphering(
+		SecurityAuthenticationEncryption,
+		decodeHexString("4349520000000001"),
+		decodeHexString("00112233445566778899AABBCCDDEEFF"),
+		decodeHexString("00112233445566778899AABBCCDDEEFF"))
 
 	settings := &Settings{
 		Ciphering: ciphering,

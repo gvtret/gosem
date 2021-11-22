@@ -1,6 +1,9 @@
 package dlms
 
-import "bytes"
+import (
+	"bytes"
+	"fmt"
+)
 
 type confirmedServiceErrorTag uint8
 
@@ -41,6 +44,10 @@ type ConfirmedServiceError struct {
 	ConfirmedServiceError confirmedServiceErrorTag
 	ServiceError          serviceErrorTag
 	Value                 uint8
+}
+
+func (cse ConfirmedServiceError) String() string {
+	return fmt.Sprintf("ConfirmedServiceError: %v, ServiceError: %v, Value: %v", cse.ConfirmedServiceError, cse.ServiceError, cse.Value)
 }
 
 func CreateConfirmedServiceError(service confirmedServiceErrorTag, serviceError serviceErrorTag, value uint8) *ConfirmedServiceError {

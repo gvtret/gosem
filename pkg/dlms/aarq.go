@@ -139,7 +139,7 @@ func generateUserInformation(settings *Settings) (out []byte, err error) {
 			Tag:          TagGloInitiateRequest,
 			Security:     settings.Ciphering.Security,
 			SystemTitle:  settings.Ciphering.SystemTitle,
-			Key:          settings.Ciphering.BlockCipherKey,
+			Key:          settings.Ciphering.UnicastKey,
 			AuthKey:      settings.Ciphering.AuthenticationKey,
 			FrameCounter: settings.Ciphering.InvocationCounter,
 		}

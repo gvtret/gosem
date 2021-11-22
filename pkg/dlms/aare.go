@@ -187,7 +187,7 @@ func parseUserInformation(settings *Settings, tagLength int, src []byte) (ir *In
 			Tag:         TagGloInitiateResponse,
 			Security:    settings.Ciphering.Security,
 			SystemTitle: settings.Ciphering.SourceSystemTitle,
-			Key:         settings.Ciphering.BlockCipherKey,
+			Key:         settings.Ciphering.UnicastKey,
 			AuthKey:     settings.Ciphering.AuthenticationKey,
 		}
 
