@@ -25,16 +25,14 @@ func TestClient_Connect(t *testing.T) {
 		t.Errorf("Error connecting: %s", err)
 	}
 
-	transportMock.AssertNumberOfCalls(t, "Connect", 1)
+	transportMock.On("IsConnected").Return(true)
 
 	if !client.IsConnected() {
 		t.Errorf("Client is not connected")
 	}
 
-	err = client.Connect()
-	if err == nil {
-		t.Errorf("Client should be already connected")
-	}
+	transportMock.AssertNumberOfCalls(t, "Connect", 1)
+	transportMock.AssertNumberOfCalls(t, "IsConnected", 1)
 }
 
 func TestClient_ConnectFail(t *testing.T) {
@@ -48,16 +46,12 @@ func TestClient_ConnectFail(t *testing.T) {
 	if err == nil {
 		t.Errorf("Error connecting should not be nil")
 	}
-
-	if client.IsConnected() {
-		t.Errorf("Client is connected")
-	}
 }
 
 func TestClient_Disconnect(t *testing.T) {
 	transportMock := new(mocks.TransportMock)
 	transportMock.On("Connect").Return(nil)
-	transportMock.On("Disconnect").Return(nil)
+	transportMock.On("Disconnect").Return(fmt.Errorf("error disconnecting")).Once()
 
 	settings, _ := dlms.NewSettingsWithoutAuthentication()
 	client, _ := client.New(settings, transportMock)
@@ -68,6 +62,8 @@ func TestClient_Disconnect(t *testing.T) {
 	}
 
 	client.Connect()
+
+	transportMock.On("Disconnect").Return(nil)
 
 	err = client.Disconnect()
 	if err != nil {
@@ -75,30 +71,7 @@ func TestClient_Disconnect(t *testing.T) {
 	}
 
 	transportMock.AssertNumberOfCalls(t, "Connect", 1)
-	transportMock.AssertNumberOfCalls(t, "Disconnect", 1)
-
-	if client.IsConnected() {
-		t.Errorf("Client is connected")
-	}
-}
-
-func TestClient_DisconnectFail(t *testing.T) {
-	transportMock := new(mocks.TransportMock)
-	transportMock.On("Connect").Return(nil)
-	transportMock.On("Disconnect").Return(fmt.Errorf("error disconnecting"))
-
-	settings, _ := dlms.NewSettingsWithoutAuthentication()
-	client, _ := client.New(settings, transportMock)
-
-	client.Connect()
-
-	err := client.Disconnect()
-	if err == nil {
-		t.Errorf("Error disconnecting should not be nil")
-	}
-
-	transportMock.AssertNumberOfCalls(t, "Connect", 1)
-	transportMock.AssertNumberOfCalls(t, "Disconnect", 1)
+	transportMock.AssertNumberOfCalls(t, "Disconnect", 2)
 }
 
 func TestClient_Associate(t *testing.T) {
@@ -109,6 +82,7 @@ func TestClient_Associate(t *testing.T) {
 	transportMock.On("Connect").Return(nil)
 	transportMock.On("Disconnect").Return(nil)
 	transportMock.On("Send", in).Return(out, nil)
+	transportMock.On("IsConnected").Return(true).Times(3)
 
 	settings, _ := dlms.NewSettingsWithoutAuthentication()
 	client, _ := client.New(settings, transportMock)
@@ -125,6 +99,8 @@ func TestClient_Associate(t *testing.T) {
 	}
 
 	client.Disconnect()
+
+	transportMock.On("IsConnected").Return(false)
 
 	if client.IsAssociated() {
 		t.Errorf("Client is associated")

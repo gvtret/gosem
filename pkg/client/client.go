@@ -8,15 +8,13 @@ import (
 type Client struct {
 	settings     dlms.Settings
 	transport    dlms.Transport
-	isConnected  bool
 	isAssociated bool
 }
 
-func New(settings dlms.Settings, transport dlms.Transport) (Client, error) {
-	c := Client{
+func New(settings dlms.Settings, transport dlms.Transport) (*Client, error) {
+	c := &Client{
 		settings:     settings,
 		transport:    transport,
-		isConnected:  false,
 		isAssociated: false,
 	}
 
@@ -24,46 +22,25 @@ func New(settings dlms.Settings, transport dlms.Transport) (Client, error) {
 }
 
 func (c *Client) Connect() error {
-	if c.isConnected {
-		return fmt.Errorf("already connected")
-	}
-
-	err := c.transport.Connect()
-	if err != nil {
-		return fmt.Errorf("error connecting: %w", err)
-	}
-
-	c.isConnected = true
-
-	return nil
+	return c.transport.Connect()
 }
 
 func (c *Client) Disconnect() error {
-	if !c.isConnected {
-		return fmt.Errorf("not connected")
-	}
-
-	err := c.transport.Disconnect()
-	if err != nil {
-		return fmt.Errorf("error disconnecting: %w", err)
-	}
-
-	c.isConnected = false
 	c.isAssociated = false
 
-	return nil
+	return c.transport.Disconnect()
 }
 
 func (c *Client) IsConnected() bool {
-	return c.isConnected
+	return c.transport.IsConnected()
 }
 
 func (c *Client) Associate() error {
-	if !c.isConnected {
+	if !c.transport.IsConnected() {
 		return fmt.Errorf("not connected")
 	}
 
-	if c.isAssociated {
+	if c.IsAssociated() {
 		return fmt.Errorf("already associated")
 	}
 
@@ -94,5 +71,9 @@ func (c *Client) Associate() error {
 }
 
 func (c *Client) IsAssociated() bool {
+	if !c.transport.IsConnected() {
+		c.isAssociated = false
+	}
+
 	return c.isAssociated
 }

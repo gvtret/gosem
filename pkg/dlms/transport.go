@@ -6,5 +6,6 @@ package dlms
 type Transport interface {
 	Connect() (err error)
 	Disconnect() (err error)
+	IsConnected() bool
 	Send(src []byte) (out []byte, err error)
 }

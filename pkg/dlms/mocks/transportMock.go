@@ -37,6 +37,20 @@ func (_m *TransportMock) Disconnect() error {
 	return r0
 }
 
+// IsConnected provides a mock function with given fields:
+func (_m *TransportMock) IsConnected() bool {
+	ret := _m.Called()
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func() bool); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	return r0
+}
+
 // Send provides a mock function with given fields: src
 func (_m *TransportMock) Send(src []byte) ([]byte, error) {
 	ret := _m.Called(src)

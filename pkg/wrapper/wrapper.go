@@ -16,56 +16,32 @@ type Wrapper struct {
 	transport   dlms.Transport
 	source      uint16
 	destination uint16
-	isConnected bool
 }
 
-func New(transport dlms.Transport, client int, server int) (Wrapper, error) {
-	w := Wrapper{
+func New(transport dlms.Transport, client int, server int) (*Wrapper, error) {
+	w := &Wrapper{
 		transport:   transport,
 		source:      uint16(client),
 		destination: uint16(server),
-		isConnected: false,
 	}
 
 	return w, nil
 }
 
 func (w *Wrapper) Connect() error {
-	if w.isConnected {
-		return fmt.Errorf("already connected")
-	}
-
-	err := w.transport.Connect()
-	if err != nil {
-		return fmt.Errorf("error connecting: %w", err)
-	}
-
-	w.isConnected = true
-
-	return nil
+	return w.transport.Connect()
 }
 
 func (w *Wrapper) Disconnect() error {
-	if !w.isConnected {
-		return fmt.Errorf("not connected")
-	}
-
-	err := w.transport.Disconnect()
-	if err != nil {
-		return fmt.Errorf("error disconnecting: %w", err)
-	}
-
-	w.isConnected = false
-
-	return nil
+	return w.transport.Disconnect()
 }
 
 func (w *Wrapper) IsConnected() bool {
-	return w.isConnected
+	return w.transport.IsConnected()
 }
 
 func (w *Wrapper) Send(src []byte) ([]byte, error) {
-	if !w.isConnected {
+	if !w.transport.IsConnected() {
 		return nil, fmt.Errorf("not connected")
 	}
 
@@ -113,7 +89,7 @@ func (w *Wrapper) parseHeader(src []byte) error {
 	}
 
 	length := int(binary.BigEndian.Uint16(src[6:8]))
-	if length > maxLength {
+	if length > (maxLength - headerLength) {
 		return fmt.Errorf("message too long")
 	}
 
