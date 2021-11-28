@@ -15,12 +15,9 @@ func TestClient_Connect(t *testing.T) {
 
 	settings, _ := dlms.NewSettingsWithoutAuthentication()
 
-	client, err := client.New(settings, transportMock)
-	if err != nil {
-		t.Errorf("Error creating client: %s", err)
-	}
+	client := client.New(settings, transportMock)
 
-	err = client.Connect()
+	err := client.Connect()
 	if err != nil {
 		t.Errorf("Error connecting: %s", err)
 	}
@@ -40,7 +37,7 @@ func TestClient_ConnectFail(t *testing.T) {
 	transportMock.On("Connect").Return(fmt.Errorf("error connecting"))
 
 	settings, _ := dlms.NewSettingsWithoutAuthentication()
-	client, _ := client.New(settings, transportMock)
+	client := client.New(settings, transportMock)
 
 	err := client.Connect()
 	if err == nil {
@@ -54,7 +51,7 @@ func TestClient_Disconnect(t *testing.T) {
 	transportMock.On("Disconnect").Return(fmt.Errorf("error disconnecting")).Once()
 
 	settings, _ := dlms.NewSettingsWithoutAuthentication()
-	client, _ := client.New(settings, transportMock)
+	client := client.New(settings, transportMock)
 
 	err := client.Disconnect()
 	if err == nil {
@@ -85,7 +82,7 @@ func TestClient_Associate(t *testing.T) {
 	transportMock.On("IsConnected").Return(true).Times(3)
 
 	settings, _ := dlms.NewSettingsWithoutAuthentication()
-	client, _ := client.New(settings, transportMock)
+	client := client.New(settings, transportMock)
 
 	client.Connect()
 

@@ -10,7 +10,7 @@ import (
 func TestCipherData(t *testing.T) {
 	cfg := Cipher{
 		Tag:          TagGloInitiateRequest,
-		Security:     SecurityAuthenticationEncryption,
+		Security:     SecurityEncryption | SecurityAuthentication,
 		SystemTitle:  decodeHexString("4D4D4D0000BC614E"),
 		Key:          decodeHexString("000102030405060708090A0B0C0D0E0F"),
 		AuthKey:      decodeHexString("D0D1D2D3D4D5D6D7D8D9DADBDCDDDEDF"),
@@ -41,12 +41,11 @@ func TestCipherError(t *testing.T) {
 
 func TestDecipherData(t *testing.T) {
 	cfg := Cipher{
-		Tag:          TagGloInitiateRequest,
-		Security:     SecurityAuthenticationEncryption,
-		SystemTitle:  decodeHexString("4D4D4D0000BC614E"),
-		Key:          decodeHexString("000102030405060708090A0B0C0D0E0F"),
-		AuthKey:      decodeHexString("D0D1D2D3D4D5D6D7D8D9DADBDCDDDEDF"),
-		FrameCounter: 0x01234567,
+		Tag:         TagGloInitiateRequest,
+		Security:    SecurityEncryption | SecurityAuthentication,
+		SystemTitle: decodeHexString("4D4D4D0000BC614E"),
+		Key:         decodeHexString("000102030405060708090A0B0C0D0E0F"),
+		AuthKey:     decodeHexString("D0D1D2D3D4D5D6D7D8D9DADBDCDDDEDF"),
 	}
 
 	data := decodeHexString("21303001234567801302FF8A7874133D414CED25B42534D28DB0047720606B175BD52211BE6841DB204D39EE6FDB8E356855")

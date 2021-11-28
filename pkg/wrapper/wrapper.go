@@ -18,14 +18,14 @@ type Wrapper struct {
 	destination uint16
 }
 
-func New(transport dlms.Transport, client int, server int) (*Wrapper, error) {
+func New(transport dlms.Transport, client int, server int) *Wrapper {
 	w := &Wrapper{
 		transport:   transport,
 		source:      uint16(client),
 		destination: uint16(server),
 	}
 
-	return w, nil
+	return w
 }
 
 func (w *Wrapper) Connect() error {

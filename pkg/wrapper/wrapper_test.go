@@ -14,12 +14,9 @@ func TestWrapper_Connect(t *testing.T) {
 	transportMock.On("Connect").Return(nil)
 	transportMock.On("Disconnect").Return(nil)
 
-	w, err := wrapper.New(transportMock, 1, 3)
-	if err != nil {
-		t.Errorf("Error creating wrapper: %s", err)
-	}
+	w := wrapper.New(transportMock, 1, 3)
 
-	err = w.Connect()
+	err := w.Connect()
 	if err != nil {
 		t.Errorf("Error connecting: %s", err)
 	}
@@ -43,7 +40,7 @@ func TestWrapper_Send(t *testing.T) {
 	transportMock := new(mocks.TransportMock)
 	transportMock.On("Connect").Return(nil)
 
-	w, _ := wrapper.New(transportMock, 1, 3)
+	w := wrapper.New(transportMock, 1, 3)
 	w.Connect()
 
 	transportMock.On("IsConnected").Return(true)
@@ -70,7 +67,7 @@ func TestWrapper_Send(t *testing.T) {
 func TestWrapper_SendFailed(t *testing.T) {
 	transportMock := new(mocks.TransportMock)
 
-	w, _ := wrapper.New(transportMock, 1, 3)
+	w := wrapper.New(transportMock, 1, 3)
 
 	// Send failed
 	in := decodeHexString("0001000100030006AABBCCDDEEFF")
@@ -109,7 +106,7 @@ func TestWrapper_InvalidReply(t *testing.T) {
 	transportMock := new(mocks.TransportMock)
 	transportMock.On("IsConnected").Return(true)
 
-	w, _ := wrapper.New(transportMock, 1, 3)
+	w := wrapper.New(transportMock, 1, 3)
 
 	// Invalid version
 	in := decodeHexString("0001000100030006AABBCCDDEEFF")

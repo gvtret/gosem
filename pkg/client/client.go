@@ -11,14 +11,14 @@ type Client struct {
 	isAssociated bool
 }
 
-func New(settings dlms.Settings, transport dlms.Transport) (*Client, error) {
+func New(settings dlms.Settings, transport dlms.Transport) *Client {
 	c := &Client{
 		settings:     settings,
 		transport:    transport,
 		isAssociated: false,
 	}
 
-	return c, nil
+	return c
 }
 
 func (c *Client) Connect() error {

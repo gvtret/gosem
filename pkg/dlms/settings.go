@@ -19,10 +19,10 @@ const (
 type Security byte
 
 const (
-	SecurityNone                     Security = 0    // Transport security is not used.
-	SecurityAuthentication           Security = 0x10 // Authentication security is used.
-	SecurityEncryption               Security = 0x20 // Encryption security is used.
-	SecurityAuthenticationEncryption Security = 0x30 // Authentication and encryption security are used.
+	SecurityNone            Security = 0    // Transport security is not used.
+	SecurityAuthentication  Security = 0x10 // Authentication security is used.
+	SecurityEncryption      Security = 0x20 // Encryption security is used.
+	SecurityKeySetBroadcast Security = 0x40 // Key set broadcast security is used.
 )
 
 type Ciphering struct {

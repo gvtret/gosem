@@ -37,7 +37,7 @@ func TestEncodeAARQWithLowAuthentication(t *testing.T) {
 
 func TestEncodeAARQWithLowAuthenticationAndCipher(t *testing.T) {
 	ciphering := Ciphering{
-		Security:          SecurityAuthenticationEncryption,
+		Security:          SecurityEncryption | SecurityAuthentication,
 		SystemTitle:       decodeHexString("4349520000000001"),
 		UnicastKey:        decodeHexString("00112233445566778899AABBCCDDEEFF"),
 		AuthenticationKey: decodeHexString("00112233445566778899AABBCCDDEEFF"),
