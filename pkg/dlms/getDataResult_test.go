@@ -245,7 +245,7 @@ func TestActResponse(t *testing.T) {
 
 func TestDecode_GetDataResult(t *testing.T) {
 	// with AccessResultTag
-	src := []byte{0, 0}
+	src := []byte{1, 0}
 	a, ae := DecodeGetDataResult(&src)
 
 	if ae != nil {
@@ -259,7 +259,7 @@ func TestDecode_GetDataResult(t *testing.T) {
 	}
 
 	// with dlms data
-	src = []byte{1, 5, 0, 0, 0, 69}
+	src = []byte{0, 5, 0, 0, 0, 69}
 	b, be := DecodeGetDataResult(&src)
 	if be != nil {
 		t.Errorf("t2 Failed. got error: %v", be)
@@ -341,7 +341,7 @@ func TestDecode_DataBlockSA(t *testing.T) {
 }
 
 func TestDecode_ActResponse(t *testing.T) {
-	src := []byte{0, 1, 0, 0}
+	src := []byte{0, 1, 1, 0}
 	a, ae := DecodeActResponse(&src)
 
 	if ae != nil {

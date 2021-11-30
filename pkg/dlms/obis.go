@@ -13,6 +13,8 @@ type Obis struct {
 }
 
 func (o *Obis) Set(str string) error {
+	str = strings.ReplaceAll(str, "-", ".")
+	str = strings.ReplaceAll(str, ":", ".")
 	s := strings.Split(str, ".")
 	if len(s) < 6 {
 		return fmt.Errorf("Obis code is built of 6 uint8 connected with dots. sample: 1.0.0.3.0.255")

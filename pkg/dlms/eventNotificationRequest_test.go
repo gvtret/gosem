@@ -45,7 +45,7 @@ func TestDecode_EventNotificationRequest(t *testing.T) {
 		t.Errorf("t1 failed on DecodeEventNotificationRequest. Err: %v", err)
 	}
 
-	tm := time.Date(1500, time.January, 1, 0, 0, 0, 255, time.UTC)
+	tm := time.Date(1500, time.January, 1, 0, 0, 0, 0, time.UTC)
 	var attrDesc AttributeDescriptor = *CreateAttributeDescriptor(1, "1.0.0.3.0.255", 2)
 	var attrVal axdr.DlmsData = *axdr.CreateAxdrBoolean(true)
 	var b EventNotificationRequest = *CreateEventNotificationRequest(&tm, attrDesc, attrVal)

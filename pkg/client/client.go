@@ -5,6 +5,10 @@ import (
 	"gosem/pkg/dlms"
 )
 
+const (
+	unicastInvokeID = 0xC1
+)
+
 type Client struct {
 	settings     dlms.Settings
 	transport    dlms.Transport

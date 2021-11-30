@@ -51,7 +51,7 @@ func TestDecode_cosem(t *testing.T) {
 	}
 
 	// ------------------  GetResponseNormal
-	srcGetResponseNormal := []byte{196, 1, 81, 1, 5, 0, 0, 0, 69}
+	srcGetResponseNormal := []byte{196, 1, 81, 0, 5, 0, 0, 0, 69}
 	res, e = DecodeCosem(&srcGetResponseNormal)
 	if e != nil {
 		t.Errorf("Decode for GetResponseNormal Failed. err:%v", e)
@@ -73,7 +73,7 @@ func TestDecode_cosem(t *testing.T) {
 	}
 
 	// ------------------  GetResponseWithList
-	srcGetResponseWithList := []byte{196, 3, 69, 2, 0, 0, 1, 5, 0, 0, 0, 1}
+	srcGetResponseWithList := []byte{196, 3, 69, 2, 1, 0, 0, 5, 0, 0, 0, 1}
 	res, e = DecodeCosem(&srcGetResponseWithList)
 	if e != nil {
 		t.Errorf("Decode for GetResponseWithList Failed. err:%v", e)
@@ -260,7 +260,7 @@ func TestDecode_cosem(t *testing.T) {
 	}
 
 	// ------------------  ActionResponseNormal
-	srcActionResponseNormal := []byte{199, 1, 81, 0, 1, 0, 0}
+	srcActionResponseNormal := []byte{199, 1, 81, 0, 1, 1, 0}
 	res, e = DecodeCosem(&srcActionResponseNormal)
 	if e != nil {
 		t.Errorf("Decode for ActionResponseNormal Failed. err:%v", e)
@@ -282,7 +282,7 @@ func TestDecode_cosem(t *testing.T) {
 	}
 
 	// ------------------  ActionResponseWithList
-	srcActionResponseWithList := []byte{199, 3, 81, 1, 0, 1, 0, 0}
+	srcActionResponseWithList := []byte{199, 3, 81, 1, 0, 1, 1, 0}
 	res, e = DecodeCosem(&srcActionResponseWithList)
 	if e != nil {
 		t.Errorf("Decode for ActionResponseWithList Failed. err:%v", e)

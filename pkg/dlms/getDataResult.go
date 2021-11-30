@@ -75,7 +75,7 @@ func (dt GetDataResult) ValueAsAccess() (out AccessResultTag, err error) {
 func DecodeGetDataResult(ori *[]byte) (out GetDataResult, err error) {
 	src := append([]byte(nil), (*ori)...)
 
-	if src[0] == 0x0 {
+	if src[0] == 0x1 {
 		out.IsData = false
 		out.Value, err = GetAccessTag(src[1])
 		if err == nil {

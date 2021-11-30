@@ -1248,8 +1248,8 @@ func TestDecodeDateTime(t *testing.T) {
 		bt  []byte
 		val time.Time
 	}{
-		{[]byte{78, 32, 12, 30, 6, 23, 59, 59, 255, 0, 0, 0, 1, 2, 3}, []byte{78, 32, 12, 30, 6, 23, 59, 59, 255, 0, 0, 0}, time.Date(20000, time.December, 30, 23, 59, 59, 255, time.UTC)},
-		{[]byte{5, 220, 1, 1, 1, 0, 0, 0, 255, 0, 0, 0, 1, 2, 3}, []byte{5, 220, 1, 1, 1, 0, 0, 0, 255, 0, 0, 0}, time.Date(1500, time.January, 1, 0, 0, 0, 255, time.UTC)},
+		{[]byte{78, 32, 12, 30, 6, 23, 59, 59, 255, 0, 0, 0, 1, 2, 3}, []byte{78, 32, 12, 30, 6, 23, 59, 59, 255, 0, 0, 0}, time.Date(20000, time.December, 30, 23, 59, 59, 0, time.UTC)},
+		{[]byte{5, 220, 1, 1, 1, 0, 0, 0, 255, 0, 0, 0, 1, 2, 3}, []byte{5, 220, 1, 1, 1, 0, 0, 0, 255, 0, 0, 0}, time.Date(1500, time.January, 1, 0, 0, 0, 0, time.UTC)},
 	}
 	for idx, table := range tables {
 		bt, val, err := DecodeDateTime(&table.src)
@@ -1276,7 +1276,7 @@ func TestDecodeDateTime(t *testing.T) {
 
 func TestDecoder1(t *testing.T) {
 	d1 := DlmsData{Tag: TagLongUnsigned, Value: uint16(60226)}
-	d2 := DlmsData{Tag: TagDateTime, Value: time.Date(2020, time.March, 16, 0, 0, 0, 255, time.UTC)}
+	d2 := DlmsData{Tag: TagDateTime, Value: time.Date(2020, time.March, 16, 0, 0, 0, 0, time.UTC)}
 	d3 := DlmsData{Tag: TagBitString, Value: "0"}
 	d4 := DlmsData{Tag: TagDoubleLongUnsigned, Value: uint32(33426304)}
 	d5 := DlmsData{Tag: TagLongUnsigned, Value: uint16(3105)}

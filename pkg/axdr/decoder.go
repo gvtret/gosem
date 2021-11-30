@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"strconv"
 	"strings"
 	"time"
 	"unicode/utf8"
@@ -556,9 +557,24 @@ func DecodeDateTime(src *[]byte) (outByte []byte, outVal time.Time, err error) {
 	minute := int(outByte[6])
 	second := int(outByte[7])
 	hundredths := int(outByte[8])
-	// deviation := int(binary.BigEndian.Uint16(outByte[9:11]))
+	if hundredths == 0xFF {
+		hundredths = 0
+	}
 
-	outVal = time.Date(year, time.Month(month), day, hour, minute, second, hundredths, time.UTC)
+	deviation := int(binary.BigEndian.Uint16(outByte[9:11]))
+	location := time.UTC
+	if deviation != 0 && deviation != 0x8000 {
+		utc := "UTC"
+		if deviation > 0 {
+			utc += "+" + strconv.Itoa(deviation/60)
+		} else if deviation < 0 {
+			utc += "-" + strconv.Itoa(-deviation/60)
+		}
+
+		location = time.FixedZone(utc, deviation)
+	}
+
+	outVal = time.Date(year, time.Month(month), day, hour, minute, second, hundredths*10000000, location)
 	(*src) = (*src)[12:]
 	return
 }

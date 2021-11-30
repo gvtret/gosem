@@ -85,7 +85,7 @@ func TestNew_ActionResponseNextPBlock(t *testing.T) {
 }
 
 func TestDecode_ActionResponseNormal(t *testing.T) {
-	src := []byte{199, 1, 81, 0, 1, 0, 0}
+	src := []byte{199, 1, 81, 0, 1, 1, 0}
 	a, err := DecodeActionResponseNormal(&src)
 	if err != nil {
 		t.Errorf("t1 Failed to DecodeActionResponseNormal. err:%v", err)
@@ -142,7 +142,7 @@ func TestDecode_ActionResponseWithPBlock(t *testing.T) {
 
 func TestDecode_ActionResponseWithList(t *testing.T) {
 	// ---------------------- with 1 ActResponse
-	src := []byte{199, 3, 81, 1, 0, 1, 0, 0}
+	src := []byte{199, 3, 81, 1, 0, 1, 1, 0}
 	a, err := DecodeActionResponseWithList(&src)
 	if err != nil {
 		t.Errorf("t1 Failed to DecodeActionResponseWithList. err:%v", err)
@@ -174,7 +174,7 @@ func TestDecode_ActionResponseWithList(t *testing.T) {
 	}
 
 	// ---------------------- with 2 ActResponse
-	src = []byte{199, 3, 81, 2, 0, 1, 0, 0, 0, 1, 1, 5, 0, 0, 0, 69}
+	src = []byte{199, 3, 81, 2, 0, 1, 1, 0, 0, 1, 0, 5, 0, 0, 0, 69}
 	a, err = DecodeActionResponseWithList(&src)
 	if err != nil {
 		t.Errorf("t2 Failed to DecodeActionResponseWithList. err:%v", err)
@@ -233,7 +233,7 @@ func TestDecode_ActionResponse(t *testing.T) {
 	var sr ActionResponse
 
 	// ------------------  ActionResponseNormal
-	srcActionResponseNormal := []byte{199, 1, 81, 0, 1, 0, 0}
+	srcActionResponseNormal := []byte{199, 1, 81, 0, 1, 1, 0}
 	res, e := sr.Decode(&srcActionResponseNormal)
 	if e != nil {
 		t.Errorf("Decode for ActionResponseNormal Failed. err:%v", e)
@@ -255,7 +255,7 @@ func TestDecode_ActionResponse(t *testing.T) {
 	}
 
 	// ------------------  ActionResponseWithList
-	srcActionResponseWithList := []byte{199, 3, 81, 1, 0, 1, 0, 0}
+	srcActionResponseWithList := []byte{199, 3, 81, 1, 0, 1, 1, 0}
 	res, e = sr.Decode(&srcActionResponseWithList)
 	if e != nil {
 		t.Errorf("Decode for ActionResponseWithList Failed. err:%v", e)
