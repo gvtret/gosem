@@ -46,3 +46,18 @@ func (c *Client) Get(att *dlms.AttributeDescriptor) (data axdr.DlmsData, err err
 
 	return
 }
+
+func (c *Client) GetWithUnmarshal(att *dlms.AttributeDescriptor, data interface{}) (err error) {
+	axdrData, err := c.Get(att)
+	if err != nil {
+		return
+	}
+
+	err = axdr.UnmarshalData(axdrData, data)
+	if err != nil {
+		err = fmt.Errorf("error unmarshaling data: %w", err)
+		return
+	}
+
+	return
+}
