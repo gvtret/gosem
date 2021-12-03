@@ -571,7 +571,7 @@ func DecodeDateTime(src *[]byte) (outByte []byte, outVal time.Time, err error) {
 			utc += "-" + strconv.Itoa(-deviation/60)
 		}
 
-		location = time.FixedZone(utc, deviation)
+		location = time.FixedZone(utc, deviation*60)
 	}
 
 	outVal = time.Date(year, time.Month(month), day, hour, minute, second, hundredths*10000000, location)
