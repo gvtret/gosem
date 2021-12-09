@@ -2,8 +2,9 @@ package dlms
 
 import (
 	"bytes"
-	"gosem/pkg/axdr"
 	"time"
+
+	"github.com/Circutor/gosem/pkg/axdr"
 )
 
 type accesSelector uint8

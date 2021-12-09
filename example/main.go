@@ -1,12 +1,13 @@
 package main
 
 import (
-	"fmt"
-	"gosem/pkg/client"
-	"gosem/pkg/dlms"
-	"gosem/pkg/tcp"
-	"gosem/pkg/wrapper"
+	"log"
 	"time"
+
+	"github.com/Circutor/gosem/pkg/client"
+	"github.com/Circutor/gosem/pkg/dlms"
+	"github.com/Circutor/gosem/pkg/tcp"
+	"github.com/Circutor/gosem/pkg/wrapper"
 )
 
 type Instantaneous struct {
@@ -71,7 +72,7 @@ func main() {
 		panic(err)
 	}
 
-	fmt.Printf("Time zone: %v\n", timeZone)
+	log.Printf("Time zone: %d\n", timeZone)
 
 	var instantaneous []Instantaneous
 
@@ -81,5 +82,5 @@ func main() {
 		panic(err)
 	}
 
-	fmt.Printf("Instantaneous: %v\n", instantaneous)
+	log.Printf("Instantaneous: %v\n", instantaneous)
 }

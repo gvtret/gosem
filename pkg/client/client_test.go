@@ -3,10 +3,11 @@ package client_test
 import (
 	"encoding/hex"
 	"fmt"
-	"gosem/pkg/client"
-	"gosem/pkg/dlms"
-	"gosem/pkg/dlms/mocks"
 	"testing"
+
+	"github.com/Circutor/gosem/pkg/client"
+	"github.com/Circutor/gosem/pkg/dlms"
+	"github.com/Circutor/gosem/pkg/dlms/mocks"
 )
 
 func TestClient_Connect(t *testing.T) {

@@ -3,7 +3,8 @@ package dlms
 import (
 	"bytes"
 	"fmt"
-	"gosem/pkg/axdr"
+
+	"github.com/Circutor/gosem/pkg/axdr"
 )
 
 type getRequestTag uint8

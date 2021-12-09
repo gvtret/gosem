@@ -2,9 +2,10 @@ package dlms
 
 import (
 	"bytes"
-	"gosem/pkg/axdr"
 	"reflect"
 	"testing"
+
+	"github.com/Circutor/gosem/pkg/axdr"
 )
 
 func TestNewGetResponseNormal(t *testing.T) {

@@ -4,7 +4,8 @@ import (
 	"bytes"
 	"encoding/hex"
 	"fmt"
-	"gosem/pkg/axdr"
+
+	"github.com/Circutor/gosem/pkg/axdr"
 )
 
 type GetDataResult struct {

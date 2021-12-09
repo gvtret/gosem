@@ -3,7 +3,8 @@ package wrapper
 import (
 	"encoding/binary"
 	"fmt"
-	"gosem/pkg/dlms"
+
+	"github.com/Circutor/gosem/pkg/dlms"
 )
 
 const (

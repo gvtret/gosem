@@ -4,9 +4,10 @@ import (
 	"bytes"
 	"encoding/hex"
 	"fmt"
-	"gosem/pkg/dlms/mocks"
-	"gosem/pkg/wrapper"
 	"testing"
+
+	"github.com/Circutor/gosem/pkg/dlms/mocks"
+	"github.com/Circutor/gosem/pkg/wrapper"
 )
 
 func TestWrapper_Connect(t *testing.T) {

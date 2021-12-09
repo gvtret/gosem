@@ -2,9 +2,10 @@ package dlms
 
 import (
 	"bytes"
-	"gosem/pkg/axdr"
 	"testing"
 	"time"
+
+	"github.com/Circutor/gosem/pkg/axdr"
 )
 
 func TestNew_EventNotificationRequest(t *testing.T) {

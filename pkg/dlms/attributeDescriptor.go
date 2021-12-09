@@ -3,7 +3,8 @@ package dlms
 import (
 	"encoding/binary"
 	"fmt"
-	"gosem/pkg/axdr"
+
+	"github.com/Circutor/gosem/pkg/axdr"
 )
 
 type AttributeDescriptor struct {

@@ -2,8 +2,9 @@ package dlms
 
 import (
 	"bytes"
-	"gosem/pkg/axdr"
 	"testing"
+
+	"github.com/Circutor/gosem/pkg/axdr"
 )
 
 func TestAccessResult(t *testing.T) {

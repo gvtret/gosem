@@ -2,11 +2,12 @@ package client_test
 
 import (
 	"fmt"
-	"gosem/pkg/axdr"
-	"gosem/pkg/client"
-	"gosem/pkg/dlms"
-	"gosem/pkg/dlms/mocks"
 	"testing"
+
+	"github.com/Circutor/gosem/pkg/axdr"
+	"github.com/Circutor/gosem/pkg/client"
+	"github.com/Circutor/gosem/pkg/dlms"
+	"github.com/Circutor/gosem/pkg/dlms/mocks"
 )
 
 func TestClient_Get(t *testing.T) {

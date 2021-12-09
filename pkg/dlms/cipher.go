@@ -6,7 +6,8 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
-	"gosem/pkg/axdr"
+
+	"github.com/Circutor/gosem/pkg/axdr"
 )
 
 type Cipher struct {

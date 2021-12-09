@@ -1,4 +1,4 @@
-module gosem
+module github.com/Circutor/gosem
 
 go 1.16
 

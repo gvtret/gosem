@@ -2,8 +2,9 @@ package client
 
 import (
 	"fmt"
-	"gosem/pkg/axdr"
-	"gosem/pkg/dlms"
+
+	"github.com/Circutor/gosem/pkg/axdr"
+	"github.com/Circutor/gosem/pkg/dlms"
 )
 
 func (c *Client) Get(att *dlms.AttributeDescriptor) (data axdr.DlmsData, err error) {
