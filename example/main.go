@@ -44,12 +44,15 @@ type Instantaneous struct {
 }
 
 func main() {
+	l := log.New(log.Writer(), "", log.Ldate|log.Ltime|log.Lmicroseconds)
+
 	settings, err := dlms.NewSettingsWithLowAuthentication([]byte("TSCLBT01"))
 	if err != nil {
 		panic(err)
 	}
 
 	t := tcp.New(4059, "10.0.120.57", 1*time.Second)
+	t.Logger = l
 	w := wrapper.New(t, 1, 1)
 	c := client.New(settings, w)
 
