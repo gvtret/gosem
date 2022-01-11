@@ -61,6 +61,9 @@ func NewDataDecoder(in interface{}) *Decoder {
 		return &Decoder{tag: src}
 
 	case *[]byte:
+		if len(*src) < 1 {
+			return &Decoder{tag: TagNull}
+		}
 		tag := getDataTag((*src)[0])
 		(*src) = (*src)[1:]
 		return &Decoder{tag: tag}

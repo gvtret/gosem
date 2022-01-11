@@ -216,12 +216,11 @@ func DecodeDataBlockG(ori *[]byte) (out DataBlockG, err error) {
 
 	if out.IsResult {
 		out.Result, err = GetAccessTag(src[0])
-		src = src[0:]
+		src = src[1:]
 	} else {
-		// not sure if length is limited only 1 byte, or does it follow KLV as in axdr
-		val := src[0]
-		out.Result = src[1 : 1+val]
-		src = src[1+val:]
+		_, val, _ := axdr.DecodeLength(&src)
+		out.Result = src[:val]
+		src = src[val:]
 	}
 
 	(*ori) = (*ori)[len((*ori))-len(src):]

@@ -8,39 +8,30 @@ import (
 	"github.com/Circutor/gosem/pkg/client"
 	"github.com/Circutor/gosem/pkg/dlms"
 	"github.com/Circutor/gosem/pkg/dlms/mocks"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestClient_Get(t *testing.T) {
 	c, tm, err := associate()
-	if err != nil {
-		t.Error(err)
-	}
+	assert.NoError(t, err)
 
 	in := decodeHexString("C001C100080000010000FF0300")
 	out := decodeHexString("C401C10010003C")
 	tm.On("Send", in).Return(out, nil).Once()
 
 	a, err := c.Get(dlms.CreateAttributeDescriptor(8, "0-0:1.0.0.255", 3))
-	if err != nil {
-		t.Error(err)
-	}
+	assert.NoError(t, err)
 
 	b := axdr.CreateAxdrLong(0x003C)
-	if a.Tag != b.Tag {
-		t.Errorf("Expected %v, got %v", b.Tag, a.Tag)
-	}
-	if a.Value != b.Value {
-		t.Errorf("Expected %v, got %v", b.Value, a.Value)
-	}
+	assert.Equal(t, b.Tag, a.Tag)
+	assert.Equal(t, b.Value, a.Value)
 
 	tm.AssertExpectations(t)
 }
 
 func TestClient_GetFail(t *testing.T) {
 	c, tm, err := associate()
-	if err != nil {
-		t.Error(err)
-	}
+	assert.NoError(t, err)
 
 	// Get failed
 	in := decodeHexString("C001C100080000010000FF0300")
@@ -48,9 +39,7 @@ func TestClient_GetFail(t *testing.T) {
 	tm.On("Send", in).Return(out, nil).Once()
 
 	_, err = c.Get(dlms.CreateAttributeDescriptor(8, "0-0:1.0.0.255", 3))
-	if err == nil {
-		t.Error("Expected error, got nil")
-	}
+	assert.Error(t, err)
 
 	// Unexpected response
 	in = decodeHexString("C001C100080000010000FF0300")
@@ -58,9 +47,7 @@ func TestClient_GetFail(t *testing.T) {
 	tm.On("Send", in).Return(out, nil).Once()
 
 	_, err = c.Get(dlms.CreateAttributeDescriptor(8, "0-0:1.0.0.255", 3))
-	if err == nil {
-		t.Error("Expected error, got nil")
-	}
+	assert.Error(t, err)
 
 	// Invalid response
 	in = decodeHexString("C001C100080000010000FF0300")
@@ -68,9 +55,7 @@ func TestClient_GetFail(t *testing.T) {
 	tm.On("Send", in).Return(out, nil).Once()
 
 	_, err = c.Get(dlms.CreateAttributeDescriptor(8, "0-0:1.0.0.255", 3))
-	if err == nil {
-		t.Error("Expected error, got nil")
-	}
+	assert.Error(t, err)
 
 	// Send failed
 	in = decodeHexString("C001C100080000010000FF0300")
@@ -78,27 +63,21 @@ func TestClient_GetFail(t *testing.T) {
 	tm.On("Send", in).Return(out, fmt.Errorf("error")).Once()
 
 	_, err = c.Get(dlms.CreateAttributeDescriptor(8, "0-0:1.0.0.255", 3))
-	if err == nil {
-		t.Error("Expected error, got nil")
-	}
+	assert.Error(t, err)
 
 	// Not associated
 	tm.On("Disconnect").Return(nil).Once()
 	c.Disconnect()
 
 	_, err = c.Get(dlms.CreateAttributeDescriptor(8, "0-0:1.0.0.255", 3))
-	if err == nil {
-		t.Error("Expected error, got nil")
-	}
+	assert.Error(t, err)
 
 	tm.AssertExpectations(t)
 }
 
 func TestClient_GetWithUnmarshal(t *testing.T) {
 	c, tm, err := associate()
-	if err != nil {
-		t.Error(err)
-	}
+	assert.NoError(t, err)
 
 	in := decodeHexString("C001C100080000010000FF0300")
 	out := decodeHexString("C401C10010003C")
@@ -107,22 +86,15 @@ func TestClient_GetWithUnmarshal(t *testing.T) {
 	var data int16
 
 	err = c.GetWithUnmarshal(dlms.CreateAttributeDescriptor(8, "0-0:1.0.0.255", 3), &data)
-	if err != nil {
-		t.Error(err)
-	}
-
-	if data != 0x003C {
-		t.Errorf("Expected %v, got %v", 0x003C, data)
-	}
+	assert.NoError(t, err)
+	assert.Equal(t, int16(0x003C), data)
 
 	tm.AssertExpectations(t)
 }
 
 func TestClient_GetWithUnmarshalFail(t *testing.T) {
 	c, tm, err := associate()
-	if err != nil {
-		t.Error(err)
-	}
+	assert.NoError(t, err)
 
 	// Get failed
 	in := decodeHexString("C001C100080000010000FF0300")
@@ -132,9 +104,7 @@ func TestClient_GetWithUnmarshalFail(t *testing.T) {
 	var data int32
 
 	err = c.GetWithUnmarshal(dlms.CreateAttributeDescriptor(8, "0-0:1.0.0.255", 3), &data)
-	if err == nil {
-		t.Error("Expected error, got nil")
-	}
+	assert.Error(t, err)
 
 	// Unexpected response
 	in = decodeHexString("C001C100080000010000FF0300")
@@ -142,9 +112,89 @@ func TestClient_GetWithUnmarshalFail(t *testing.T) {
 	tm.On("Send", in).Return(out, nil).Once()
 
 	err = c.GetWithUnmarshal(dlms.CreateAttributeDescriptor(8, "0-0:1.0.0.255", 3), &data)
-	if err == nil {
-		t.Error("Expected error, got nil")
-	}
+	assert.Error(t, err)
+}
+
+func TestClient_GetWithDataBlock(t *testing.T) {
+	c, tm, err := associate()
+	assert.NoError(t, err)
+
+	in := decodeHexString("C001C100070100630100FF0200")
+	out := decodeHexString("C402C10000000001000C010506000000010600000002")
+	tm.On("Send", in).Return(out, nil).Once()
+
+	in = decodeHexString("C002C100000001")
+	out = decodeHexString("C402C10000000002000A06000000030600000004")
+	tm.On("Send", in).Return(out, nil).Once()
+
+	in = decodeHexString("C002C100000002")
+	out = decodeHexString("C402C1010000000300050600000005")
+	tm.On("Send", in).Return(out, nil).Once()
+
+	var data []uint32
+
+	err = c.GetWithUnmarshal(dlms.CreateAttributeDescriptor(7, "1-0:99.1.0.255", 2), &data)
+	assert.NoError(t, err)
+	assert.Len(t, data, 5)
+
+	tm.AssertExpectations(t)
+}
+
+func TestClient_GetWithDataBlockFail(t *testing.T) {
+	c, tm, err := associate()
+	assert.NoError(t, err)
+
+	var data []uint32
+
+	// Get failed
+	in := decodeHexString("C001C100070100630100FF0200")
+	out := decodeHexString("C402C100000000010102")
+	tm.On("Send", in).Return(out, nil).Once()
+
+	err = c.GetWithUnmarshal(dlms.CreateAttributeDescriptor(7, "1-0:99.1.0.255", 2), &data)
+	assert.Error(t, err)
+
+	// Invalid block number
+	in = decodeHexString("C001C100070100630100FF0200")
+	out = decodeHexString("C402C10000000002000C010506000000010600000002")
+	tm.On("Send", in).Return(out, nil).Once()
+
+	err = c.GetWithUnmarshal(dlms.CreateAttributeDescriptor(7, "1-0:99.1.0.255", 2), &data)
+	assert.Error(t, err)
+
+	// Invalid response
+	in = decodeHexString("C001C100070100630100FF0200")
+	out = decodeHexString("C402C10000000001000C010506000000010600000002")
+	tm.On("Send", in).Return(out, nil).Once()
+
+	in = decodeHexString("C002C100000001")
+	out = decodeHexString("AE12")
+	tm.On("Send", in).Return(out, nil).Once()
+
+	err = c.GetWithUnmarshal(dlms.CreateAttributeDescriptor(7, "1-0:99.1.0.255", 2), &data)
+	assert.Error(t, err)
+
+	// Unexpected response
+	in = decodeHexString("C001C100070100630100FF0200")
+	out = decodeHexString("C402C10000000001000C010506000000010600000002")
+	tm.On("Send", in).Return(out, nil).Once()
+
+	in = decodeHexString("C002C100000001")
+	out = decodeHexString("0E010203")
+	tm.On("Send", in).Return(out, nil).Once()
+
+	err = c.GetWithUnmarshal(dlms.CreateAttributeDescriptor(7, "1-0:99.1.0.255", 2), &data)
+	assert.Error(t, err)
+
+	// Invalid data
+	in = decodeHexString("C001C100070100630100FF0200")
+	out = decodeHexString("C402C10100000001000C010506000000010600000002")
+	tm.On("Send", in).Return(out, nil).Once()
+
+	err = c.GetWithUnmarshal(dlms.CreateAttributeDescriptor(7, "1-0:99.1.0.255", 2), &data)
+	assert.Error(t, err)
+
+	tm.AssertExpectations(t)
 }
 
 func associate() (*client.Client, *mocks.TransportMock, error) {
