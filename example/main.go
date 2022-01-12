@@ -13,29 +13,29 @@ import (
 type Instantaneous struct {
 	Clock time.Time
 
-	VoltageR        uint
+	VoltageR        uint16
 	CurrentR        int32
-	PowerFactorR    uint
+	PowerFactorR    uint16
 	ActiveQuadrantR uint8
-	ActivePowerR    uint32
-	ReactivePowerR  uint32
+	ActivePowerR    int32
+	ReactivePowerR  int32
 
 	VoltageS        uint16
 	CurrentS        int32
 	PowerFactorS    uint16
 	ActiveQuadrantS uint8
-	ActivePowerS    uint32
-	ReactivePowerS  uint32
+	ActivePowerS    int32
+	ReactivePowerS  int32
 
 	VoltageT        uint16
 	CurrentT        int32
 	PowerFactorT    uint16
 	ActiveQuadrantT uint8
-	ActivePowerT    uint32
-	ReactivePowerT  uint32
+	ActivePowerT    int32
+	ReactivePowerT  int32
 
-	CurrentTotal     uint16
-	PowerFactorTotal int16
+	CurrentTotal     int16
+	PowerFactorTotal uint16
 	PhasePresence    uint8
 	ActiveQuadrant   uint8
 
@@ -51,7 +51,7 @@ func main() {
 		panic(err)
 	}
 
-	t := tcp.New(4059, "10.0.120.34", 1*time.Second)
+	t := tcp.New(4059, "10.0.120.48", 1*time.Second)
 	t.Logger = l
 	w := wrapper.New(t, 1, 1)
 	c := client.New(settings, w)
@@ -70,7 +70,7 @@ func main() {
 	var timeZone int16
 
 	attTimeZone := dlms.CreateAttributeDescriptor(8, "0-0:1.0.0.255", 3)
-	err = c.GetWithUnmarshal(attTimeZone, &timeZone)
+	err = c.GetRequestWithUnmarshal(attTimeZone, &timeZone)
 	if err != nil {
 		panic(err)
 	}
@@ -80,7 +80,7 @@ func main() {
 	var instantaneous []Instantaneous
 
 	attInstantaneous := dlms.CreateAttributeDescriptor(7, "0-0:21.0.5.255", 2)
-	err = c.GetWithUnmarshal(attInstantaneous, &instantaneous)
+	err = c.GetRequestWithUnmarshal(attInstantaneous, &instantaneous)
 	if err != nil {
 		panic(err)
 	}

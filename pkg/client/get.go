@@ -2,13 +2,42 @@ package client
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/Circutor/gosem/pkg/axdr"
 	"github.com/Circutor/gosem/pkg/dlms"
 )
 
-func (c *Client) Get(att *dlms.AttributeDescriptor) (data axdr.DlmsData, err error) {
-	req := dlms.CreateGetRequestNormal(unicastInvokeID, *att, nil)
+func (c *Client) GetRequest(att *dlms.AttributeDescriptor) (data axdr.DlmsData, err error) {
+	return c.getRequest(att, nil)
+}
+
+func (c *Client) GetRequestWithUnmarshal(att *dlms.AttributeDescriptor, data interface{}) (err error) {
+	return c.getRequestWithUnmarshal(att, nil, data)
+}
+
+func (c *Client) GetRequestWithSelectiveAccessByDate(att *dlms.AttributeDescriptor, start time.Time, end time.Time, data interface{}) (err error) {
+	acc := dlms.CreateSelectiveAccessDescriptor(dlms.AccessSelectorRange, []time.Time{start, end})
+	return c.getRequestWithUnmarshal(att, acc, data)
+}
+
+func (c *Client) getRequestWithUnmarshal(att *dlms.AttributeDescriptor, acc *dlms.SelectiveAccessDescriptor, data interface{}) (err error) {
+	axdrData, err := c.getRequest(att, acc)
+	if err != nil {
+		return
+	}
+
+	err = axdr.UnmarshalData(axdrData, data)
+	if err != nil {
+		err = fmt.Errorf("error unmarshaling data: %w", err)
+		return
+	}
+
+	return
+}
+
+func (c *Client) getRequest(att *dlms.AttributeDescriptor, acc *dlms.SelectiveAccessDescriptor) (data axdr.DlmsData, err error) {
+	req := dlms.CreateGetRequestNormal(unicastInvokeID, *att, acc)
 
 	pdu, err := c.encodeSendReceiveAndDecode(req)
 	if err != nil {
@@ -68,21 +97,6 @@ func (c *Client) Get(att *dlms.AttributeDescriptor) (data axdr.DlmsData, err err
 		}
 	default:
 		err = fmt.Errorf("unexpected CosemPDU type: %T", pdu)
-	}
-
-	return
-}
-
-func (c *Client) GetWithUnmarshal(att *dlms.AttributeDescriptor, data interface{}) (err error) {
-	axdrData, err := c.Get(att)
-	if err != nil {
-		return
-	}
-
-	err = axdr.UnmarshalData(axdrData, data)
-	if err != nil {
-		err = fmt.Errorf("error unmarshaling data: %w", err)
-		return
 	}
 
 	return

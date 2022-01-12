@@ -334,7 +334,7 @@ func EncodeTime(data time.Time) ([]byte, error) {
 	output[0] = byte(data.Hour())
 	output[1] = byte(data.Minute())
 	output[2] = byte(data.Second())
-	output[3] = byte(data.Nanosecond())
+	output[3] = byte(data.Nanosecond() / 10000000)
 
 	return output, nil
 }
@@ -354,22 +354,22 @@ func EncodeTime(data time.Time) ([]byte, error) {
 // clock status -- 0x00 means ok, 0xFF means not specified
 func EncodeDateTime(data time.Time) ([]byte, error) {
 	output := make([]byte, 12)
+	_, offset := data.Zone()
 
-	yb := make([]byte, 2)
-	binary.BigEndian.PutUint16(yb, uint16(data.Year()))
-
-	output[0] = yb[0]
-	output[1] = yb[1]
+	binary.BigEndian.PutUint16(output[:2], uint16(data.Year()))
 	output[2] = byte(int(data.Month()))
 	output[3] = byte(data.Day())
 	output[4] = byte(int(data.Weekday()))
 	output[5] = byte(data.Hour())
 	output[6] = byte(data.Minute())
 	output[7] = byte(data.Second())
-	output[8] = byte(data.Nanosecond())
-	output[9] = 0x00
-	output[10] = 0x00
+	output[8] = byte(data.Nanosecond() / 10000000)
+	binary.BigEndian.PutUint16(output[9:11], uint16(offset/60))
 	output[11] = 0x00
+
+	if data.IsDST() {
+		output[11] |= 0x80
+	}
 
 	return output, nil
 }

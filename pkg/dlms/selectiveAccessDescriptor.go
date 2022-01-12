@@ -35,8 +35,8 @@ func CreateSelectiveAccessDescriptor(as accesSelector, ap interface{}) *Selectiv
 		var obisCode axdr.DlmsData = *axdr.CreateAxdrOctetString("0.0.1.0.0.255") // obis of clock
 		var AttributeID axdr.DlmsData = *axdr.CreateAxdrInteger(2)
 		var dataIdx axdr.DlmsData = *axdr.CreateAxdrLongUnsigned(0)
-		var rangeStart axdr.DlmsData = *axdr.CreateAxdrDateTime(ranges[0])
-		var rangeEnd axdr.DlmsData = *axdr.CreateAxdrDateTime(ranges[1])
+		var rangeStart axdr.DlmsData = *axdr.CreateAxdrOctetString(ranges[0])
+		var rangeEnd axdr.DlmsData = *axdr.CreateAxdrOctetString(ranges[1])
 		var selectedValue axdr.DlmsData = *axdr.CreateAxdrArray([]*axdr.DlmsData{})
 
 		var restrictingObject axdr.DlmsData = *axdr.CreateAxdrStructure([]*axdr.DlmsData{&ClassID, &obisCode, &AttributeID, &dataIdx})

@@ -9,7 +9,7 @@ import (
 )
 
 func TestNew_EventNotificationRequest(t *testing.T) {
-	tm := time.Date(1500, time.January, 1, 0, 0, 0, 255, time.UTC)
+	tm := time.Date(1500, time.January, 1, 0, 0, 0, 0, time.UTC)
 	var attrDesc AttributeDescriptor = *CreateAttributeDescriptor(1, "1.0.0.3.0.255", 2)
 	var attrVal axdr.DlmsData = *axdr.CreateAxdrBoolean(true)
 
@@ -18,7 +18,7 @@ func TestNew_EventNotificationRequest(t *testing.T) {
 	if e != nil {
 		t.Errorf("t1 Encode Failed. err: %v", e)
 	}
-	result := []byte{194, 1, 12, 5, 220, 1, 1, 1, 0, 0, 0, 255, 0, 0, 0, 0, 1, 1, 0, 0, 3, 0, 255, 2, 3, 255}
+	result := []byte{194, 1, 12, 5, 220, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 3, 0, 255, 2, 3, 255}
 	res := bytes.Compare(t1, result)
 	if res != 0 {
 		t.Errorf("t1 Failed. get: %d, should:%v", t1, result)

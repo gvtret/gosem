@@ -469,34 +469,49 @@ func TestEncodeDate(t *testing.T) {
 }
 
 func TestEncodeTime(t *testing.T) {
-	dt := time.Date(2020, time.January, 1, 10, 0, 0, 255, time.UTC)
+	dt := time.Date(2020, time.January, 1, 10, 0, 0, 0, time.UTC)
 	ts, err := EncodeTime(dt)
-	res := bytes.Compare(ts, []byte{10, 0, 0, 255})
+	res := bytes.Compare(ts, []byte{10, 0, 0, 0})
 	if res != 0 || err != nil {
 		t.Errorf("t1 failed. val: %d, err:%v", ts, err)
 	}
 
-	dt = time.Date(2020, time.January, 1, 23, 59, 59, 255, time.UTC)
+	dt = time.Date(2020, time.January, 1, 23, 59, 59, 990000000, time.UTC)
 	ts, err = EncodeTime(dt)
-	res = bytes.Compare(ts, []byte{23, 59, 59, 255})
+	res = bytes.Compare(ts, []byte{23, 59, 59, 99})
 	if res != 0 || err != nil {
 		t.Errorf("t2 failed. val: %d, err:%v", ts, err)
 	}
 }
 
 func TestEncodeDateTime(t *testing.T) {
-	dt := time.Date(20000, time.December, 30, 23, 59, 59, 255, time.UTC)
+	dt := time.Date(20000, time.December, 30, 23, 59, 59, 990000000, time.UTC)
 	ts, err := EncodeDateTime(dt)
-	res := bytes.Compare(ts, []byte{78, 32, 12, 30, 6, 23, 59, 59, 255, 0, 0, 0})
+	res := bytes.Compare(ts, []byte{78, 32, 12, 30, 6, 23, 59, 59, 99, 0, 0, 0})
 	if res != 0 || err != nil {
 		t.Errorf("t1 failed. val: %d, err:%v", ts, err)
 	}
 
-	dt = time.Date(1500, time.January, 1, 0, 0, 0, 255, time.UTC)
+	dt = time.Date(1500, time.January, 1, 0, 0, 0, 0, time.UTC)
 	ts, err = EncodeDateTime(dt)
-	res = bytes.Compare(ts, []byte{5, 220, 1, 1, 1, 0, 0, 0, 255, 0, 0, 0})
+	res = bytes.Compare(ts, []byte{5, 220, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0})
 	if res != 0 || err != nil {
 		t.Errorf("t2 failed. val: %d, err:%v", ts, err)
+	}
+
+	l, _ := time.LoadLocation("Europe/Madrid")
+	dt = time.Date(2020, time.January, 1, 10, 0, 0, 0, l)
+	ts, err = EncodeDateTime(dt)
+	res = bytes.Compare(ts, []byte{7, 228, 1, 1, 3, 10, 0, 0, 0, 0, 60, 0})
+	if res != 0 || err != nil {
+		t.Errorf("t3 failed. val: %d, err:%v", ts, err)
+	}
+
+	dt = time.Date(2020, time.July, 1, 10, 0, 0, 0, l)
+	ts, err = EncodeDateTime(dt)
+	res = bytes.Compare(ts, []byte{7, 228, 7, 1, 3, 10, 0, 0, 0, 0, 120, 128})
+	if res != 0 || err != nil {
+		t.Errorf("t4 failed. val: %d, err:%v", ts, err)
 	}
 }
 

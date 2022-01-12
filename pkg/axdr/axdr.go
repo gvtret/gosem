@@ -85,7 +85,7 @@ func CreateAxdrFloatingPoint(data float32) *DlmsData {
 }
 
 // expect Hex string as input
-func CreateAxdrOctetString(data string) *DlmsData {
+func CreateAxdrOctetString(data interface{}) *DlmsData {
 	return &DlmsData{Tag: TagOctetString, Value: data}
 }
 
@@ -260,18 +260,25 @@ func (d *DlmsData) Encode() (out []byte, err error) {
 		d.rawValue = rawValue
 
 	case TagOctetString:
-		data, ok := d.Value.(string)
-		if !ok {
+		switch value := d.Value.(type) {
+		case time.Time:
+			rv, errEncoding := EncodeDateTime(value)
+			if errEncoding != nil {
+				err = errEncoding
+				return
+			}
+			d.rawValue = rv
+		case string:
+			rv, errEncoding := EncodeOctetString(value)
+			if errEncoding != nil {
+				err = errEncoding
+				return
+			}
+			d.rawValue = rv
+		default:
 			err = errDataType
 			return
 		}
-
-		rv, errEncoding := EncodeOctetString(data)
-		if errEncoding != nil {
-			err = errEncoding
-			return
-		}
-		d.rawValue = rv
 
 		dl, errLength := EncodeLength(len(d.rawValue))
 		if errLength != nil {

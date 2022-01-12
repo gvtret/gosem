@@ -26,7 +26,7 @@ func TestSelectiveAccessDescriptor_Encode(t *testing.T) {
 	if e != nil {
 		t.Errorf("t2 Encode Failed. err: %v", e)
 	}
-	result = []byte{1, 2, 4, 2, 4, 18, 0, 8, 9, 6, 0, 0, 1, 0, 0, 255, 15, 2, 18, 0, 0, 25, 7, 228, 1, 1, 3, 10, 0, 0, 0, 0, 0, 0, 25, 7, 228, 1, 1, 3, 11, 0, 0, 0, 0, 0, 0, 1, 0}
+	result = []byte{1, 2, 4, 2, 4, 18, 0, 8, 9, 6, 0, 0, 1, 0, 0, 255, 15, 2, 18, 0, 0, 9, 12, 7, 228, 1, 1, 3, 10, 0, 0, 0, 0, 0, 0, 9, 12, 7, 228, 1, 1, 3, 11, 0, 0, 0, 0, 0, 0, 1, 0}
 
 	res = bytes.Compare(t2, result)
 	if res != 0 {
@@ -57,7 +57,7 @@ func TestSelectiveAccessDescriptor_Decode(t *testing.T) {
 
 	// ------------------------ AccessSelectorRange
 
-	src = []byte{1, 2, 4, 2, 4, 18, 0, 8, 9, 6, 0, 0, 1, 0, 0, 255, 15, 2, 18, 0, 0, 25, 7, 228, 1, 1, 3, 10, 0, 0, 0, 0, 0, 0, 25, 7, 228, 1, 1, 3, 11, 0, 0, 0, 0, 0, 0, 1, 0}
+	src = []byte{1, 2, 4, 2, 4, 18, 0, 8, 9, 6, 0, 0, 1, 0, 0, 255, 15, 2, 18, 0, 0, 9, 12, 7, 228, 1, 1, 3, 10, 0, 0, 0, 0, 0, 0, 9, 12, 7, 228, 1, 1, 3, 11, 0, 0, 0, 0, 0, 0, 1, 0}
 	timeStart := time.Date(2020, time.January, 1, 10, 0, 0, 0, time.UTC)
 	timeEnd := time.Date(2020, time.January, 1, 11, 0, 0, 0, time.UTC)
 	b = *CreateSelectiveAccessDescriptor(AccessSelectorRange, []time.Time{timeStart, timeEnd})
