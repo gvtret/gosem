@@ -8,11 +8,7 @@ import (
 	"github.com/Circutor/gosem/pkg/dlms"
 )
 
-func (c *Client) GetRequest(att *dlms.AttributeDescriptor) (data axdr.DlmsData, err error) {
-	return c.getRequest(att, nil)
-}
-
-func (c *Client) GetRequestWithUnmarshal(att *dlms.AttributeDescriptor, data interface{}) (err error) {
+func (c *Client) GetRequest(att *dlms.AttributeDescriptor, data interface{}) (err error) {
 	return c.getRequestWithUnmarshal(att, nil, data)
 }
 
@@ -27,16 +23,23 @@ func (c *Client) getRequestWithUnmarshal(att *dlms.AttributeDescriptor, acc *dlm
 		return
 	}
 
-	err = axdr.UnmarshalData(axdrData, data)
-	if err != nil {
-		err = fmt.Errorf("error unmarshaling data: %w", err)
-		return
+	if data != nil {
+		err = axdr.UnmarshalData(axdrData, data)
+		if err != nil {
+			err = fmt.Errorf("error unmarshaling data: %w", err)
+			return
+		}
 	}
 
 	return
 }
 
 func (c *Client) getRequest(att *dlms.AttributeDescriptor, acc *dlms.SelectiveAccessDescriptor) (data axdr.DlmsData, err error) {
+	if att == nil {
+		err = fmt.Errorf("attribute descriptor is nil")
+		return
+	}
+
 	req := dlms.CreateGetRequestNormal(unicastInvokeID, *att, acc)
 
 	pdu, err := c.encodeSendReceiveAndDecode(req)

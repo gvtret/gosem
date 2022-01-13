@@ -8,105 +8,81 @@ import (
 	"github.com/Circutor/gosem/pkg/client"
 	"github.com/Circutor/gosem/pkg/dlms"
 	"github.com/Circutor/gosem/pkg/dlms/mocks"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestClient_Connect(t *testing.T) {
-	transportMock := new(mocks.TransportMock)
-	transportMock.On("Connect").Return(nil)
+	tm := new(mocks.TransportMock)
+	tm.On("Connect").Return(nil).Once()
 
 	settings, _ := dlms.NewSettingsWithoutAuthentication()
-
-	client := client.New(settings, transportMock)
+	client := client.New(settings, tm)
 
 	err := client.Connect()
-	if err != nil {
-		t.Errorf("Error connecting: %s", err)
-	}
+	assert.NoError(t, err)
 
-	transportMock.On("IsConnected").Return(true)
+	tm.On("IsConnected").Return(true).Once()
+	assert.True(t, client.IsConnected())
 
-	if !client.IsConnected() {
-		t.Errorf("Client is not connected")
-	}
-
-	transportMock.AssertNumberOfCalls(t, "Connect", 1)
-	transportMock.AssertNumberOfCalls(t, "IsConnected", 1)
+	tm.AssertExpectations(t)
 }
 
 func TestClient_ConnectFail(t *testing.T) {
-	transportMock := new(mocks.TransportMock)
-	transportMock.On("Connect").Return(fmt.Errorf("error connecting"))
+	tm := new(mocks.TransportMock)
+	tm.On("Connect").Return(fmt.Errorf("error connecting"))
 
 	settings, _ := dlms.NewSettingsWithoutAuthentication()
-	client := client.New(settings, transportMock)
+	client := client.New(settings, tm)
 
 	err := client.Connect()
-	if err == nil {
-		t.Errorf("Error connecting should not be nil")
-	}
+	assert.Error(t, err)
 }
 
 func TestClient_Disconnect(t *testing.T) {
-	transportMock := new(mocks.TransportMock)
-	transportMock.On("Connect").Return(nil)
-	transportMock.On("Disconnect").Return(fmt.Errorf("error disconnecting")).Once()
+	tm := new(mocks.TransportMock)
+	tm.On("Connect").Return(nil).Once()
+	tm.On("Disconnect").Return(fmt.Errorf("error disconnecting")).Once()
 
 	settings, _ := dlms.NewSettingsWithoutAuthentication()
-	client := client.New(settings, transportMock)
+	client := client.New(settings, tm)
 
 	err := client.Disconnect()
-	if err == nil {
-		t.Errorf("Error disconnecting should not be nil")
-	}
+	assert.Error(t, err)
 
 	client.Connect()
 
-	transportMock.On("Disconnect").Return(nil)
-
+	tm.On("Disconnect").Return(nil).Once()
 	err = client.Disconnect()
-	if err != nil {
-		t.Errorf("Error disconnecting: %s", err)
-	}
+	assert.NoError(t, err)
 
-	transportMock.AssertNumberOfCalls(t, "Connect", 1)
-	transportMock.AssertNumberOfCalls(t, "Disconnect", 2)
+	tm.AssertExpectations(t)
 }
 
 func TestClient_Associate(t *testing.T) {
 	in := decodeHexString("601DA109060760857405080101BE10040E01000000065F1F040000181F0100")
 	out := decodeHexString("6129A109060760857405080101A203020100A305A103020100BE10040E0800065F1F040000101D00800007")
 
-	transportMock := new(mocks.TransportMock)
-	transportMock.On("Connect").Return(nil)
-	transportMock.On("Disconnect").Return(nil)
-	transportMock.On("Send", in).Return(out, nil)
-	transportMock.On("IsConnected").Return(true).Times(3)
+	tm := new(mocks.TransportMock)
+	tm.On("Connect").Return(nil).Once()
+	tm.On("Disconnect").Return(nil).Once()
+	tm.On("Send", in).Return(out, nil).Once()
+	tm.On("IsConnected").Return(true).Times(3)
 
 	settings, _ := dlms.NewSettingsWithoutAuthentication()
-	client := client.New(settings, transportMock)
+	client := client.New(settings, tm)
 
 	client.Connect()
 
 	err := client.Associate()
-	if err != nil {
-		t.Errorf("Error associating: %s", err)
-	}
-
-	if !client.IsAssociated() {
-		t.Errorf("Client is not associated")
-	}
+	assert.NoError(t, err)
+	assert.True(t, client.IsAssociated())
 
 	client.Disconnect()
 
-	transportMock.On("IsConnected").Return(false)
+	tm.On("IsConnected").Return(false).Once()
+	assert.False(t, client.IsAssociated())
 
-	if client.IsAssociated() {
-		t.Errorf("Client is associated")
-	}
-
-	transportMock.AssertNumberOfCalls(t, "Connect", 1)
-	transportMock.AssertNumberOfCalls(t, "Disconnect", 1)
-	transportMock.AssertNumberOfCalls(t, "Send", 1)
+	tm.AssertExpectations(t)
 }
 
 func decodeHexString(s string) []byte {

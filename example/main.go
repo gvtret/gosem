@@ -70,7 +70,7 @@ func main() {
 	var timeZone int16
 
 	attTimeZone := dlms.CreateAttributeDescriptor(8, "0-0:1.0.0.255", 3)
-	err = c.GetRequestWithUnmarshal(attTimeZone, &timeZone)
+	err = c.GetRequest(attTimeZone, &timeZone)
 	if err != nil {
 		panic(err)
 	}
@@ -80,7 +80,7 @@ func main() {
 	var instantaneous []Instantaneous
 
 	attInstantaneous := dlms.CreateAttributeDescriptor(7, "0-0:21.0.5.255", 2)
-	err = c.GetRequestWithUnmarshal(attInstantaneous, &instantaneous)
+	err = c.GetRequest(attInstantaneous, &instantaneous)
 	if err != nil {
 		panic(err)
 	}
