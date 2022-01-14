@@ -119,11 +119,11 @@ func CreateAxdrLongUnsigned(data uint16) *DlmsData {
 	return &DlmsData{Tag: TagLongUnsigned, Value: data}
 }
 
-func CreateAxdrLong64(data uint8) *DlmsData {
+func CreateAxdrLong64(data int64) *DlmsData {
 	return &DlmsData{Tag: TagLong64, Value: data}
 }
 
-func CreateAxdrLong64Unsigned(data uint8) *DlmsData {
+func CreateAxdrLong64Unsigned(data uint64) *DlmsData {
 	return &DlmsData{Tag: TagLong64Unsigned, Value: data}
 }
 

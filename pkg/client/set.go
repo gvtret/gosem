@@ -15,8 +15,11 @@ func (c *Client) SetRequest(att *dlms.AttributeDescriptor, data interface{}) (er
 
 	dt, ok := data.(*axdr.DlmsData)
 	if !ok {
-		err = fmt.Errorf("data is not a valid *axdr.DlmsData")
-		return
+		dt, err = axdr.MarshalData(data)
+		if err != nil {
+			err = fmt.Errorf("failed to marshal data: %w", err)
+			return
+		}
 	}
 
 	req := dlms.CreateSetRequestNormal(unicastInvokeID, *att, nil, *dt)

@@ -8,12 +8,12 @@ import (
 )
 
 func UnmarshalData(data DlmsData, v interface{}) error {
-	valuePtr := reflect.ValueOf(v)
-	if valuePtr.Kind() != reflect.Ptr || valuePtr.IsNil() {
+	rv := reflect.ValueOf(v)
+	if rv.Kind() != reflect.Ptr || rv.IsNil() {
 		return fmt.Errorf("v must be a non-nil pointer")
 	}
 
-	return unify(&data, reflect.Indirect(valuePtr))
+	return unify(&data, reflect.Indirect(rv))
 }
 
 func unify(data *DlmsData, rv reflect.Value) error {

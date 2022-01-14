@@ -17,7 +17,7 @@ func TestClient_SetRequest(t *testing.T) {
 	out := decodeHexString("C501C100")
 	tm.On("Send", in).Return(out, nil).Once()
 
-	data := axdr.CreateAxdrDoubleLongUnsigned(10000)
+	var data uint32 = 10000
 
 	err = c.SetRequest(dlms.CreateAttributeDescriptor(3, "0-1:94.35.11.255", 2), data)
 	assert.NoError(t, err)
