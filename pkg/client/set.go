@@ -8,6 +8,9 @@ import (
 )
 
 func (c *Client) SetRequest(att *dlms.AttributeDescriptor, data interface{}) (err error) {
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
+
 	if att == nil {
 		err = fmt.Errorf("attribute descriptor is nil")
 		return

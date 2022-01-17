@@ -60,6 +60,7 @@ func TestClient_SetRequestFail(t *testing.T) {
 	in = decodeHexString("C101C1000300015E230BFF02000600002710")
 	out = decodeHexString("C501C10102")
 	tm.On("Send", in).Return(out, fmt.Errorf("error")).Once()
+	tm.On("IsConnected").Return(false).Once()
 
 	err = c.SetRequest(demandAttributeDescriptor, data)
 	assert.Error(t, err)

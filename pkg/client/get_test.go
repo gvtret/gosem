@@ -71,6 +71,7 @@ func TestClient_GetRequestFail(t *testing.T) {
 	in = decodeHexString("C001C100080000010000FF0300")
 	out = decodeHexString("C401C10102")
 	tm.On("Send", in).Return(out, fmt.Errorf("error")).Once()
+	tm.On("IsConnected").Return(false).Once()
 
 	err = c.GetRequest(clockAttributeDescriptor, &data)
 	assert.Error(t, err)
@@ -197,10 +198,10 @@ func associate() (*client.Client, *mocks.TransportMock, error) {
 	transportMock := new(mocks.TransportMock)
 	transportMock.On("Connect").Return(nil).Once()
 	transportMock.On("Send", in).Return(out, nil).Once()
-	transportMock.On("IsConnected").Return(true).Twice()
+	transportMock.On("IsConnected").Return(true).Once()
 
 	settings, _ := dlms.NewSettingsWithoutAuthentication()
-	client := client.New(settings, transportMock)
+	client := client.New(settings, transportMock, 0)
 
 	client.Connect()
 

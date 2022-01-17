@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/Circutor/gosem/pkg/client"
 	"github.com/Circutor/gosem/pkg/dlms"
@@ -16,7 +17,7 @@ func TestClient_Connect(t *testing.T) {
 	tm.On("Connect").Return(nil).Once()
 
 	settings, _ := dlms.NewSettingsWithoutAuthentication()
-	client := client.New(settings, tm)
+	client := client.New(settings, tm, 0)
 
 	err := client.Connect()
 	assert.NoError(t, err)
@@ -32,7 +33,7 @@ func TestClient_ConnectFail(t *testing.T) {
 	tm.On("Connect").Return(fmt.Errorf("error connecting"))
 
 	settings, _ := dlms.NewSettingsWithoutAuthentication()
-	client := client.New(settings, tm)
+	client := client.New(settings, tm, 0)
 
 	err := client.Connect()
 	assert.Error(t, err)
@@ -44,7 +45,7 @@ func TestClient_Disconnect(t *testing.T) {
 	tm.On("Disconnect").Return(fmt.Errorf("error disconnecting")).Once()
 
 	settings, _ := dlms.NewSettingsWithoutAuthentication()
-	client := client.New(settings, tm)
+	client := client.New(settings, tm, 0)
 
 	err := client.Disconnect()
 	assert.Error(t, err)
@@ -66,10 +67,10 @@ func TestClient_Associate(t *testing.T) {
 	tm.On("Connect").Return(nil).Once()
 	tm.On("Disconnect").Return(nil).Once()
 	tm.On("Send", in).Return(out, nil).Once()
-	tm.On("IsConnected").Return(true).Times(3)
+	tm.On("IsConnected").Return(true).Times(2)
 
 	settings, _ := dlms.NewSettingsWithoutAuthentication()
-	client := client.New(settings, tm)
+	client := client.New(settings, tm, 0)
 
 	client.Connect()
 
@@ -81,6 +82,35 @@ func TestClient_Associate(t *testing.T) {
 
 	tm.On("IsConnected").Return(false).Once()
 	assert.False(t, client.IsAssociated())
+
+	tm.AssertExpectations(t)
+}
+
+func TestClient_Timeout(t *testing.T) {
+	tm := new(mocks.TransportMock)
+
+	settings, _ := dlms.NewSettingsWithoutAuthentication()
+	client := client.New(settings, tm, 100*time.Millisecond)
+
+	// Check connection is closed after timeout.
+	tm.On("Connect").Return(nil).Once()
+	err := client.Connect()
+	assert.NoError(t, err)
+
+	time.Sleep(50 * time.Millisecond)
+	tm.On("Disconnect").Return(nil).Once()
+	time.Sleep(60 * time.Millisecond)
+
+	// Check connection isn't closed by timeout if already is closed.
+	tm.On("Connect").Return(nil).Once()
+	err = client.Connect()
+	assert.NoError(t, err)
+
+	time.Sleep(50 * time.Millisecond)
+	tm.On("Disconnect").Return(nil).Once()
+	client.Disconnect()
+
+	time.Sleep(60 * time.Millisecond)
 
 	tm.AssertExpectations(t)
 }

@@ -9,10 +9,16 @@ import (
 )
 
 func (c *Client) GetRequest(att *dlms.AttributeDescriptor, data interface{}) (err error) {
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
+
 	return c.getRequestWithUnmarshal(att, nil, data)
 }
 
 func (c *Client) GetRequestWithSelectiveAccessByDate(att *dlms.AttributeDescriptor, start time.Time, end time.Time, data interface{}) (err error) {
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
+
 	acc := dlms.CreateSelectiveAccessDescriptor(dlms.AccessSelectorRange, []time.Time{start, end})
 	return c.getRequestWithUnmarshal(att, acc, data)
 }
@@ -100,33 +106,6 @@ func (c *Client) getRequest(att *dlms.AttributeDescriptor, acc *dlms.SelectiveAc
 		}
 	default:
 		err = fmt.Errorf("unexpected CosemPDU type: %T", pdu)
-	}
-
-	return
-}
-
-func (c *Client) encodeSendReceiveAndDecode(req dlms.CosemPDU) (pdu dlms.CosemPDU, err error) {
-	if !c.isAssociated {
-		err = fmt.Errorf("client is not associated")
-		return
-	}
-
-	src, err := req.Encode()
-	if err != nil {
-		err = fmt.Errorf("error encoding CosemPDU: %w", err)
-		return
-	}
-
-	out, err := c.transport.Send(src)
-	if err != nil {
-		err = fmt.Errorf("error sending CosemPDU: %w", err)
-		return
-	}
-
-	pdu, err = dlms.DecodeCosem(&out)
-	if err != nil {
-		err = fmt.Errorf("error decoding CosemPDU: %w", err)
-		return
 	}
 
 	return
