@@ -145,6 +145,10 @@ func (c *Client) encodeSendReceiveAndDecode(req dlms.CosemPDU) (pdu dlms.CosemPD
 		return
 	}
 
+	if c.timeoutTimer != nil {
+		c.timeoutTimer.Reset(c.timeout)
+	}
+
 	return
 }
 

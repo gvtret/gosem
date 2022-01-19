@@ -32,7 +32,7 @@ func TestClient_SetRequestFail(t *testing.T) {
 	data := axdr.CreateAxdrDoubleLongUnsigned(10000)
 	demandAttributeDescriptor := dlms.CreateAttributeDescriptor(3, "0-1:94.35.11.255", 2)
 
-	// Get failed
+	// Set failed
 	in := decodeHexString("C101C1000300015E230BFF02000600002710")
 	out := decodeHexString("C501C10102")
 	tm.On("Send", in).Return(out, nil).Once()

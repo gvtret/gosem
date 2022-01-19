@@ -115,6 +115,38 @@ func TestClient_Timeout(t *testing.T) {
 	tm.AssertExpectations(t)
 }
 
+func TestClient_TimeoutRefreshWithCommunications(t *testing.T) {
+	tm := new(mocks.TransportMock)
+
+	settings, _ := dlms.NewSettingsWithoutAuthentication()
+	client := client.New(settings, tm, 100*time.Millisecond)
+
+	tm.On("Connect").Return(nil).Once()
+	err := client.Connect()
+	assert.NoError(t, err)
+
+	in := decodeHexString("601DA109060760857405080101BE10040E01000000065F1F040000181F0100")
+	out := decodeHexString("6129A109060760857405080101A203020100A305A103020100BE10040E0800065F1F040000101D00800007")
+	tm.On("Send", in).Return(out, nil).Once()
+	tm.On("IsConnected").Return(true).Once()
+	err = client.Associate()
+	assert.NoError(t, err)
+
+	time.Sleep(50 * time.Millisecond)
+
+	in = decodeHexString("C001C100080000010000FF0300")
+	out = decodeHexString("C401C10010003C")
+	tm.On("Send", in).Return(out, nil).Once()
+	err = client.GetRequest(dlms.CreateAttributeDescriptor(8, "0-0:1.0.0.255", 3), nil)
+	assert.NoError(t, err)
+
+	time.Sleep(80 * time.Millisecond)
+	tm.On("Disconnect").Return(nil).Once()
+	time.Sleep(40 * time.Millisecond)
+
+	tm.AssertExpectations(t)
+}
+
 func decodeHexString(s string) []byte {
 	b, _ := hex.DecodeString(s)
 	return b
