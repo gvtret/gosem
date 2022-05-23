@@ -6,7 +6,7 @@ import (
 )
 
 func TestMethodDescriptor(t *testing.T) {
-	var a MethodDescriptor = *CreateMethodDescriptor(1, "1.0.0.3.0.255", 2)
+	a := *CreateMethodDescriptor(1, "1.0.0.3.0.255", 2)
 
 	t1, e := a.Encode()
 	if e != nil {
@@ -27,7 +27,7 @@ func TestDecode_MethodDescriptor(t *testing.T) {
 		t.Errorf("DecodeMethodDescriptor failed with err: %v", err)
 	}
 
-	var b MethodDescriptor = *CreateMethodDescriptor(1, "1.0.0.3.0.255", 2)
+	b := *CreateMethodDescriptor(1, "1.0.0.3.0.255", 2)
 
 	if a != b {
 		t.Errorf("MethodDescriptor after decode is wrong. get: %v, should:%v", b, a)

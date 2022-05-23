@@ -7,7 +7,7 @@ import (
 )
 
 func TestSelectiveAccessDescriptor_Encode(t *testing.T) {
-	var a SelectiveAccessDescriptor = *CreateSelectiveAccessDescriptor(AccessSelectorEntry, []uint32{0, 5})
+	a := *CreateSelectiveAccessDescriptor(AccessSelectorEntry, []uint32{0, 5})
 	t1, e := a.Encode()
 	if e != nil {
 		t.Errorf("t1 Encode Failed. err: %v", e)
@@ -21,7 +21,7 @@ func TestSelectiveAccessDescriptor_Encode(t *testing.T) {
 
 	timeStart := time.Date(2020, time.January, 1, 10, 0, 0, 0, time.UTC)
 	timeEnd := time.Date(2020, time.January, 1, 11, 0, 0, 0, time.UTC)
-	var b SelectiveAccessDescriptor = *CreateSelectiveAccessDescriptor(AccessSelectorRange, []time.Time{timeStart, timeEnd})
+	b := *CreateSelectiveAccessDescriptor(AccessSelectorRange, []time.Time{timeStart, timeEnd})
 	t2, e := b.Encode()
 	if e != nil {
 		t.Errorf("t2 Encode Failed. err: %v", e)
@@ -37,7 +37,7 @@ func TestSelectiveAccessDescriptor_Encode(t *testing.T) {
 func TestSelectiveAccessDescriptor_Decode(t *testing.T) {
 	// ------------------------ AccessSelectorEntry
 	src := []byte{2, 2, 4, 6, 0, 0, 0, 0, 6, 0, 0, 0, 5, 18, 0, 0, 18, 0, 0}
-	var b SelectiveAccessDescriptor = *CreateSelectiveAccessDescriptor(AccessSelectorEntry, []uint32{0, 5})
+	b := *CreateSelectiveAccessDescriptor(AccessSelectorEntry, []uint32{0, 5})
 
 	a, e := DecodeSelectiveAccessDescriptor(&src)
 	if e != nil {

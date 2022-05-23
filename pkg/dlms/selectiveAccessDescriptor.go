@@ -31,16 +31,16 @@ func CreateSelectiveAccessDescriptor(as accesSelector, ap interface{}) *Selectiv
 		ranges := ap.([]time.Time)
 		// selector range should be of:
 		// structure { structure {classid, obis, attributeid, dataidx}, range-start, range-end, selected val }
-		var ClassID axdr.DlmsData = *axdr.CreateAxdrLongUnsigned(8)
-		var obisCode axdr.DlmsData = *axdr.CreateAxdrOctetString("0.0.1.0.0.255") // obis of clock
-		var AttributeID axdr.DlmsData = *axdr.CreateAxdrInteger(2)
-		var dataIdx axdr.DlmsData = *axdr.CreateAxdrLongUnsigned(0)
-		var rangeStart axdr.DlmsData = *axdr.CreateAxdrOctetString(ranges[0])
-		var rangeEnd axdr.DlmsData = *axdr.CreateAxdrOctetString(ranges[1])
-		var selectedValue axdr.DlmsData = *axdr.CreateAxdrArray([]*axdr.DlmsData{})
+		ClassID := *axdr.CreateAxdrLongUnsigned(8)
+		obisCode := *axdr.CreateAxdrOctetString("0.0.1.0.0.255") // obis of clock
+		AttributeID := *axdr.CreateAxdrInteger(2)
+		dataIdx := *axdr.CreateAxdrLongUnsigned(0)
+		rangeStart := *axdr.CreateAxdrOctetString(ranges[0])
+		rangeEnd := *axdr.CreateAxdrOctetString(ranges[1])
+		selectedValue := *axdr.CreateAxdrArray([]*axdr.DlmsData{})
 
-		var restrictingObject axdr.DlmsData = *axdr.CreateAxdrStructure([]*axdr.DlmsData{&ClassID, &obisCode, &AttributeID, &dataIdx})
-		var rangeDescriptor axdr.DlmsData = *axdr.CreateAxdrStructure([]*axdr.DlmsData{&restrictingObject, &rangeStart, &rangeEnd, &selectedValue})
+		restrictingObject := *axdr.CreateAxdrStructure([]*axdr.DlmsData{&ClassID, &obisCode, &AttributeID, &dataIdx})
+		rangeDescriptor := *axdr.CreateAxdrStructure([]*axdr.DlmsData{&restrictingObject, &rangeStart, &rangeEnd, &selectedValue})
 
 		return &SelectiveAccessDescriptor{AccessSelector: as, AccessParameter: rangeDescriptor}
 	}
@@ -49,12 +49,12 @@ func CreateSelectiveAccessDescriptor(as accesSelector, ap interface{}) *Selectiv
 	entries := ap.([]uint32)
 	// selector enty should be of:
 	// structure {fromEntry, toEntry, fromSelectedValue, toSelectedValue}
-	var fromEntry axdr.DlmsData = *axdr.CreateAxdrDoubleLongUnsigned(entries[0])
-	var toEntry axdr.DlmsData = *axdr.CreateAxdrDoubleLongUnsigned(entries[1])
-	var fromSelectedValue axdr.DlmsData = *axdr.CreateAxdrLongUnsigned(0)
-	var toSelectedValue axdr.DlmsData = *axdr.CreateAxdrLongUnsigned(0)
+	fromEntry := *axdr.CreateAxdrDoubleLongUnsigned(entries[0])
+	toEntry := *axdr.CreateAxdrDoubleLongUnsigned(entries[1])
+	fromSelectedValue := *axdr.CreateAxdrLongUnsigned(0)
+	toSelectedValue := *axdr.CreateAxdrLongUnsigned(0)
 
-	var entryDescriptor axdr.DlmsData = *axdr.CreateAxdrStructure([]*axdr.DlmsData{&fromEntry, &toEntry, &fromSelectedValue, &toSelectedValue})
+	entryDescriptor := *axdr.CreateAxdrStructure([]*axdr.DlmsData{&fromEntry, &toEntry, &fromSelectedValue, &toSelectedValue})
 	return &SelectiveAccessDescriptor{AccessSelector: as, AccessParameter: entryDescriptor}
 }
 
@@ -82,7 +82,7 @@ func DecodeSelectiveAccessDescriptor(ori *[]byte) (out SelectiveAccessDescriptor
 	}
 	src = src[1:] // remove access-selector byte
 
-	var axdrDecoder axdr.Decoder = *axdr.NewDataDecoder(&src)
+	axdrDecoder := *axdr.NewDataDecoder(&src)
 	out.AccessParameter, err = axdrDecoder.Decode(&src)
 	if err != nil {
 		return

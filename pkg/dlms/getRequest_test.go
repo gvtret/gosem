@@ -7,8 +7,8 @@ import (
 )
 
 func TestNewGetRequestNormal(t *testing.T) {
-	var attrDesc AttributeDescriptor = *CreateAttributeDescriptor(1, "1.0.0.3.0.255", 2)
-	var accsDesc SelectiveAccessDescriptor = *CreateSelectiveAccessDescriptor(AccessSelectorEntry, []uint32{0, 5})
+	attrDesc := *CreateAttributeDescriptor(1, "1.0.0.3.0.255", 2)
+	accsDesc := *CreateSelectiveAccessDescriptor(AccessSelectorEntry, []uint32{0, 5})
 
 	a := *CreateGetRequestNormal(81, attrDesc, &accsDesc)
 	t1, e := a.Encode()
@@ -48,8 +48,8 @@ func TestNewGetRequestNext(t *testing.T) {
 }
 
 func TestNewGetRequestWithList(t *testing.T) {
-	var sad SelectiveAccessDescriptor = *CreateSelectiveAccessDescriptor(AccessSelectorEntry, []uint32{0, 5})
-	var a1 AttributeDescriptorWithSelection = *CreateAttributeDescriptorWithSelection(1, "1.0.0.3.0.255", 2, &sad)
+	sad := *CreateSelectiveAccessDescriptor(AccessSelectorEntry, []uint32{0, 5})
+	a1 := *CreateAttributeDescriptorWithSelection(1, "1.0.0.3.0.255", 2, &sad)
 
 	a := *CreateGetRequestWithList(69, []AttributeDescriptorWithSelection{a1})
 	t1, e := a.Encode()
@@ -62,7 +62,7 @@ func TestNewGetRequestWithList(t *testing.T) {
 		t.Errorf("t1 Failed. get: %d, should:%v", t1, result)
 	}
 
-	var a2 AttributeDescriptorWithSelection = *CreateAttributeDescriptorWithSelection(1, "0.0.8.0.0.255", 2, &sad)
+	a2 := *CreateAttributeDescriptorWithSelection(1, "0.0.8.0.0.255", 2, &sad)
 	b := *CreateGetRequestWithList(69, []AttributeDescriptorWithSelection{a1, a2})
 	t2, e := b.Encode()
 	if e != nil {
@@ -90,9 +90,9 @@ func TestDecode_GetRequestNormal(t *testing.T) {
 		t.Errorf("t1 Failed to DecodeGetRequestNormal. err:%v", err)
 	}
 
-	var attrDesc AttributeDescriptor = *CreateAttributeDescriptor(1, "1.0.0.3.0.255", 2)
-	var accsDesc SelectiveAccessDescriptor = *CreateSelectiveAccessDescriptor(AccessSelectorEntry, []uint32{0, 5})
-	var b GetRequestNormal = *CreateGetRequestNormal(81, attrDesc, &accsDesc)
+	attrDesc := *CreateAttributeDescriptor(1, "1.0.0.3.0.255", 2)
+	accsDesc := *CreateSelectiveAccessDescriptor(AccessSelectorEntry, []uint32{0, 5})
+	b := *CreateGetRequestNormal(81, attrDesc, &accsDesc)
 
 	if a.InvokePriority != b.InvokePriority {
 		t.Errorf("t1 Failed. InvokePriority get: %v, should:%v", a.InvokePriority, b.InvokePriority)
@@ -161,7 +161,7 @@ func TestDecode_GetRequestNext(t *testing.T) {
 		t.Errorf("t1 Failed to DecodeGetRequestNext. err:%v", err)
 	}
 
-	var b GetRequestNext = *CreateGetRequestNext(81, 2)
+	b := *CreateGetRequestNext(81, 2)
 
 	if a.InvokePriority != b.InvokePriority {
 		t.Errorf("t1 Failed. InvokePriority get: %v, should:%v", a.InvokePriority, b.InvokePriority)
@@ -181,9 +181,9 @@ func TestDecode_GetRequestWithList(t *testing.T) {
 		t.Errorf("t1 Failed to DecodeGetRequestWithList. err:%v", err)
 	}
 
-	var sad SelectiveAccessDescriptor = *CreateSelectiveAccessDescriptor(AccessSelectorEntry, []uint32{0, 5})
-	var a1 AttributeDescriptorWithSelection = *CreateAttributeDescriptorWithSelection(1, "1.0.0.3.0.255", 2, &sad)
-	var b GetRequestWithList = *CreateGetRequestWithList(69, []AttributeDescriptorWithSelection{a1})
+	sad := *CreateSelectiveAccessDescriptor(AccessSelectorEntry, []uint32{0, 5})
+	a1 := *CreateAttributeDescriptorWithSelection(1, "1.0.0.3.0.255", 2, &sad)
+	b := *CreateGetRequestWithList(69, []AttributeDescriptorWithSelection{a1})
 
 	if a.InvokePriority != b.InvokePriority {
 		t.Errorf("t1 Failed. InvokePriority get: %v, should:%v", a.InvokePriority, b.InvokePriority)
@@ -210,7 +210,7 @@ func TestDecode_GetRequestWithList(t *testing.T) {
 		t.Errorf("t1 Failed to DecodeGetRequestWithList. err:%v", err)
 	}
 
-	var a2 AttributeDescriptorWithSelection = *CreateAttributeDescriptorWithSelection(1, "0.0.8.0.0.255", 2, &sad)
+	a2 := *CreateAttributeDescriptorWithSelection(1, "0.0.8.0.0.255", 2, &sad)
 	b = *CreateGetRequestWithList(69, []AttributeDescriptorWithSelection{a1, a2})
 
 	if a.InvokePriority != b.InvokePriority {

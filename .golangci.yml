@@ -16,11 +16,9 @@ linters:
     - gofumpt
     - goheader
     - goimports
-    - golint
     - gomodguard
     - goprintffuncname
     - gosec
-    - interfacer
     - makezero
     - misspell
     - nestif
@@ -30,7 +28,6 @@ linters:
     - predeclared
     - revive
     - rowserrcheck
-    - scopelint
     - sqlclosecheck
     - stylecheck
     - thelper
@@ -38,7 +35,6 @@ linters:
     - unconvert
     - unparam
     - whitespace
-    - wrapcheck
   disable:
     - gomnd
     - gci

@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestDecodeAARQ(t *testing.T) {
+func TestDecodeAARE(t *testing.T) {
 	src := decodeHexString("6129A109060760857405080101A203020100A305A103020100BE10040E0800065F1F040000101D00800007")
 	aare, err := DecodeAARE(nil, &src)
 	if err != nil {
@@ -38,7 +38,7 @@ func TestDecodeAARQ(t *testing.T) {
 	}
 }
 
-func TestDecodeRejectedAARQ(t *testing.T) {
+func TestDecodeRejectedAARE(t *testing.T) {
 	src := decodeHexString("611FA109060760857405080101A203020101A305A10302010DBE0604040E010600")
 	aare, err := DecodeAARE(nil, &src)
 	if err != nil {
@@ -71,7 +71,7 @@ func TestDecodeRejectedAARQ(t *testing.T) {
 	}
 }
 
-func TestDecodeAARQWithSecurity(t *testing.T) {
+func TestDecodeAAREWithSecurity(t *testing.T) {
 	ciphering, _ := NewCiphering(
 		SecurityEncryption|SecurityAuthentication,
 		decodeHexString("4349520000000001"),

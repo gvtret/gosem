@@ -7,7 +7,7 @@ import (
 
 func TestObis_Encode(t *testing.T) {
 	i := Obis{stringValue: "1.0.0.3.0.255", byteValue: [6]byte{1, 0, 0, 3, 0, 255}}
-	var o Obis = *CreateObis("1-0:0.3.0.255")
+	o := *CreateObis("1-0:0.3.0.255")
 
 	res := bytes.Compare(i.Bytes(), o.Bytes())
 	if res != 0 {
@@ -32,7 +32,7 @@ func TestObis_Encode(t *testing.T) {
 func TestObis_Decode(t *testing.T) {
 	src := []byte{1, 0, 0, 3, 0, 255, 1, 2, 3}
 	ob, e := DecodeObis(&src)
-	var o Obis = *CreateObis("1.0.0.3.0.255")
+	o := *CreateObis("1.0.0.3.0.255")
 
 	if e != nil {
 		t.Errorf("t1 failed with err: %v", e)

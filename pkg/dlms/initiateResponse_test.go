@@ -6,7 +6,7 @@ import (
 )
 
 func TestNew_InitiateResponse(t *testing.T) {
-	var ir InitiateResponse = *CreateInitiateResponse(nil, 0x0000101D, 128)
+	ir := *CreateInitiateResponse(nil, 0x0000101D, 128)
 	out, err := ir.Encode()
 	if err != nil {
 		t.Errorf("Encode Failed. Err: %v", err)

@@ -7,7 +7,7 @@ import (
 
 func TestAttributeDescriptorWithSelection(t *testing.T) {
 	var nilSAD *SelectiveAccessDescriptor
-	var a AttributeDescriptorWithSelection = *CreateAttributeDescriptorWithSelection(1, "1.0.0.3.0.255", 2, nilSAD)
+	a := *CreateAttributeDescriptorWithSelection(1, "1.0.0.3.0.255", 2, nilSAD)
 	t1, e := a.Encode()
 	if e != nil {
 		t.Errorf("t1 Encode Failed. err: %v", e)
@@ -19,8 +19,8 @@ func TestAttributeDescriptorWithSelection(t *testing.T) {
 		t.Errorf("Test 1 with nil SelectiveAccessDescriptor failed. get: %d, should:%v", t1, result)
 	}
 
-	var sad SelectiveAccessDescriptor = *CreateSelectiveAccessDescriptor(AccessSelectorEntry, []uint32{0, 5})
-	var b AttributeDescriptorWithSelection = *CreateAttributeDescriptorWithSelection(1, "1.0.0.3.0.255", 2, &sad)
+	sad := *CreateSelectiveAccessDescriptor(AccessSelectorEntry, []uint32{0, 5})
+	b := *CreateAttributeDescriptorWithSelection(1, "1.0.0.3.0.255", 2, &sad)
 	t2, e := b.Encode()
 	if e != nil {
 		t.Errorf("t2 Encode Failed. err: %v", e)
@@ -39,8 +39,8 @@ func TestDecode_AttributeDescriptorWithSelection(t *testing.T) {
 		t.Errorf("t1 failed with err: %v", e)
 	}
 
-	var sad SelectiveAccessDescriptor = *CreateSelectiveAccessDescriptor(AccessSelectorEntry, []uint32{0, 5})
-	var b AttributeDescriptorWithSelection = *CreateAttributeDescriptorWithSelection(1, "1.0.0.3.0.255", 2, &sad)
+	sad := *CreateSelectiveAccessDescriptor(AccessSelectorEntry, []uint32{0, 5})
+	b := *CreateAttributeDescriptorWithSelection(1, "1.0.0.3.0.255", 2, &sad)
 
 	if a.ClassID != b.ClassID {
 		t.Errorf("ClassID get: %v, should:%v", a.ClassID, b.ClassID)

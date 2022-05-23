@@ -17,7 +17,7 @@ type AttributeDescriptorWithSelection struct {
 // CreateAttributeDescriptorWithSelection will create AttributeDescriptorWithSelection object
 // SelectiveAccessDescriptor is allowed to be nil value therefore pointer
 func CreateAttributeDescriptorWithSelection(c uint16, i string, a int8, sad *SelectiveAccessDescriptor) *AttributeDescriptorWithSelection {
-	var ob Obis = *CreateObis(i)
+	ob := *CreateObis(i)
 
 	return &AttributeDescriptorWithSelection{ClassID: c, InstanceID: ob, AttributeID: a, AccessDescriptor: sad}
 }

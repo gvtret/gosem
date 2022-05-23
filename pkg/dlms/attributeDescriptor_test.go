@@ -6,7 +6,7 @@ import (
 )
 
 func TestAttributeDescriptor_Encode(t *testing.T) {
-	var a AttributeDescriptor = *CreateAttributeDescriptor(1, "1.0.0.3.0.255", 2)
+	a := *CreateAttributeDescriptor(1, "1.0.0.3.0.255", 2)
 
 	t1, e := a.Encode()
 	if e != nil {
@@ -21,7 +21,7 @@ func TestAttributeDescriptor_Encode(t *testing.T) {
 }
 
 func TestAttributeDescriptor_Decode(t *testing.T) {
-	var a AttributeDescriptor = *CreateAttributeDescriptor(1, "1.0.0.3.0.255", 2)
+	a := *CreateAttributeDescriptor(1, "1.0.0.3.0.255", 2)
 	src := []byte{0, 1, 1, 0, 0, 3, 0, 255, 2, 1, 2, 3}
 	b, e := DecodeAttributeDescriptor(&src)
 

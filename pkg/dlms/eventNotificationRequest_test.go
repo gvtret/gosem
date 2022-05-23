@@ -10,10 +10,10 @@ import (
 
 func TestNew_EventNotificationRequest(t *testing.T) {
 	tm := time.Date(1500, time.January, 1, 0, 0, 0, 0, time.UTC)
-	var attrDesc AttributeDescriptor = *CreateAttributeDescriptor(1, "1.0.0.3.0.255", 2)
-	var attrVal axdr.DlmsData = *axdr.CreateAxdrBoolean(true)
+	attrDesc := *CreateAttributeDescriptor(1, "1.0.0.3.0.255", 2)
+	attrVal := *axdr.CreateAxdrBoolean(true)
 
-	var a EventNotificationRequest = *CreateEventNotificationRequest(&tm, attrDesc, attrVal)
+	a := *CreateEventNotificationRequest(&tm, attrDesc, attrVal)
 	t1, e := a.Encode()
 	if e != nil {
 		t.Errorf("t1 Encode Failed. err: %v", e)
@@ -47,9 +47,9 @@ func TestDecode_EventNotificationRequest(t *testing.T) {
 	}
 
 	tm := time.Date(1500, time.January, 1, 0, 0, 0, 0, time.UTC)
-	var attrDesc AttributeDescriptor = *CreateAttributeDescriptor(1, "1.0.0.3.0.255", 2)
-	var attrVal axdr.DlmsData = *axdr.CreateAxdrBoolean(true)
-	var b EventNotificationRequest = *CreateEventNotificationRequest(&tm, attrDesc, attrVal)
+	attrDesc := *CreateAttributeDescriptor(1, "1.0.0.3.0.255", 2)
+	attrVal := *axdr.CreateAxdrBoolean(true)
+	b := *CreateEventNotificationRequest(&tm, attrDesc, attrVal)
 
 	if *a.Time != *b.Time {
 		t.Errorf("t1 err Time. get: %v, should: %v", a.Time, b.Time)

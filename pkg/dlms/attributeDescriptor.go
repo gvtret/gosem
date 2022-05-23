@@ -14,7 +14,7 @@ type AttributeDescriptor struct {
 }
 
 func CreateAttributeDescriptor(c uint16, i string, a int8) *AttributeDescriptor {
-	var ob Obis = *CreateObis(i)
+	ob := *CreateObis(i)
 
 	return &AttributeDescriptor{ClassID: c, InstanceID: ob, AttributeID: a}
 }

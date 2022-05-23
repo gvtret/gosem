@@ -9,9 +9,9 @@ import (
 )
 
 func TestNew_ActionRequestNormal(t *testing.T) {
-	var mthDesc MethodDescriptor = *CreateMethodDescriptor(1, "1.0.0.3.0.255", 2)
-	var dt axdr.DlmsData = *axdr.CreateAxdrOctetString("0102030405")
-	var a ActionRequestNormal = *CreateActionRequestNormal(81, mthDesc, &dt)
+	mthDesc := *CreateMethodDescriptor(1, "1.0.0.3.0.255", 2)
+	dt := *axdr.CreateAxdrOctetString("0102030405")
+	a := *CreateActionRequestNormal(81, mthDesc, &dt)
 	t1, e := a.Encode()
 	if e != nil {
 		t.Errorf("t1 Encode Failed. err: %v", e)
@@ -24,7 +24,7 @@ func TestNew_ActionRequestNormal(t *testing.T) {
 
 	// with nil Data
 	var nilData *axdr.DlmsData
-	var b ActionRequestNormal = *CreateActionRequestNormal(81, mthDesc, nilData)
+	b := *CreateActionRequestNormal(81, mthDesc, nilData)
 	t2, e := b.Encode()
 	if e != nil {
 		t.Errorf("t2 Encode Failed. err: %v", e)
@@ -37,7 +37,7 @@ func TestNew_ActionRequestNormal(t *testing.T) {
 }
 
 func TestNew_ActionRequestNextPBlock(t *testing.T) {
-	var a ActionRequestNextPBlock = *CreateActionRequestNextPBlock(81, 1)
+	a := *CreateActionRequestNextPBlock(81, 1)
 	t1, e := a.Encode()
 	if e != nil {
 		t.Errorf("t1 Encode Failed. err: %v", e)
@@ -51,9 +51,9 @@ func TestNew_ActionRequestNextPBlock(t *testing.T) {
 
 func TestNew_ActionRequestWithList(t *testing.T) {
 	// with 1 MethodDescriptor & 1 axdr.DlmsData
-	var md1 MethodDescriptor = *CreateMethodDescriptor(1, "1.0.0.3.0.255", 2)
-	var dt1 axdr.DlmsData = *axdr.CreateAxdrOctetString("0102030405")
-	var a ActionRequestWithList = *CreateActionRequestWithList(81, []MethodDescriptor{md1}, []axdr.DlmsData{dt1})
+	md1 := *CreateMethodDescriptor(1, "1.0.0.3.0.255", 2)
+	dt1 := *axdr.CreateAxdrOctetString("0102030405")
+	a := *CreateActionRequestWithList(81, []MethodDescriptor{md1}, []axdr.DlmsData{dt1})
 	t1, e := a.Encode()
 	if e != nil {
 		t.Errorf("t1 Encode Failed. err: %v", e)
@@ -65,9 +65,9 @@ func TestNew_ActionRequestWithList(t *testing.T) {
 	}
 
 	// with 2 MethodDescriptor & 2 axdr.DlmsData
-	var md2 MethodDescriptor = *CreateMethodDescriptor(1, "0.0.8.0.0.255", 2)
-	var dt2 axdr.DlmsData = *axdr.CreateAxdrDoubleLong(69)
-	var b ActionRequestWithList = *CreateActionRequestWithList(81, []MethodDescriptor{md1, md2}, []axdr.DlmsData{dt1, dt2})
+	md2 := *CreateMethodDescriptor(1, "0.0.8.0.0.255", 2)
+	dt2 := *axdr.CreateAxdrDoubleLong(69)
+	b := *CreateActionRequestWithList(81, []MethodDescriptor{md1, md2}, []axdr.DlmsData{dt1, dt2})
 	t2, e := b.Encode()
 	if e != nil {
 		t.Errorf("t2 Encode Failed. err: %v", e)
@@ -80,9 +80,9 @@ func TestNew_ActionRequestWithList(t *testing.T) {
 }
 
 func TestNew_ActionRequestWithFirstPBlock(t *testing.T) {
-	var md MethodDescriptor = *CreateMethodDescriptor(1, "1.0.0.3.0.255", 2)
-	var dt DataBlockSA = *CreateDataBlockSA(true, 1, []byte{1, 2, 3, 4, 5})
-	var a ActionRequestWithFirstPBlock = *CreateActionRequestWithFirstPBlock(81, md, dt)
+	md := *CreateMethodDescriptor(1, "1.0.0.3.0.255", 2)
+	dt := *CreateDataBlockSA(true, 1, []byte{1, 2, 3, 4, 5})
+	a := *CreateActionRequestWithFirstPBlock(81, md, dt)
 	t1, e := a.Encode()
 	if e != nil {
 		t.Errorf("t1 Encode Failed. err: %v", e)
@@ -96,10 +96,10 @@ func TestNew_ActionRequestWithFirstPBlock(t *testing.T) {
 
 func TestNew_ActionRequestWithListAndFirstPBlock(t *testing.T) {
 	// with 1 MethodDescriptor
-	var a1 MethodDescriptor = *CreateMethodDescriptor(1, "1.0.0.3.0.255", 2)
-	var dt DataBlockSA = *CreateDataBlockSA(true, 1, []byte{1, 2, 3, 4, 5})
+	a1 := *CreateMethodDescriptor(1, "1.0.0.3.0.255", 2)
+	dt := *CreateDataBlockSA(true, 1, []byte{1, 2, 3, 4, 5})
 
-	var a ActionRequestWithListAndFirstPBlock = *CreateActionRequestWithListAndFirstPBlock(81, []MethodDescriptor{a1}, dt)
+	a := *CreateActionRequestWithListAndFirstPBlock(81, []MethodDescriptor{a1}, dt)
 	t1, e := a.Encode()
 	if e != nil {
 		t.Errorf("t1 Encode Failed. err: %v", e)
@@ -111,8 +111,8 @@ func TestNew_ActionRequestWithListAndFirstPBlock(t *testing.T) {
 	}
 
 	// with 2 MethodDescriptor
-	var a2 MethodDescriptor = *CreateMethodDescriptor(1, "0.0.8.0.0.255", 2)
-	var b ActionRequestWithListAndFirstPBlock = *CreateActionRequestWithListAndFirstPBlock(81, []MethodDescriptor{a1, a2}, dt)
+	a2 := *CreateMethodDescriptor(1, "0.0.8.0.0.255", 2)
+	b := *CreateActionRequestWithListAndFirstPBlock(81, []MethodDescriptor{a1, a2}, dt)
 	t2, e := b.Encode()
 	if e != nil {
 		t.Errorf("t2 Encode Failed. err: %v", e)
@@ -134,9 +134,9 @@ func TestNew_ActionRequestWithListAndFirstPBlock(t *testing.T) {
 }
 
 func TestNew_ActionRequestWithPBlock(t *testing.T) {
-	var dt DataBlockSA = *CreateDataBlockSA(true, 1, []byte{1, 2, 3, 4, 5})
+	dt := *CreateDataBlockSA(true, 1, []byte{1, 2, 3, 4, 5})
 
-	var a ActionRequestWithPBlock = *CreateActionRequestWithPBlock(81, dt)
+	a := *CreateActionRequestWithPBlock(81, dt)
 	t1, e := a.Encode()
 	if e != nil {
 		t.Errorf("t1 Encode Failed. err: %v", e)
@@ -155,9 +155,9 @@ func TestDecode_ActionRequestNormal(t *testing.T) {
 		t.Errorf("t1 Failed to DecodeActionRequestNormal. err:%v", err)
 	}
 
-	var mthDesc MethodDescriptor = *CreateMethodDescriptor(1, "1.0.0.3.0.255", 2)
-	var dt axdr.DlmsData = *axdr.CreateAxdrOctetString("0102030405")
-	var b ActionRequestNormal = *CreateActionRequestNormal(81, mthDesc, &dt)
+	mthDesc := *CreateMethodDescriptor(1, "1.0.0.3.0.255", 2)
+	dt := *axdr.CreateAxdrOctetString("0102030405")
+	b := *CreateActionRequestNormal(81, mthDesc, &dt)
 
 	if a.InvokePriority != b.InvokePriority {
 		t.Errorf("t1 Failed. InvokePriority get: %v, should:%v", a.InvokePriority, b.InvokePriority)
@@ -195,7 +195,7 @@ func TestDecode_ActionRequestNormal(t *testing.T) {
 }
 
 func TestDecode_ActionRequestNextPBlock(t *testing.T) {
-	var x ActionRequestNextPBlock = *CreateActionRequestNextPBlock(81, 1)
+	x := *CreateActionRequestNextPBlock(81, 1)
 	src := []byte{195, 2, 81, 0, 0, 0, 1}
 
 	a, err := DecodeActionRequestNextPBlock(&src)
@@ -224,9 +224,9 @@ func TestDecode_ActionRequestWithList(t *testing.T) {
 		t.Errorf("t1 Failed to DecodeActionRequestWithList. err:%v", err)
 	}
 
-	var a1 MethodDescriptor = *CreateMethodDescriptor(1, "1.0.0.3.0.255", 2)
-	var d1 axdr.DlmsData = *axdr.CreateAxdrOctetString("0102030405")
-	var b ActionRequestWithList = *CreateActionRequestWithList(81, []MethodDescriptor{a1}, []axdr.DlmsData{d1})
+	a1 := *CreateMethodDescriptor(1, "1.0.0.3.0.255", 2)
+	d1 := *axdr.CreateAxdrOctetString("0102030405")
+	b := *CreateActionRequestWithList(81, []MethodDescriptor{a1}, []axdr.DlmsData{d1})
 
 	if a.InvokePriority != b.InvokePriority {
 		t.Errorf("t1 Failed. InvokePriority get: %v, should:%v", a.InvokePriority, b.InvokePriority)
@@ -265,8 +265,8 @@ func TestDecode_ActionRequestWithList(t *testing.T) {
 		t.Errorf("t2 Failed to DecodeActionRequestWithList. err:%v", err)
 	}
 
-	var a2 MethodDescriptor = *CreateMethodDescriptor(1, "0.0.8.0.0.255", 2)
-	var d2 axdr.DlmsData = *axdr.CreateAxdrDoubleLong(69)
+	a2 := *CreateMethodDescriptor(1, "0.0.8.0.0.255", 2)
+	d2 := *axdr.CreateAxdrDoubleLong(69)
 	b = *CreateActionRequestWithList(81, []MethodDescriptor{a1, a2}, []axdr.DlmsData{d1, d2})
 
 	if len(a.MethodInfoList) != len(b.MethodInfoList) {
@@ -304,9 +304,9 @@ func TestDecode_ActionRequestWithFirstPBlock(t *testing.T) {
 		t.Errorf("t1 Failed to DecodeActionRequestWithFirstPBlock. err:%v", err)
 	}
 
-	var md MethodDescriptor = *CreateMethodDescriptor(1, "1.0.0.3.0.255", 2)
-	var dt DataBlockSA = *CreateDataBlockSA(true, 1, []byte{1, 2, 3, 4, 5})
-	var b ActionRequestWithFirstPBlock = *CreateActionRequestWithFirstPBlock(81, md, dt)
+	md := *CreateMethodDescriptor(1, "1.0.0.3.0.255", 2)
+	dt := *CreateDataBlockSA(true, 1, []byte{1, 2, 3, 4, 5})
+	b := *CreateActionRequestWithFirstPBlock(81, md, dt)
 
 	if a.InvokePriority != b.InvokePriority {
 		t.Errorf("t1 Failed. InvokePriority get: %v, should:%v", a.InvokePriority, b.InvokePriority)
@@ -346,9 +346,9 @@ func TestDecode_ActionRequestWithListAndFirstPBlock(t *testing.T) {
 		t.Errorf("t1 Failed to DecodeActionRequestWithListAndFirstPBlock. err:%v", err)
 	}
 
-	var a1 MethodDescriptor = *CreateMethodDescriptor(1, "1.0.0.3.0.255", 2)
-	var dt DataBlockSA = *CreateDataBlockSA(true, 1, []byte{1, 2, 3, 4, 5})
-	var b ActionRequestWithListAndFirstPBlock = *CreateActionRequestWithListAndFirstPBlock(81, []MethodDescriptor{a1}, dt)
+	a1 := *CreateMethodDescriptor(1, "1.0.0.3.0.255", 2)
+	dt := *CreateDataBlockSA(true, 1, []byte{1, 2, 3, 4, 5})
+	b := *CreateActionRequestWithListAndFirstPBlock(81, []MethodDescriptor{a1}, dt)
 
 	if a.InvokePriority != b.InvokePriority {
 		t.Errorf("t1 Failed. InvokePriority get: %v, should:%v", a.InvokePriority, b.InvokePriority)
@@ -388,7 +388,7 @@ func TestDecode_ActionRequestWithListAndFirstPBlock(t *testing.T) {
 		t.Errorf("t2 Failed to DecodeActionRequestWithList. err:%v", err)
 	}
 
-	var a2 MethodDescriptor = *CreateMethodDescriptor(1, "0.0.8.0.0.255", 2)
+	a2 := *CreateMethodDescriptor(1, "0.0.8.0.0.255", 2)
 	b = *CreateActionRequestWithListAndFirstPBlock(81, []MethodDescriptor{a1, a2}, dt)
 
 	if len(a.MethodInfoList) != len(b.MethodInfoList) {
@@ -415,8 +415,8 @@ func TestDecode_ActionRequestWithPBlock(t *testing.T) {
 		t.Errorf("t1 Failed to DecodeActionRequestWithPBlock. err:%v", err)
 	}
 
-	var dt DataBlockSA = *CreateDataBlockSA(true, 1, []byte{1, 2, 3, 4, 5})
-	var b ActionRequestWithPBlock = *CreateActionRequestWithPBlock(81, dt)
+	dt := *CreateDataBlockSA(true, 1, []byte{1, 2, 3, 4, 5})
+	b := *CreateActionRequestWithPBlock(81, dt)
 
 	if a.InvokePriority != b.InvokePriority {
 		t.Errorf("t1 Failed. InvokePriority get: %v, should:%v", a.InvokePriority, b.InvokePriority)

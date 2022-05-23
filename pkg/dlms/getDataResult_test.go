@@ -19,7 +19,7 @@ func TestAccessResult(t *testing.T) {
 }
 
 func TestGetDataResultAsResult(t *testing.T) {
-	var a GetDataResult = *CreateGetDataResultAsResult(TagAccSuccess)
+	a := *CreateGetDataResultAsResult(TagAccSuccess)
 
 	t1, e := a.Encode()
 	if e != nil {
@@ -34,8 +34,8 @@ func TestGetDataResultAsResult(t *testing.T) {
 }
 
 func TestGetDataResultAsData(t *testing.T) {
-	var dt axdr.DlmsData = *axdr.CreateAxdrDoubleLong(69)
-	var a GetDataResult = *CreateGetDataResultAsData(dt)
+	dt := *axdr.CreateAxdrDoubleLong(69)
+	a := *CreateGetDataResultAsData(dt)
 
 	t1, e := a.Encode()
 	if e != nil {
@@ -51,7 +51,7 @@ func TestGetDataResultAsData(t *testing.T) {
 
 func TestGetDataResult(t *testing.T) {
 	rs := TagAccSuccess
-	var a GetDataResult = *CreateGetDataResult(rs)
+	a := *CreateGetDataResult(rs)
 
 	t1, e := a.Encode()
 	if e != nil {
@@ -63,8 +63,8 @@ func TestGetDataResult(t *testing.T) {
 		t.Errorf("t1 Failed. get: %d, should:%v", t1, result)
 	}
 
-	var dt axdr.DlmsData = *axdr.CreateAxdrDoubleLong(69)
-	var b GetDataResult = *CreateGetDataResult(dt)
+	dt := *axdr.CreateAxdrDoubleLong(69)
+	b := *CreateGetDataResult(dt)
 	t2, e := b.Encode()
 	if e != nil {
 		t.Errorf("t2 Encode Failed. err: %v", e)
@@ -81,12 +81,12 @@ func TestGetDataResult(t *testing.T) {
 			t.Errorf("t3 should've panic on wrong Value")
 		}
 	}()
-	var c GetDataResult = *CreateGetDataResult(999)
+	c := *CreateGetDataResult(999)
 	c.Encode()
 }
 
 func TestDataBlockGAsData(t *testing.T) {
-	var a DataBlockG = *CreateDataBlockGAsData(true, 1, "07D20C04030A060BFF007800")
+	a := *CreateDataBlockGAsData(true, 1, "07D20C04030A060BFF007800")
 
 	t1, e := a.Encode()
 	if e != nil {
@@ -99,7 +99,7 @@ func TestDataBlockGAsData(t *testing.T) {
 		t.Errorf("t1 Failed. get: %d, should:%v", t1, result)
 	}
 
-	var b DataBlockG = *CreateDataBlockGAsData(true, 1, []byte{1, 0, 0, 3, 0, 255})
+	b := *CreateDataBlockGAsData(true, 1, []byte{1, 0, 0, 3, 0, 255})
 	t2, e := b.Encode()
 	if e != nil {
 		t.Errorf("t2 Encode Failed. err: %v", e)
@@ -116,12 +116,12 @@ func TestDataBlockGAsData(t *testing.T) {
 			t.Errorf("t3 should've panic on wrong Value")
 		}
 	}()
-	var c DataBlockG = *CreateDataBlockGAsData(true, 1, TagAccSuccess)
+	c := *CreateDataBlockGAsData(true, 1, TagAccSuccess)
 	c.Encode()
 }
 
 func TestDataBlockGAsResult(t *testing.T) {
-	var a DataBlockG = *CreateDataBlockGAsResult(true, 1, TagAccSuccess)
+	a := *CreateDataBlockGAsResult(true, 1, TagAccSuccess)
 
 	t1, e := a.Encode()
 	if e != nil {
@@ -136,7 +136,7 @@ func TestDataBlockGAsResult(t *testing.T) {
 }
 
 func TestDataBlockG(t *testing.T) {
-	var a DataBlockG = *CreateDataBlockG(true, 1, "07D20C04030A060BFF007800")
+	a := *CreateDataBlockG(true, 1, "07D20C04030A060BFF007800")
 
 	t1, e := a.Encode()
 	if e != nil {
@@ -149,7 +149,7 @@ func TestDataBlockG(t *testing.T) {
 		t.Errorf("t1 Failed. get: %d, should:%v", t1, result)
 	}
 
-	var b DataBlockG = *CreateDataBlockG(true, 1, []byte{1, 0, 0, 3, 0, 255})
+	b := *CreateDataBlockG(true, 1, []byte{1, 0, 0, 3, 0, 255})
 	t2, e := b.Encode()
 	if e != nil {
 		t.Errorf("t2 Encode Failed. err: %v", e)
@@ -161,7 +161,7 @@ func TestDataBlockG(t *testing.T) {
 		t.Errorf("t2 Failed. get: %d, should:%v", t2, result)
 	}
 
-	var c DataBlockG = *CreateDataBlockG(true, 1, TagAccSuccess)
+	c := *CreateDataBlockG(true, 1, TagAccSuccess)
 
 	t3, e := c.Encode()
 	if e != nil {
@@ -177,7 +177,7 @@ func TestDataBlockG(t *testing.T) {
 
 func TestDataBlockSA(t *testing.T) {
 	// with hexstring
-	var a DataBlockSA = *CreateDataBlockSA(true, 1, "07D20C04030A060BFF007800")
+	a := *CreateDataBlockSA(true, 1, "07D20C04030A060BFF007800")
 
 	t1, e := a.Encode()
 	if e != nil {
@@ -191,7 +191,7 @@ func TestDataBlockSA(t *testing.T) {
 	}
 
 	// with byte slice
-	var b DataBlockSA = *CreateDataBlockSA(true, 1, []byte{1, 0, 0, 3, 0, 255})
+	b := *CreateDataBlockSA(true, 1, []byte{1, 0, 0, 3, 0, 255})
 	t2, e := b.Encode()
 	if e != nil {
 		t.Errorf("t2 Encode Failed. err: %v", e)
@@ -209,14 +209,14 @@ func TestDataBlockSA(t *testing.T) {
 			t.Errorf("t3 should've panic on wrong Value")
 		}
 	}()
-	var c DataBlockSA = *CreateDataBlockSA(true, 1, TagAccSuccess)
+	c := *CreateDataBlockSA(true, 1, TagAccSuccess)
 	c.Encode()
 }
 
 func TestActResponse(t *testing.T) {
-	var dt axdr.DlmsData = *axdr.CreateAxdrDoubleLong(69)
-	var ret GetDataResult = *CreateGetDataResultAsData(dt)
-	var a ActResponse = *CreateActResponse(TagActSuccess, &ret)
+	dt := *axdr.CreateAxdrDoubleLong(69)
+	ret := *CreateGetDataResultAsData(dt)
+	a := *CreateActResponse(TagActSuccess, &ret)
 
 	t1, e := a.Encode()
 	if e != nil {
@@ -231,7 +231,7 @@ func TestActResponse(t *testing.T) {
 
 	// with nil GetDataResult
 	var nilRet *GetDataResult
-	var b ActResponse = *CreateActResponse(TagActReadWriteDenied, nilRet)
+	b := *CreateActResponse(TagActReadWriteDenied, nilRet)
 	t2, e := b.Encode()
 	if e != nil {
 		t.Errorf("t2 Encode Failed. err: %v", e)

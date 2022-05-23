@@ -6,7 +6,7 @@ import (
 )
 
 func TestNew_ConfirmedServiceError(t *testing.T) {
-	var cse ConfirmedServiceError = *CreateConfirmedServiceError(TagErrInitiateError, TagErrInitiate, 1)
+	cse := *CreateConfirmedServiceError(TagErrInitiateError, TagErrInitiate, 1)
 	out, err := cse.Encode()
 	if err != nil {
 		t.Errorf("Encode Failed. Err: %v", err)

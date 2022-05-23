@@ -6,7 +6,7 @@ import (
 )
 
 func TestNew_ExceptionResponse(t *testing.T) {
-	var er ExceptionResponse = *CreateExceptionResponse(TagExcServiceNotAllowed, TagExcServiceNotSupported)
+	er := *CreateExceptionResponse(TagExcServiceNotAllowed, TagExcServiceNotSupported)
 	out, err := er.Encode()
 	if err != nil {
 		t.Errorf("t1 Encode Failed. err: %v", err)

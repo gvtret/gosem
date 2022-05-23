@@ -17,7 +17,7 @@ func TestClient_ActionRequest(t *testing.T) {
 	out := decodeHexString("C701C10000")
 	tm.On("Send", in).Return(out, nil).Once()
 
-	var data int8 = 0
+	var data int8
 
 	err = c.ActionRequest(dlms.CreateMethodDescriptor(70, "0-0:96.3.10.255", 1), data)
 	assert.NoError(t, err)

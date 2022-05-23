@@ -14,7 +14,7 @@ type MethodDescriptor struct {
 }
 
 func CreateMethodDescriptor(c uint16, i string, a int8) *MethodDescriptor {
-	var ob Obis = *CreateObis(i)
+	ob := *CreateObis(i)
 
 	return &MethodDescriptor{ClassID: c, InstanceID: ob, MethodID: a}
 }

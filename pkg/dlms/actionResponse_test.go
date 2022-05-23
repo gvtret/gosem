@@ -9,9 +9,9 @@ import (
 )
 
 func TestNew_ActionResponseNormal(t *testing.T) {
-	var ret GetDataResult = *CreateGetDataResultAsResult(TagAccSuccess)
-	var ares ActResponse = *CreateActResponse(TagActSuccess, &ret)
-	var a ActionResponseNormal = *CreateActionResponseNormal(81, ares)
+	ret := *CreateGetDataResultAsResult(TagAccSuccess)
+	ares := *CreateActResponse(TagActSuccess, &ret)
+	a := *CreateActionResponseNormal(81, ares)
 	t1, e := a.Encode()
 	if e != nil {
 		t.Errorf("t1 Encode Failed. err: %v", e)
@@ -25,8 +25,8 @@ func TestNew_ActionResponseNormal(t *testing.T) {
 }
 
 func TestNew_ActionResponseWithPBlock(t *testing.T) {
-	var dt DataBlockSA = *CreateDataBlockSA(true, 1, []byte{1, 2, 3, 4, 5})
-	var a ActionResponseWithPBlock = *CreateActionResponseWithPBlock(81, dt)
+	dt := *CreateDataBlockSA(true, 1, []byte{1, 2, 3, 4, 5})
+	a := *CreateActionResponseWithPBlock(81, dt)
 	t1, e := a.Encode()
 	if e != nil {
 		t.Errorf("t1 Encode Failed. err: %v", e)
@@ -41,9 +41,9 @@ func TestNew_ActionResponseWithPBlock(t *testing.T) {
 
 func TestNew_ActionResponseWithList(t *testing.T) {
 	// with 1 ActResponse
-	var ret GetDataResult = *CreateGetDataResultAsResult(TagAccSuccess)
-	var ares1 ActResponse = *CreateActResponse(TagActSuccess, &ret)
-	var a ActionResponseWithList = *CreateActionResponseWithList(81, []ActResponse{ares1})
+	ret := *CreateGetDataResultAsResult(TagAccSuccess)
+	ares1 := *CreateActResponse(TagActSuccess, &ret)
+	a := *CreateActionResponseWithList(81, []ActResponse{ares1})
 	t1, e := a.Encode()
 	if e != nil {
 		t.Errorf("t1 Encode Failed. err: %v", e)
@@ -56,10 +56,10 @@ func TestNew_ActionResponseWithList(t *testing.T) {
 	}
 
 	// with 2 ActResponse
-	var dt axdr.DlmsData = *axdr.CreateAxdrDoubleLong(69)
-	var ret2 GetDataResult = *CreateGetDataResultAsData(dt)
-	var ares2 ActResponse = *CreateActResponse(TagActSuccess, &ret2)
-	var b ActionResponseWithList = *CreateActionResponseWithList(81, []ActResponse{ares1, ares2})
+	dt := *axdr.CreateAxdrDoubleLong(69)
+	ret2 := *CreateGetDataResultAsData(dt)
+	ares2 := *CreateActResponse(TagActSuccess, &ret2)
+	b := *CreateActionResponseWithList(81, []ActResponse{ares1, ares2})
 	t2, e := b.Encode()
 	if e != nil {
 		t.Errorf("t2 Encode Failed. err: %v", e)
@@ -73,7 +73,7 @@ func TestNew_ActionResponseWithList(t *testing.T) {
 }
 
 func TestNew_ActionResponseNextPBlock(t *testing.T) {
-	var a ActionResponseNextPBlock = *CreateActionResponseNextPBlock(81, 1)
+	a := *CreateActionResponseNextPBlock(81, 1)
 	t1, e := a.Encode()
 	if e != nil {
 		t.Errorf("t1 Encode Failed. err: %v", e)
@@ -92,9 +92,9 @@ func TestDecode_ActionResponseNormal(t *testing.T) {
 		t.Errorf("t1 Failed to DecodeActionResponseNormal. err:%v", err)
 	}
 
-	var ret GetDataResult = *CreateGetDataResultAsResult(TagAccSuccess)
-	var ares ActResponse = *CreateActResponse(TagActSuccess, &ret)
-	var b ActionResponseNormal = *CreateActionResponseNormal(81, ares)
+	ret := *CreateGetDataResultAsResult(TagAccSuccess)
+	ares := *CreateActResponse(TagActSuccess, &ret)
+	b := *CreateActionResponseNormal(81, ares)
 
 	if a.InvokePriority != b.InvokePriority {
 		t.Errorf("t1 Failed. InvokePriority get: %v, should:%v", a.InvokePriority, b.InvokePriority)
@@ -118,8 +118,8 @@ func TestDecode_ActionResponseWithPBlock(t *testing.T) {
 		t.Errorf("t1 Failed to DecodeActionResponseWithPBlock. err:%v", err)
 	}
 
-	var dt DataBlockSA = *CreateDataBlockSA(true, 1, []byte{1, 2, 3, 4, 5})
-	var b ActionResponseWithPBlock = *CreateActionResponseWithPBlock(81, dt)
+	dt := *CreateDataBlockSA(true, 1, []byte{1, 2, 3, 4, 5})
+	b := *CreateActionResponseWithPBlock(81, dt)
 
 	if a.InvokePriority != b.InvokePriority {
 		t.Errorf("t1 Failed. InvokePriority get: %v, should:%v", a.InvokePriority, b.InvokePriority)
@@ -149,9 +149,9 @@ func TestDecode_ActionResponseWithList(t *testing.T) {
 		t.Errorf("t1 Failed to DecodeActionResponseWithList. err:%v", err)
 	}
 
-	var ret GetDataResult = *CreateGetDataResultAsResult(TagAccSuccess)
-	var ares1 ActResponse = *CreateActResponse(TagActSuccess, &ret)
-	var b ActionResponseWithList = *CreateActionResponseWithList(81, []ActResponse{ares1})
+	ret := *CreateGetDataResultAsResult(TagAccSuccess)
+	ares1 := *CreateActResponse(TagActSuccess, &ret)
+	b := *CreateActionResponseWithList(81, []ActResponse{ares1})
 
 	if a.InvokePriority != b.InvokePriority {
 		t.Errorf("t1 Failed. InvokePriority get: %v, should:%v", a.InvokePriority, b.InvokePriority)
@@ -181,9 +181,9 @@ func TestDecode_ActionResponseWithList(t *testing.T) {
 		t.Errorf("t2 Failed to DecodeActionResponseWithList. err:%v", err)
 	}
 
-	var dt axdr.DlmsData = *axdr.CreateAxdrDoubleLong(69)
-	var ret2 GetDataResult = *CreateGetDataResultAsData(dt)
-	var ares2 ActResponse = *CreateActResponse(TagActSuccess, &ret2)
+	dt := *axdr.CreateAxdrDoubleLong(69)
+	ret2 := *CreateGetDataResultAsData(dt)
+	ares2 := *CreateActResponse(TagActSuccess, &ret2)
 	b = *CreateActionResponseWithList(81, []ActResponse{ares1, ares2})
 
 	if a.ResponseCount != b.ResponseCount {
@@ -209,7 +209,7 @@ func TestDecode_ActionResponseWithList(t *testing.T) {
 }
 
 func TestDecode_ActionResponseNextPBlock(t *testing.T) {
-	var x ActionResponseNextPBlock = *CreateActionResponseNextPBlock(81, 1)
+	x := *CreateActionResponseNextPBlock(81, 1)
 	src := []byte{199, 4, 81, 0, 0, 0, 1}
 
 	a, err := DecodeActionResponseNextPBlock(&src)

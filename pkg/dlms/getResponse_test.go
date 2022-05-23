@@ -9,8 +9,8 @@ import (
 )
 
 func TestNewGetResponseNormal(t *testing.T) {
-	var dt axdr.DlmsData = *axdr.CreateAxdrDoubleLong(69)
-	var ret GetDataResult = *CreateGetDataResultAsData(dt)
+	dt := *axdr.CreateAxdrDoubleLong(69)
+	ret := *CreateGetDataResultAsData(dt)
 
 	a := *CreateGetResponseNormal(81, ret)
 	t1, e := a.Encode()
@@ -25,7 +25,7 @@ func TestNewGetResponseNormal(t *testing.T) {
 }
 
 func TestNewGetResponseWithDataBlock(t *testing.T) {
-	var dbg DataBlockG = *CreateDataBlockGAsData(true, 1, "07D20C04030A060BFF007800")
+	dbg := *CreateDataBlockGAsData(true, 1, "07D20C04030A060BFF007800")
 
 	a := *CreateGetResponseWithDataBlock(81, dbg)
 	t1, e := a.Encode()
@@ -53,7 +53,7 @@ func TestNewGetResponseWithDataBlock(t *testing.T) {
 }
 
 func TestNewGetResponseWithList(t *testing.T) {
-	var gdr1 GetDataResult = *CreateGetDataResultAsResult(TagAccSuccess)
+	gdr1 := *CreateGetDataResultAsResult(TagAccSuccess)
 
 	a := *CreateGetResponseWithList(69, []GetDataResult{gdr1})
 	t1, e := a.Encode()
@@ -66,8 +66,8 @@ func TestNewGetResponseWithList(t *testing.T) {
 		t.Errorf("t1 Failed. get: %d, should:%v", t1, result)
 	}
 
-	var dt1 axdr.DlmsData = *axdr.CreateAxdrDoubleLong(1)
-	var gdr2 GetDataResult = *CreateGetDataResultAsData(dt1)
+	dt1 := *axdr.CreateAxdrDoubleLong(1)
+	gdr2 := *CreateGetDataResultAsData(dt1)
 	b := *CreateGetResponseWithList(69, []GetDataResult{gdr1, gdr2})
 	t2, e := b.Encode()
 	if e != nil {
@@ -147,11 +147,11 @@ func TestDecode_GetResponseWithList(t *testing.T) {
 		t.Errorf("t1 Failed to DecodeGetResponseWithList. err:%v", err)
 	}
 
-	var gdr1 GetDataResult = *CreateGetDataResultAsResult(TagAccSuccess)
-	var dt1 axdr.DlmsData = *axdr.CreateAxdrDoubleLong(1)
-	var gdr2 GetDataResult = *CreateGetDataResultAsData(dt1)
+	gdr1 := *CreateGetDataResultAsResult(TagAccSuccess)
+	dt1 := *axdr.CreateAxdrDoubleLong(1)
+	gdr2 := *CreateGetDataResultAsData(dt1)
 
-	var b GetResponseWithList = *CreateGetResponseWithList(69, []GetDataResult{gdr1, gdr2})
+	b := *CreateGetResponseWithList(69, []GetDataResult{gdr1, gdr2})
 
 	if a.InvokePriority != b.InvokePriority {
 		t.Errorf("t1 Failed. InvokePriority get: %v, should: %v", a.InvokePriority, b.InvokePriority)
