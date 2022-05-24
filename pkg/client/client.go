@@ -106,6 +106,38 @@ func (c *Client) Associate() error {
 	return nil
 }
 
+func (c *Client) CloseAssociation() error {
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
+
+	if !c.transport.IsConnected() {
+		return fmt.Errorf("not connected")
+	}
+
+	if !c.isAssociated {
+		return fmt.Errorf("not associated")
+	}
+
+	src, err := dlms.EncodeRLRQ(&c.settings)
+	if err != nil {
+		return fmt.Errorf("error encoding RLRQ: %w", err)
+	}
+
+	out, err := c.transport.Send(src)
+	if err != nil {
+		return fmt.Errorf("error sending RLRQ: %w", err)
+	}
+
+	_, err = dlms.DecodeRLRE(&c.settings, &out)
+	if err != nil {
+		return fmt.Errorf("error decoding RLRE: %w", err)
+	}
+
+	c.closeAssociation()
+
+	return nil
+}
+
 func (c *Client) IsAssociated() bool {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()

@@ -86,6 +86,33 @@ func TestClient_Associate(t *testing.T) {
 	tm.AssertExpectations(t)
 }
 
+func TestClient_CloseAssociation(t *testing.T) {
+	in := decodeHexString("601DA109060760857405080101BE10040E01000000065F1F040000181F0100")
+	out := decodeHexString("6129A109060760857405080101A203020100A305A103020100BE10040E0800065F1F040000101D00800007")
+
+	tm := new(mocks.TransportMock)
+	tm.On("Connect").Return(nil).Once()
+	tm.On("Send", in).Return(out, nil).Once()
+	tm.On("IsConnected").Return(true).Times(2)
+
+	settings, _ := dlms.NewSettingsWithoutAuthentication()
+	client := client.New(settings, tm, 0)
+
+	client.Connect()
+
+	err := client.Associate()
+	assert.NoError(t, err)
+
+	in = decodeHexString("6200")
+	out = decodeHexString("6300")
+	tm.On("Send", in).Return(out, nil).Once()
+
+	err = client.CloseAssociation()
+	assert.NoError(t, err)
+
+	tm.AssertExpectations(t)
+}
+
 func TestClient_Timeout(t *testing.T) {
 	tm := new(mocks.TransportMock)
 
