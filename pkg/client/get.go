@@ -2,6 +2,9 @@ package client
 
 import (
 	"fmt"
+	"reflect"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/Circutor/gosem/pkg/axdr"
@@ -21,6 +24,65 @@ func (c *Client) GetRequestWithSelectiveAccessByDate(att *dlms.AttributeDescript
 
 	acc := dlms.CreateSelectiveAccessDescriptor(dlms.AccessSelectorRange, []time.Time{start, end})
 	return c.getRequestWithUnmarshal(att, acc, data)
+}
+
+func (c *Client) GetRequestWithStructOfElements(data interface{}) (err error) {
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
+
+	rv := reflect.ValueOf(data)
+	if rv.Kind() != reflect.Ptr || rv.IsNil() {
+		return fmt.Errorf("data must be a non-nil pointer")
+	}
+
+	v := reflect.Indirect(rv)
+	if v.Kind() != reflect.Struct {
+		return fmt.Errorf("data must be a pointer to a struct")
+	}
+
+	for i := 0; i < v.NumField(); i++ {
+		ad, err := getAttributeDescriptor(v.Type().Field(i))
+		if err != nil {
+			return fmt.Errorf("error getting attribute descriptor: %w", err)
+		}
+		if ad == nil {
+			continue
+		}
+
+		field := v.Field(i)
+		err = c.getRequestWithUnmarshal(ad, nil, field.Addr().Interface())
+		if err != nil {
+			return fmt.Errorf("error getting attribute %s: %w", ad.InstanceID, err)
+		}
+	}
+
+	return nil
+}
+
+func getAttributeDescriptor(field reflect.StructField) (*dlms.AttributeDescriptor, error) {
+	tag := field.Tag.Get("obis")
+	if tag == "" {
+		return nil, nil
+	}
+
+	values := strings.Split(tag, ",")
+	if len(values) != 3 {
+		return nil, fmt.Errorf("invalid obis tag: %s", tag)
+	}
+
+	class, err := strconv.ParseUint(values[0], 0, 16)
+	if err != nil {
+		return nil, fmt.Errorf("invalid class: %s", tag)
+	}
+	obis := values[1]
+	att, err := strconv.ParseUint(values[2], 0, 8)
+	if err != nil {
+		return nil, fmt.Errorf("invalid attribute: %s", tag)
+	}
+
+	attribute := dlms.CreateAttributeDescriptor(uint16(class), obis, int8(att))
+
+	return attribute, nil
 }
 
 func (c *Client) getRequestWithUnmarshal(att *dlms.AttributeDescriptor, acc *dlms.SelectiveAccessDescriptor, data interface{}) (err error) {

@@ -51,7 +51,7 @@ func main() {
 		panic(err)
 	}
 
-	t := tcp.New(4059, "10.0.120.7", 1*time.Second)
+	t := tcp.New(4059, "10.0.120.137", 1*time.Second)
 	t.Logger = l
 	w := wrapper.New(t, 1, 1)
 	c := client.New(settings, w, 0)
@@ -77,6 +77,16 @@ func main() {
 
 	log.Printf("Time zone: %d\n", timeZone)
 
+	var timeDate time.Time
+
+	attTime := dlms.CreateAttributeDescriptor(8, "0-0:1.0.0.255", 2)
+	err = c.GetRequest(attTime, &timeDate)
+	if err != nil {
+		panic(err)
+	}
+
+	log.Printf("Time: %v\n", timeDate)
+
 	var instantaneous []Instantaneous
 
 	attInstantaneous := dlms.CreateAttributeDescriptor(7, "0-0:21.0.5.255", 2)
@@ -86,4 +96,19 @@ func main() {
 	}
 
 	log.Printf("Instantaneous: %v\n", instantaneous)
+
+	type ConfigReport struct {
+		Time          time.Time       `obis:"8,0-0:1.0.0.255,2"`
+		TimeZone      int16           `obis:"8,0-0:1.0.0.255,3"`
+		Instantaneous []Instantaneous `obis:"7,0-0:21.0.5.255,2"`
+	}
+
+	var configReport ConfigReport
+
+	err = c.GetRequestWithStructOfElements(&configReport)
+	if err != nil {
+		panic(err)
+	}
+
+	log.Printf("Config report: %v\n", configReport)
 }
