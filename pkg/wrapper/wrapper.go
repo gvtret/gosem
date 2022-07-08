@@ -3,6 +3,7 @@ package wrapper
 import (
 	"encoding/binary"
 	"fmt"
+	"log"
 
 	"github.com/Circutor/gosem/pkg/dlms"
 )
@@ -70,6 +71,10 @@ func (w *Wrapper) Send(src []byte) ([]byte, error) {
 	}
 
 	return out[headerLength:], nil
+}
+
+func (w *Wrapper) SetLogger(logger *log.Logger) {
+	w.transport.SetLogger(logger)
 }
 
 func (w *Wrapper) parseHeader(src []byte) error {

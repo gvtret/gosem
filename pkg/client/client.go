@@ -2,6 +2,7 @@ package client
 
 import (
 	"fmt"
+	"log"
 	"sync"
 	"time"
 
@@ -66,6 +67,10 @@ func (c *Client) IsConnected() bool {
 	defer c.mutex.Unlock()
 
 	return c.transport.IsConnected()
+}
+
+func (c *Client) SetLogger(logger *log.Logger) {
+	c.transport.SetLogger(logger)
 }
 
 func (c *Client) Associate() error {

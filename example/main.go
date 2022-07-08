@@ -52,9 +52,9 @@ func main() {
 	}
 
 	t := tcp.New(4059, "10.0.120.137", 1*time.Second)
-	t.Logger = l
 	w := wrapper.New(t, 1, 1)
 	c := client.New(settings, w, 0)
+	c.SetLogger(l)
 
 	err = c.Connect()
 	if err != nil {
