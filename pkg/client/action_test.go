@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/Circutor/gosem/pkg/axdr"
+	"github.com/Circutor/gosem/pkg/client"
 	"github.com/Circutor/gosem/pkg/dlms"
 	"github.com/stretchr/testify/assert"
 )
@@ -38,7 +39,9 @@ func TestClient_ActionRequestFail(t *testing.T) {
 	tm.On("Send", in).Return(out, nil).Once()
 
 	err = c.ActionRequest(disconnectorMethodDescriptor, data)
-	assert.Error(t, err)
+	var clientError *client.Error
+	assert.ErrorAs(t, err, &clientError)
+	assert.Equal(t, client.ErrorActionRejected, clientError.Code())
 
 	// Unexpected response
 	in = decodeHexString("C301C10046000060030AFF01010F00")
@@ -46,7 +49,8 @@ func TestClient_ActionRequestFail(t *testing.T) {
 	tm.On("Send", in).Return(out, nil).Once()
 
 	err = c.ActionRequest(disconnectorMethodDescriptor, data)
-	assert.Error(t, err)
+	assert.ErrorAs(t, err, &clientError)
+	assert.Equal(t, client.ErrorInvalidResponse, clientError.Code())
 
 	// Invalid response
 	in = decodeHexString("C301C10046000060030AFF01010F00")
@@ -54,7 +58,8 @@ func TestClient_ActionRequestFail(t *testing.T) {
 	tm.On("Send", in).Return(out, nil).Once()
 
 	err = c.ActionRequest(disconnectorMethodDescriptor, data)
-	assert.Error(t, err)
+	assert.ErrorAs(t, err, &clientError)
+	assert.Equal(t, client.ErrorInvalidResponse, clientError.Code())
 
 	// Send failed
 	in = decodeHexString("C301C10046000060030AFF01010F00")
@@ -63,22 +68,26 @@ func TestClient_ActionRequestFail(t *testing.T) {
 	tm.On("IsConnected").Return(false).Once()
 
 	err = c.ActionRequest(disconnectorMethodDescriptor, data)
-	assert.Error(t, err)
+	assert.ErrorAs(t, err, &clientError)
+	assert.Equal(t, client.ErrorCommunicationFailed, clientError.Code())
 
 	// Not associated
 	tm.On("Disconnect").Return(nil).Once()
 	c.Disconnect()
 
 	err = c.ActionRequest(disconnectorMethodDescriptor, data)
-	assert.Error(t, err)
+	assert.ErrorAs(t, err, &clientError)
+	assert.Equal(t, client.ErrorInvalidState, clientError.Code())
 
 	// Invalid data
-	err = c.ActionRequest(disconnectorMethodDescriptor, data)
-	assert.Error(t, err)
+	err = c.ActionRequest(disconnectorMethodDescriptor, nil)
+	assert.ErrorAs(t, err, &clientError)
+	assert.Equal(t, client.ErrorInvalidParameter, clientError.Code())
 
 	// nil attribute descriptor
-	err = c.SetRequest(nil, data)
-	assert.Error(t, err)
+	err = c.ActionRequest(nil, data)
+	assert.ErrorAs(t, err, &clientError)
+	assert.Equal(t, client.ErrorInvalidParameter, clientError.Code())
 
 	tm.AssertExpectations(t)
 }

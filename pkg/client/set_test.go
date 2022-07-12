@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/Circutor/gosem/pkg/axdr"
+	"github.com/Circutor/gosem/pkg/client"
 	"github.com/Circutor/gosem/pkg/dlms"
 	"github.com/stretchr/testify/assert"
 )
@@ -38,7 +39,9 @@ func TestClient_SetRequestFail(t *testing.T) {
 	tm.On("Send", in).Return(out, nil).Once()
 
 	err = c.SetRequest(demandAttributeDescriptor, data)
-	assert.Error(t, err)
+	var clientError *client.Error
+	assert.ErrorAs(t, err, &clientError)
+	assert.Equal(t, client.ErrorSetRejected, clientError.Code())
 
 	// Unexpected response
 	in = decodeHexString("C101C1000300015E230BFF02000600002710")
@@ -46,7 +49,8 @@ func TestClient_SetRequestFail(t *testing.T) {
 	tm.On("Send", in).Return(out, nil).Once()
 
 	err = c.SetRequest(demandAttributeDescriptor, data)
-	assert.Error(t, err)
+	assert.ErrorAs(t, err, &clientError)
+	assert.Equal(t, client.ErrorInvalidResponse, clientError.Code())
 
 	// Invalid response
 	in = decodeHexString("C101C1000300015E230BFF02000600002710")
@@ -54,7 +58,8 @@ func TestClient_SetRequestFail(t *testing.T) {
 	tm.On("Send", in).Return(out, nil).Once()
 
 	err = c.SetRequest(demandAttributeDescriptor, data)
-	assert.Error(t, err)
+	assert.ErrorAs(t, err, &clientError)
+	assert.Equal(t, client.ErrorInvalidResponse, clientError.Code())
 
 	// Send failed
 	in = decodeHexString("C101C1000300015E230BFF02000600002710")
@@ -63,22 +68,26 @@ func TestClient_SetRequestFail(t *testing.T) {
 	tm.On("IsConnected").Return(false).Once()
 
 	err = c.SetRequest(demandAttributeDescriptor, data)
-	assert.Error(t, err)
+	assert.ErrorAs(t, err, &clientError)
+	assert.Equal(t, client.ErrorCommunicationFailed, clientError.Code())
 
 	// Not associated
 	tm.On("Disconnect").Return(nil).Once()
 	c.Disconnect()
 
 	err = c.SetRequest(demandAttributeDescriptor, data)
-	assert.Error(t, err)
+	assert.ErrorAs(t, err, &clientError)
+	assert.Equal(t, client.ErrorInvalidState, clientError.Code())
 
 	// Invalid data
 	err = c.SetRequest(demandAttributeDescriptor, nil)
-	assert.Error(t, err)
+	assert.ErrorAs(t, err, &clientError)
+	assert.Equal(t, client.ErrorInvalidParameter, clientError.Code())
 
 	// nil attribute descriptor
 	err = c.SetRequest(nil, data)
-	assert.Error(t, err)
+	assert.ErrorAs(t, err, &clientError)
+	assert.Equal(t, client.ErrorInvalidParameter, clientError.Code())
 
 	tm.AssertExpectations(t)
 }

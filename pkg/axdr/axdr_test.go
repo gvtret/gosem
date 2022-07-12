@@ -1295,10 +1295,8 @@ func TestDecoder1(t *testing.T) {
 	d3 := DlmsData{Tag: TagBitString, Value: "0"}
 	d4 := DlmsData{Tag: TagDoubleLongUnsigned, Value: uint32(33426304)}
 	d5 := DlmsData{Tag: TagLongUnsigned, Value: uint16(3105)}
-	// da := DlmsData{Tag: TagArray, Value: DlmsData{Tag: TagStructure, Value: []DlmsData{d1, d2, d3, d4, d5}}}
-	str := "0101020512EB421907E40310FF000000FF8000000401000601FE0B80120C21"
 
-	src, _ := hex.DecodeString(str)
+	src, _ := hex.DecodeString("0101020512EB421907E40310FF000000FF8000000401000601FE0B80120C21")
 
 	dec := NewDataDecoder(&src)
 	t1, err2 := dec.Decode(&src)
@@ -1329,16 +1327,5 @@ func TestDecoder1(t *testing.T) {
 	}
 	if t3[4].Value != d5.Value {
 		t.Errorf("should be same as d5 %v, received: %v", d5.Value, t3[4].Value)
-	}
-
-	src = []byte{1, 3, 4, 3, 224, 3, 255, 123, 123, 123}
-	decoder := NewDataDecoder(&src)
-	oriLength := len(src)
-	_, err4 := decoder.Decode(&src)
-	if err4 == nil {
-		t.Errorf("t4 should be error")
-	}
-	if len(src) != oriLength {
-		t.Errorf("src after error should still be the same length (%v)", src)
 	}
 }

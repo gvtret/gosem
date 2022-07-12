@@ -12,16 +12,14 @@ func (c *Client) ActionRequest(mth *dlms.MethodDescriptor, data interface{}) (er
 	defer c.mutex.Unlock()
 
 	if mth == nil {
-		err = fmt.Errorf("method descriptor is nil")
-		return
+		return newError(ErrorInvalidParameter, "method descriptor must be non-nil")
 	}
 
 	dt, ok := data.(*axdr.DlmsData)
 	if !ok {
 		dt, err = axdr.MarshalData(data)
 		if err != nil {
-			err = fmt.Errorf("failed to marshal data: %w", err)
-			return
+			return newError(ErrorInvalidParameter, fmt.Sprintf("error marshaling data: %v", err))
 		}
 	}
 
@@ -34,13 +32,11 @@ func (c *Client) ActionRequest(mth *dlms.MethodDescriptor, data interface{}) (er
 
 	resp, ok := pdu.(dlms.ActionResponseNormal)
 	if !ok {
-		err = fmt.Errorf("expected action response, got %T", pdu)
-		return
+		return newError(ErrorInvalidResponse, fmt.Sprintf("unexpected PDU type: %T", pdu))
 	}
 
 	if resp.Response.Result != dlms.TagActSuccess {
-		err = fmt.Errorf("action failed with result: %s", resp.Response.Result.String())
-		return
+		return newError(ErrorActionRejected, fmt.Sprintf("action rejected: %s", resp.Response.Result.String()))
 	}
 
 	return

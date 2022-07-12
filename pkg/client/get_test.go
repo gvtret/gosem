@@ -41,7 +41,9 @@ func TestClient_GetRequestFail(t *testing.T) {
 	tm.On("Send", in).Return(out, nil).Once()
 
 	err = c.GetRequest(clockAttributeDescriptor, &data)
-	assert.Error(t, err)
+	var clientError *client.Error
+	assert.ErrorAs(t, err, &clientError)
+	assert.Equal(t, client.ErrorGetRejected, clientError.Code())
 
 	// Unexpected response
 	in = decodeHexString("C001C100080000010000FF0300")
@@ -49,7 +51,8 @@ func TestClient_GetRequestFail(t *testing.T) {
 	tm.On("Send", in).Return(out, nil).Once()
 
 	err = c.GetRequest(clockAttributeDescriptor, &data)
-	assert.Error(t, err)
+	assert.ErrorAs(t, err, &clientError)
+	assert.Equal(t, client.ErrorInvalidResponse, clientError.Code())
 
 	// Invalid response
 	in = decodeHexString("C001C100080000010000FF0300")
@@ -57,7 +60,8 @@ func TestClient_GetRequestFail(t *testing.T) {
 	tm.On("Send", in).Return(out, nil).Once()
 
 	err = c.GetRequest(clockAttributeDescriptor, &data)
-	assert.Error(t, err)
+	assert.ErrorAs(t, err, &clientError)
+	assert.Equal(t, client.ErrorInvalidResponse, clientError.Code())
 
 	// Response type doesn't match
 	in = decodeHexString("C001C100080000010000FF0300")
@@ -65,7 +69,8 @@ func TestClient_GetRequestFail(t *testing.T) {
 	tm.On("Send", in).Return(out, nil).Once()
 
 	err = c.GetRequest(clockAttributeDescriptor, &data)
-	assert.Error(t, err)
+	assert.ErrorAs(t, err, &clientError)
+	assert.Equal(t, client.ErrorInvalidResponse, clientError.Code())
 
 	// Send failed
 	in = decodeHexString("C001C100080000010000FF0300")
@@ -74,18 +79,21 @@ func TestClient_GetRequestFail(t *testing.T) {
 	tm.On("IsConnected").Return(false).Once()
 
 	err = c.GetRequest(clockAttributeDescriptor, &data)
-	assert.Error(t, err)
+	assert.ErrorAs(t, err, &clientError)
+	assert.Equal(t, client.ErrorCommunicationFailed, clientError.Code())
 
 	// Not associated
 	tm.On("Disconnect").Return(nil).Once()
 	c.Disconnect()
 
 	err = c.GetRequest(clockAttributeDescriptor, &data)
-	assert.Error(t, err)
+	assert.ErrorAs(t, err, &clientError)
+	assert.Equal(t, client.ErrorInvalidState, clientError.Code())
 
 	// nil attribute descriptor
 	err = c.GetRequest(nil, &data)
-	assert.Error(t, err)
+	assert.ErrorAs(t, err, &clientError)
+	assert.Equal(t, client.ErrorInvalidParameter, clientError.Code())
 
 	tm.AssertExpectations(t)
 }
@@ -127,7 +135,9 @@ func TestClient_GetRequestWithDataBlockFail(t *testing.T) {
 	tm.On("Send", in).Return(out, nil).Once()
 
 	err = c.GetRequest(dlms.CreateAttributeDescriptor(7, "1-0:99.1.0.255", 2), &data)
-	assert.Error(t, err)
+	var clientError *client.Error
+	assert.ErrorAs(t, err, &clientError)
+	assert.Equal(t, client.ErrorGetRejected, clientError.Code())
 
 	// Invalid block number
 	in = decodeHexString("C001C100070100630100FF0200")
@@ -135,7 +145,8 @@ func TestClient_GetRequestWithDataBlockFail(t *testing.T) {
 	tm.On("Send", in).Return(out, nil).Once()
 
 	err = c.GetRequest(dlms.CreateAttributeDescriptor(7, "1-0:99.1.0.255", 2), &data)
-	assert.Error(t, err)
+	assert.ErrorAs(t, err, &clientError)
+	assert.Equal(t, client.ErrorInvalidResponse, clientError.Code())
 
 	// Invalid response
 	in = decodeHexString("C001C100070100630100FF0200")
@@ -147,7 +158,8 @@ func TestClient_GetRequestWithDataBlockFail(t *testing.T) {
 	tm.On("Send", in).Return(out, nil).Once()
 
 	err = c.GetRequest(dlms.CreateAttributeDescriptor(7, "1-0:99.1.0.255", 2), &data)
-	assert.Error(t, err)
+	assert.ErrorAs(t, err, &clientError)
+	assert.Equal(t, client.ErrorInvalidResponse, clientError.Code())
 
 	// Unexpected response
 	in = decodeHexString("C001C100070100630100FF0200")
@@ -159,7 +171,8 @@ func TestClient_GetRequestWithDataBlockFail(t *testing.T) {
 	tm.On("Send", in).Return(out, nil).Once()
 
 	err = c.GetRequest(dlms.CreateAttributeDescriptor(7, "1-0:99.1.0.255", 2), &data)
-	assert.Error(t, err)
+	assert.ErrorAs(t, err, &clientError)
+	assert.Equal(t, client.ErrorInvalidResponse, clientError.Code())
 
 	// Invalid data
 	in = decodeHexString("C001C100070100630100FF0200")
@@ -167,7 +180,8 @@ func TestClient_GetRequestWithDataBlockFail(t *testing.T) {
 	tm.On("Send", in).Return(out, nil).Once()
 
 	err = c.GetRequest(dlms.CreateAttributeDescriptor(7, "1-0:99.1.0.255", 2), &data)
-	assert.Error(t, err)
+	assert.ErrorAs(t, err, &clientError)
+	assert.Equal(t, client.ErrorInvalidResponse, clientError.Code())
 
 	tm.AssertExpectations(t)
 }

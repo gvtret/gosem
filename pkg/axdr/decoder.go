@@ -19,7 +19,7 @@ type Decoder struct {
 var ErrLengthLess = errors.New("not enough byte length provided")
 
 // Get dataTag equivalent of supplied uint8
-func getDataTag(in uint8) (t dataTag) {
+func getDataTag(in uint8) (t dataTag, err error) {
 	mapToDataTag := map[uint8]dataTag{
 		0:   TagNull,
 		1:   TagArray,
@@ -49,7 +49,11 @@ func getDataTag(in uint8) (t dataTag) {
 		255: TagDontCare,
 	}
 
-	t = mapToDataTag[in]
+	t, ok := mapToDataTag[in]
+	if !ok {
+		err = fmt.Errorf("unknown dataTag: %d", in)
+	}
+
 	return
 }
 
@@ -64,7 +68,10 @@ func NewDataDecoder(in interface{}) *Decoder {
 		if len(*src) < 1 {
 			return &Decoder{tag: TagNull}
 		}
-		tag := getDataTag((*src)[0])
+		tag, err := getDataTag((*src)[0])
+		if err != nil {
+			return &Decoder{tag: TagNull}
+		}
 		(*src) = (*src)[1:]
 		return &Decoder{tag: tag}
 
@@ -122,7 +129,8 @@ func (dec *Decoder) Decode(ori *[]byte) (r DlmsData, err error) {
 	var value interface{}
 	switch dec.tag {
 	case TagNull:
-		err = fmt.Errorf("not yet implemented")
+		rawValue = []byte{}
+		value = nil
 	case TagArray:
 		output := make([]*DlmsData, lengthInt)
 		// make carbon copy of src to calc rawValue later

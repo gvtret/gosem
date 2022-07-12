@@ -33,10 +33,12 @@ func TestClient_ConnectFail(t *testing.T) {
 	tm.On("Connect").Return(fmt.Errorf("error connecting"))
 
 	settings, _ := dlms.NewSettingsWithoutAuthentication()
-	client := client.New(settings, tm, 0)
+	c := client.New(settings, tm, 0)
 
-	err := client.Connect()
-	assert.Error(t, err)
+	err := c.Connect()
+	var clientError *client.Error
+	assert.ErrorAs(t, err, &clientError)
+	assert.Equal(t, client.ErrorCommunicationFailed, clientError.Code())
 }
 
 func TestClient_Disconnect(t *testing.T) {
@@ -45,15 +47,17 @@ func TestClient_Disconnect(t *testing.T) {
 	tm.On("Disconnect").Return(fmt.Errorf("error disconnecting")).Once()
 
 	settings, _ := dlms.NewSettingsWithoutAuthentication()
-	client := client.New(settings, tm, 0)
+	c := client.New(settings, tm, 0)
 
-	err := client.Disconnect()
-	assert.Error(t, err)
+	err := c.Disconnect()
+	var clientError *client.Error
+	assert.ErrorAs(t, err, &clientError)
+	assert.Equal(t, client.ErrorCommunicationFailed, clientError.Code())
 
-	client.Connect()
+	c.Connect()
 
 	tm.On("Disconnect").Return(nil).Once()
-	err = client.Disconnect()
+	err = c.Disconnect()
 	assert.NoError(t, err)
 
 	tm.AssertExpectations(t)

@@ -32,18 +32,18 @@ func (c *Client) GetRequestWithStructOfElements(data interface{}) (err error) {
 
 	rv := reflect.ValueOf(data)
 	if rv.Kind() != reflect.Ptr || rv.IsNil() {
-		return fmt.Errorf("data must be a non-nil pointer")
+		return newError(ErrorInvalidParameter, "data must be a non-nil pointer")
 	}
 
 	v := reflect.Indirect(rv)
 	if v.Kind() != reflect.Struct {
-		return fmt.Errorf("data must be a pointer to a struct")
+		return newError(ErrorInvalidParameter, "data must be a pointer to a struct")
 	}
 
 	for i := 0; i < v.NumField(); i++ {
-		ad, err := getAttributeDescriptor(v.Type().Field(i))
+		ad, err := c.getAttributeDescriptor(v.Type().Field(i))
 		if err != nil {
-			return fmt.Errorf("error getting attribute descriptor: %w", err)
+			return err
 		}
 		if ad == nil {
 			continue
@@ -52,14 +52,14 @@ func (c *Client) GetRequestWithStructOfElements(data interface{}) (err error) {
 		field := v.Field(i)
 		err = c.getRequestWithUnmarshal(ad, nil, field.Addr().Interface())
 		if err != nil {
-			return fmt.Errorf("error getting attribute %s: %w", ad.InstanceID, err)
+			return err
 		}
 	}
 
 	return nil
 }
 
-func getAttributeDescriptor(field reflect.StructField) (*dlms.AttributeDescriptor, error) {
+func (c *Client) getAttributeDescriptor(field reflect.StructField) (*dlms.AttributeDescriptor, error) {
 	tag := field.Tag.Get("obis")
 	if tag == "" {
 		return nil, nil
@@ -67,17 +67,17 @@ func getAttributeDescriptor(field reflect.StructField) (*dlms.AttributeDescripto
 
 	values := strings.Split(tag, ",")
 	if len(values) != 3 {
-		return nil, fmt.Errorf("invalid obis tag: %s", tag)
+		return nil, newError(ErrorInvalidParameter, fmt.Sprintf("invalid obis tag: %s", tag))
 	}
 
 	class, err := strconv.ParseUint(values[0], 0, 16)
 	if err != nil {
-		return nil, fmt.Errorf("invalid class: %s", tag)
+		return nil, newError(ErrorInvalidParameter, fmt.Sprintf("invalid class: %s", tag))
 	}
 	obis := values[1]
 	att, err := strconv.ParseUint(values[2], 0, 8)
 	if err != nil {
-		return nil, fmt.Errorf("invalid attribute: %s", tag)
+		return nil, newError(ErrorInvalidParameter, fmt.Sprintf("invalid attribute: %s", tag))
 	}
 
 	attribute := dlms.CreateAttributeDescriptor(uint16(class), obis, int8(att))
@@ -94,8 +94,7 @@ func (c *Client) getRequestWithUnmarshal(att *dlms.AttributeDescriptor, acc *dlm
 	if data != nil {
 		err = axdr.UnmarshalData(axdrData, data)
 		if err != nil {
-			err = fmt.Errorf("error unmarshaling data: %w", err)
-			return
+			return newError(ErrorInvalidResponse, fmt.Sprintf("error unmarshaling data: %v", err))
 		}
 	}
 
@@ -104,7 +103,7 @@ func (c *Client) getRequestWithUnmarshal(att *dlms.AttributeDescriptor, acc *dlm
 
 func (c *Client) getRequest(att *dlms.AttributeDescriptor, acc *dlms.SelectiveAccessDescriptor) (data axdr.DlmsData, err error) {
 	if att == nil {
-		err = fmt.Errorf("attribute descriptor is nil")
+		err = newError(ErrorInvalidParameter, "attribute descriptor cannot be nil")
 		return
 	}
 
@@ -120,7 +119,7 @@ func (c *Client) getRequest(att *dlms.AttributeDescriptor, acc *dlms.SelectiveAc
 		data, err = resp.Result.ValueAsData()
 		if err != nil {
 			access, _ := resp.Result.ValueAsAccess()
-			err = fmt.Errorf("get failed with result: %s", access.String())
+			err = newError(ErrorGetRejected, fmt.Sprintf("get rejected: %s", access.String()))
 		}
 	case dlms.GetResponseWithDataBlock:
 		blockNumber := 1
@@ -128,12 +127,12 @@ func (c *Client) getRequest(att *dlms.AttributeDescriptor, acc *dlms.SelectiveAc
 		for {
 			if resp.Result.IsResult {
 				access, _ := resp.Result.ResultAsAccess()
-				err = fmt.Errorf("get failed with result: %s", access.String())
+				err = newError(ErrorGetRejected, fmt.Sprintf("get rejected: %s", access.String()))
 				return
 			}
 
 			if blockNumber != int(resp.Result.BlockNumber) {
-				err = fmt.Errorf("block number mismatch: expected %d, got %d", blockNumber, resp.Result.BlockNumber)
+				err = newError(ErrorInvalidResponse, fmt.Sprintf("block number mismatch: expected %d, got %d", blockNumber, resp.Result.BlockNumber))
 				return
 			}
 
@@ -155,7 +154,7 @@ func (c *Client) getRequest(att *dlms.AttributeDescriptor, acc *dlms.SelectiveAc
 			var ok bool
 			resp, ok = pdu.(dlms.GetResponseWithDataBlock)
 			if !ok {
-				err = fmt.Errorf("expected GetResponseWithDataBlock, got %T", pdu)
+				err = newError(ErrorInvalidResponse, fmt.Sprintf("expected GetResponseWithDataBlock, got %T", pdu))
 				return
 			}
 		}
@@ -163,11 +162,11 @@ func (c *Client) getRequest(att *dlms.AttributeDescriptor, acc *dlms.SelectiveAc
 		decoder := axdr.NewDataDecoder(&out)
 		data, err = decoder.Decode(&out)
 		if err != nil {
-			err = fmt.Errorf("error decoding data: %w", err)
+			err = newError(ErrorInvalidResponse, fmt.Sprintf("error decoding data: %v", err))
 			return
 		}
 	default:
-		err = fmt.Errorf("unexpected CosemPDU type: %T", pdu)
+		err = newError(ErrorInvalidResponse, fmt.Sprintf("unexpected PDU type: %T", pdu))
 	}
 
 	return

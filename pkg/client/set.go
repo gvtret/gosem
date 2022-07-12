@@ -12,16 +12,14 @@ func (c *Client) SetRequest(att *dlms.AttributeDescriptor, data interface{}) (er
 	defer c.mutex.Unlock()
 
 	if att == nil {
-		err = fmt.Errorf("attribute descriptor is nil")
-		return
+		return newError(ErrorInvalidParameter, "attribute descriptor must be non-nil")
 	}
 
 	dt, ok := data.(*axdr.DlmsData)
 	if !ok {
 		dt, err = axdr.MarshalData(data)
 		if err != nil {
-			err = fmt.Errorf("failed to marshal data: %w", err)
-			return
+			return newError(ErrorInvalidParameter, fmt.Sprintf("error marshaling data: %v", err))
 		}
 	}
 
@@ -34,13 +32,11 @@ func (c *Client) SetRequest(att *dlms.AttributeDescriptor, data interface{}) (er
 
 	resp, ok := pdu.(dlms.SetResponseNormal)
 	if !ok {
-		err = fmt.Errorf("expected SetResponseNormal, got %T", pdu)
-		return
+		return newError(ErrorInvalidResponse, fmt.Sprintf("unexpected PDU type: %T", pdu))
 	}
 
 	if resp.Result != dlms.TagAccSuccess {
-		err = fmt.Errorf("set failed with result: %s", resp.Result.String())
-		return
+		return newError(ErrorSetRejected, fmt.Sprintf("set rejected: %s", resp.Result.String()))
 	}
 
 	return
