@@ -9,6 +9,7 @@ type Transport interface {
 	Connect() (err error)
 	Disconnect() (err error)
 	IsConnected() bool
+	SetAddress(client int, server int)
 	Send(src []byte) (out []byte, err error)
 	SetLogger(logger *log.Logger)
 }

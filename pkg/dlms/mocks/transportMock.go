@@ -78,6 +78,11 @@ func (_m *TransportMock) Send(src []byte) ([]byte, error) {
 	return r0, r1
 }
 
+// SetAddress provides a mock function with given fields: client, server
+func (_m *TransportMock) SetAddress(client int, server int) {
+	_m.Called(client, server)
+}
+
 // SetLogger provides a mock function with given fields: logger
 func (_m *TransportMock) SetLogger(logger *log.Logger) {
 	_m.Called(logger)

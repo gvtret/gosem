@@ -84,6 +84,9 @@ func (t *TCP) IsConnected() bool {
 	return t.isConnected
 }
 
+func (t *TCP) SetAddress(client int, server int) {
+}
+
 func (t *TCP) Send(src []byte) ([]byte, error) {
 	if !t.isConnected {
 		return nil, fmt.Errorf("not connected")

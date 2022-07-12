@@ -42,6 +42,11 @@ func (w *Wrapper) IsConnected() bool {
 	return w.transport.IsConnected()
 }
 
+func (w *Wrapper) SetAddress(client int, server int) {
+	w.source = uint16(client)
+	w.destination = uint16(server)
+}
+
 func (w *Wrapper) Send(src []byte) ([]byte, error) {
 	if !w.transport.IsConnected() {
 		return nil, fmt.Errorf("not connected")
