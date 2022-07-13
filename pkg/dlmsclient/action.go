@@ -1,4 +1,4 @@
-package client
+package dlmsclient
 
 import (
 	"fmt"
@@ -12,14 +12,14 @@ func (c *Client) ActionRequest(mth *dlms.MethodDescriptor, data interface{}) (er
 	defer c.mutex.Unlock()
 
 	if mth == nil {
-		return newError(ErrorInvalidParameter, "method descriptor must be non-nil")
+		return NewError(ErrorInvalidParameter, "method descriptor must be non-nil")
 	}
 
 	dt, ok := data.(*axdr.DlmsData)
 	if !ok {
 		dt, err = axdr.MarshalData(data)
 		if err != nil {
-			return newError(ErrorInvalidParameter, fmt.Sprintf("error marshaling data: %v", err))
+			return NewError(ErrorInvalidParameter, fmt.Sprintf("error marshaling data: %v", err))
 		}
 	}
 
@@ -32,11 +32,11 @@ func (c *Client) ActionRequest(mth *dlms.MethodDescriptor, data interface{}) (er
 
 	resp, ok := pdu.(dlms.ActionResponseNormal)
 	if !ok {
-		return newError(ErrorInvalidResponse, fmt.Sprintf("unexpected PDU type: %T", pdu))
+		return NewError(ErrorInvalidResponse, fmt.Sprintf("unexpected PDU type: %T", pdu))
 	}
 
 	if resp.Response.Result != dlms.TagActSuccess {
-		return newError(ErrorActionRejected, fmt.Sprintf("action rejected: %s", resp.Response.Result.String()))
+		return NewError(ErrorActionRejected, fmt.Sprintf("action rejected: %s", resp.Response.Result.String()))
 	}
 
 	return

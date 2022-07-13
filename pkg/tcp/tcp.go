@@ -8,6 +8,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/Circutor/gosem/pkg/dlms"
 )
 
 const (
@@ -23,7 +25,7 @@ type TCP struct {
 	logger      *log.Logger
 }
 
-func New(port int, host string, timeout time.Duration) *TCP {
+func New(port int, host string, timeout time.Duration) dlms.Transport {
 	t := &TCP{
 		port:        port,
 		host:        host,

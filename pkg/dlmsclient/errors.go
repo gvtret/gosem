@@ -1,6 +1,6 @@
 // Copyright (c) 2022 Circutor S.A. All rights reserved.
 
-package client
+package dlmsclient
 
 type ErrorCode int
 
@@ -21,7 +21,7 @@ type Error struct {
 	msg  string
 }
 
-func newError(code ErrorCode, msg string) *Error {
+func NewError(code ErrorCode, msg string) *Error {
 	return &Error{
 		code: code,
 		msg:  msg,

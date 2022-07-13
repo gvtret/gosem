@@ -20,7 +20,7 @@ type Wrapper struct {
 	destination uint16
 }
 
-func New(transport dlms.Transport, client int, server int) *Wrapper {
+func New(transport dlms.Transport, client int, server int) dlms.Transport {
 	w := &Wrapper{
 		transport:   transport,
 		source:      uint16(client),

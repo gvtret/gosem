@@ -1,4 +1,4 @@
-package client_test
+package dlmsclient_test
 
 import (
 	"encoding/hex"
@@ -6,9 +6,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Circutor/gosem/pkg/client"
 	"github.com/Circutor/gosem/pkg/dlms"
 	"github.com/Circutor/gosem/pkg/dlms/mocks"
+	"github.com/Circutor/gosem/pkg/dlmsclient"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -17,13 +17,13 @@ func TestClient_Connect(t *testing.T) {
 	tm.On("Connect").Return(nil).Once()
 
 	settings, _ := dlms.NewSettingsWithoutAuthentication()
-	client := client.New(settings, tm, 0)
+	c := dlmsclient.New(settings, tm, 0)
 
-	err := client.Connect()
+	err := c.Connect()
 	assert.NoError(t, err)
 
 	tm.On("IsConnected").Return(true).Once()
-	assert.True(t, client.IsConnected())
+	assert.True(t, c.IsConnected())
 
 	tm.AssertExpectations(t)
 }
@@ -33,12 +33,12 @@ func TestClient_ConnectFail(t *testing.T) {
 	tm.On("Connect").Return(fmt.Errorf("error connecting"))
 
 	settings, _ := dlms.NewSettingsWithoutAuthentication()
-	c := client.New(settings, tm, 0)
+	c := dlmsclient.New(settings, tm, 0)
 
 	err := c.Connect()
-	var clientError *client.Error
+	var clientError *dlmsclient.Error
 	assert.ErrorAs(t, err, &clientError)
-	assert.Equal(t, client.ErrorCommunicationFailed, clientError.Code())
+	assert.Equal(t, dlmsclient.ErrorCommunicationFailed, clientError.Code())
 }
 
 func TestClient_Disconnect(t *testing.T) {
@@ -47,12 +47,12 @@ func TestClient_Disconnect(t *testing.T) {
 	tm.On("Disconnect").Return(fmt.Errorf("error disconnecting")).Once()
 
 	settings, _ := dlms.NewSettingsWithoutAuthentication()
-	c := client.New(settings, tm, 0)
+	c := dlmsclient.New(settings, tm, 0)
 
 	err := c.Disconnect()
-	var clientError *client.Error
+	var clientError *dlmsclient.Error
 	assert.ErrorAs(t, err, &clientError)
-	assert.Equal(t, client.ErrorCommunicationFailed, clientError.Code())
+	assert.Equal(t, dlmsclient.ErrorCommunicationFailed, clientError.Code())
 
 	c.Connect()
 
@@ -74,18 +74,18 @@ func TestClient_Associate(t *testing.T) {
 	tm.On("IsConnected").Return(true).Times(2)
 
 	settings, _ := dlms.NewSettingsWithoutAuthentication()
-	client := client.New(settings, tm, 0)
+	c := dlmsclient.New(settings, tm, 0)
 
-	client.Connect()
+	c.Connect()
 
-	err := client.Associate()
+	err := c.Associate()
 	assert.NoError(t, err)
-	assert.True(t, client.IsAssociated())
+	assert.True(t, c.IsAssociated())
 
-	client.Disconnect()
+	c.Disconnect()
 
 	tm.On("IsConnected").Return(false).Once()
-	assert.False(t, client.IsAssociated())
+	assert.False(t, c.IsAssociated())
 
 	tm.AssertExpectations(t)
 }
@@ -100,18 +100,18 @@ func TestClient_CloseAssociation(t *testing.T) {
 	tm.On("IsConnected").Return(true).Times(2)
 
 	settings, _ := dlms.NewSettingsWithoutAuthentication()
-	client := client.New(settings, tm, 0)
+	c := dlmsclient.New(settings, tm, 0)
 
-	client.Connect()
+	c.Connect()
 
-	err := client.Associate()
+	err := c.Associate()
 	assert.NoError(t, err)
 
 	in = decodeHexString("6200")
 	out = decodeHexString("6300")
 	tm.On("Send", in).Return(out, nil).Once()
 
-	err = client.CloseAssociation()
+	err = c.CloseAssociation()
 	assert.NoError(t, err)
 
 	tm.AssertExpectations(t)
@@ -121,11 +121,11 @@ func TestClient_Timeout(t *testing.T) {
 	tm := new(mocks.TransportMock)
 
 	settings, _ := dlms.NewSettingsWithoutAuthentication()
-	client := client.New(settings, tm, 100*time.Millisecond)
+	c := dlmsclient.New(settings, tm, 100*time.Millisecond)
 
 	// Check connection is closed after timeout.
 	tm.On("Connect").Return(nil).Once()
-	err := client.Connect()
+	err := c.Connect()
 	assert.NoError(t, err)
 
 	time.Sleep(50 * time.Millisecond)
@@ -134,12 +134,12 @@ func TestClient_Timeout(t *testing.T) {
 
 	// Check connection isn't closed by timeout if already is closed.
 	tm.On("Connect").Return(nil).Once()
-	err = client.Connect()
+	err = c.Connect()
 	assert.NoError(t, err)
 
 	time.Sleep(50 * time.Millisecond)
 	tm.On("Disconnect").Return(nil).Once()
-	client.Disconnect()
+	c.Disconnect()
 
 	time.Sleep(60 * time.Millisecond)
 
@@ -150,17 +150,17 @@ func TestClient_TimeoutRefreshWithCommunications(t *testing.T) {
 	tm := new(mocks.TransportMock)
 
 	settings, _ := dlms.NewSettingsWithoutAuthentication()
-	client := client.New(settings, tm, 100*time.Millisecond)
+	c := dlmsclient.New(settings, tm, 100*time.Millisecond)
 
 	tm.On("Connect").Return(nil).Once()
-	err := client.Connect()
+	err := c.Connect()
 	assert.NoError(t, err)
 
 	in := decodeHexString("601DA109060760857405080101BE10040E01000000065F1F040000181F0100")
 	out := decodeHexString("6129A109060760857405080101A203020100A305A103020100BE10040E0800065F1F040000101D00800007")
 	tm.On("Send", in).Return(out, nil).Once()
 	tm.On("IsConnected").Return(true).Once()
-	err = client.Associate()
+	err = c.Associate()
 	assert.NoError(t, err)
 
 	time.Sleep(50 * time.Millisecond)
@@ -168,7 +168,7 @@ func TestClient_TimeoutRefreshWithCommunications(t *testing.T) {
 	in = decodeHexString("C001C100080000010000FF0300")
 	out = decodeHexString("C401C10010003C")
 	tm.On("Send", in).Return(out, nil).Once()
-	err = client.GetRequest(dlms.CreateAttributeDescriptor(8, "0-0:1.0.0.255", 3), nil)
+	err = c.GetRequest(dlms.CreateAttributeDescriptor(8, "0-0:1.0.0.255", 3), nil)
 	assert.NoError(t, err)
 
 	time.Sleep(80 * time.Millisecond)

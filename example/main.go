@@ -4,8 +4,8 @@ import (
 	"log"
 	"time"
 
-	"github.com/Circutor/gosem/pkg/client"
 	"github.com/Circutor/gosem/pkg/dlms"
+	"github.com/Circutor/gosem/pkg/dlmsclient"
 	"github.com/Circutor/gosem/pkg/tcp"
 	"github.com/Circutor/gosem/pkg/wrapper"
 )
@@ -53,7 +53,7 @@ func main() {
 
 	t := tcp.New(4059, "10.0.120.137", 1*time.Second)
 	w := wrapper.New(t, 1, 1)
-	c := client.New(settings, w, 0)
+	c := dlmsclient.New(settings, w, 0)
 	c.SetLogger(l)
 
 	err = c.Connect()
