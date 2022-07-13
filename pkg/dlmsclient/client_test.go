@@ -36,9 +36,9 @@ func TestClient_ConnectFail(t *testing.T) {
 	c := dlmsclient.New(settings, tm, 0)
 
 	err := c.Connect()
-	var clientError *dlmsclient.Error
+	var clientError *dlms.Error
 	assert.ErrorAs(t, err, &clientError)
-	assert.Equal(t, dlmsclient.ErrorCommunicationFailed, clientError.Code())
+	assert.Equal(t, dlms.ErrorCommunicationFailed, clientError.Code())
 }
 
 func TestClient_Disconnect(t *testing.T) {
@@ -50,9 +50,9 @@ func TestClient_Disconnect(t *testing.T) {
 	c := dlmsclient.New(settings, tm, 0)
 
 	err := c.Disconnect()
-	var clientError *dlmsclient.Error
+	var clientError *dlms.Error
 	assert.ErrorAs(t, err, &clientError)
-	assert.Equal(t, dlmsclient.ErrorCommunicationFailed, clientError.Code())
+	assert.Equal(t, dlms.ErrorCommunicationFailed, clientError.Code())
 
 	c.Connect()
 

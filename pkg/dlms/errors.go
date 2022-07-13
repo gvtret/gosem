@@ -1,6 +1,6 @@
 // Copyright (c) 2022 Circutor S.A. All rights reserved.
 
-package dlmsclient
+package dlms
 
 type ErrorCode int
 

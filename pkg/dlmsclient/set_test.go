@@ -6,7 +6,6 @@ import (
 
 	"github.com/Circutor/gosem/pkg/axdr"
 	"github.com/Circutor/gosem/pkg/dlms"
-	"github.com/Circutor/gosem/pkg/dlmsclient"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -39,9 +38,9 @@ func TestClient_SetRequestFail(t *testing.T) {
 	tm.On("Send", in).Return(out, nil).Once()
 
 	err = c.SetRequest(demandAttributeDescriptor, data)
-	var clientError *dlmsclient.Error
+	var clientError *dlms.Error
 	assert.ErrorAs(t, err, &clientError)
-	assert.Equal(t, dlmsclient.ErrorSetRejected, clientError.Code())
+	assert.Equal(t, dlms.ErrorSetRejected, clientError.Code())
 
 	// Unexpected response
 	in = decodeHexString("C101C1000300015E230BFF02000600002710")
@@ -50,7 +49,7 @@ func TestClient_SetRequestFail(t *testing.T) {
 
 	err = c.SetRequest(demandAttributeDescriptor, data)
 	assert.ErrorAs(t, err, &clientError)
-	assert.Equal(t, dlmsclient.ErrorInvalidResponse, clientError.Code())
+	assert.Equal(t, dlms.ErrorInvalidResponse, clientError.Code())
 
 	// Invalid response
 	in = decodeHexString("C101C1000300015E230BFF02000600002710")
@@ -59,7 +58,7 @@ func TestClient_SetRequestFail(t *testing.T) {
 
 	err = c.SetRequest(demandAttributeDescriptor, data)
 	assert.ErrorAs(t, err, &clientError)
-	assert.Equal(t, dlmsclient.ErrorInvalidResponse, clientError.Code())
+	assert.Equal(t, dlms.ErrorInvalidResponse, clientError.Code())
 
 	// Send failed
 	in = decodeHexString("C101C1000300015E230BFF02000600002710")
@@ -69,7 +68,7 @@ func TestClient_SetRequestFail(t *testing.T) {
 
 	err = c.SetRequest(demandAttributeDescriptor, data)
 	assert.ErrorAs(t, err, &clientError)
-	assert.Equal(t, dlmsclient.ErrorCommunicationFailed, clientError.Code())
+	assert.Equal(t, dlms.ErrorCommunicationFailed, clientError.Code())
 
 	// Not associated
 	tm.On("Disconnect").Return(nil).Once()
@@ -77,17 +76,17 @@ func TestClient_SetRequestFail(t *testing.T) {
 
 	err = c.SetRequest(demandAttributeDescriptor, data)
 	assert.ErrorAs(t, err, &clientError)
-	assert.Equal(t, dlmsclient.ErrorInvalidState, clientError.Code())
+	assert.Equal(t, dlms.ErrorInvalidState, clientError.Code())
 
 	// Invalid data
 	err = c.SetRequest(demandAttributeDescriptor, nil)
 	assert.ErrorAs(t, err, &clientError)
-	assert.Equal(t, dlmsclient.ErrorInvalidParameter, clientError.Code())
+	assert.Equal(t, dlms.ErrorInvalidParameter, clientError.Code())
 
 	// nil attribute descriptor
 	err = c.SetRequest(nil, data)
 	assert.ErrorAs(t, err, &clientError)
-	assert.Equal(t, dlmsclient.ErrorInvalidParameter, clientError.Code())
+	assert.Equal(t, dlms.ErrorInvalidParameter, clientError.Code())
 
 	tm.AssertExpectations(t)
 }

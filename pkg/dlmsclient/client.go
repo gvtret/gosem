@@ -41,7 +41,7 @@ func (c *client) Connect() error {
 
 	err := c.transport.Connect()
 	if err != nil {
-		return NewError(ErrorCommunicationFailed, fmt.Sprintf("error connecting: %v", err))
+		return dlms.NewError(dlms.ErrorCommunicationFailed, fmt.Sprintf("error connecting: %v", err))
 	}
 
 	if c.timeout != 0 {
@@ -61,7 +61,7 @@ func (c *client) Disconnect() error {
 
 	err := c.transport.Disconnect()
 	if err != nil {
-		return NewError(ErrorCommunicationFailed, fmt.Sprintf("error disconnecting: %v", err))
+		return dlms.NewError(dlms.ErrorCommunicationFailed, fmt.Sprintf("error disconnecting: %v", err))
 	}
 
 	return nil
@@ -83,33 +83,33 @@ func (c *client) Associate() error {
 	defer c.mutex.Unlock()
 
 	if !c.transport.IsConnected() {
-		return NewError(ErrorInvalidState, "not connected")
+		return dlms.NewError(dlms.ErrorInvalidState, "not connected")
 	}
 
 	if c.isAssociated {
-		return NewError(ErrorInvalidState, "already associated")
+		return dlms.NewError(dlms.ErrorInvalidState, "already associated")
 	}
 
 	src, err := dlms.EncodeAARQ(&c.settings)
 	if err != nil {
-		return NewError(ErrorInvalidParameter, fmt.Sprintf("error encoding AARQ: %v", err))
+		return dlms.NewError(dlms.ErrorInvalidParameter, fmt.Sprintf("error encoding AARQ: %v", err))
 	}
 
 	out, err := c.transport.Send(src)
 	if err != nil {
-		return NewError(ErrorCommunicationFailed, fmt.Sprintf("error sending AARQ: %v", err))
+		return dlms.NewError(dlms.ErrorCommunicationFailed, fmt.Sprintf("error sending AARQ: %v", err))
 	}
 
 	aare, err := dlms.DecodeAARE(&c.settings, &out)
 	if err != nil {
-		return NewError(ErrorInvalidResponse, fmt.Sprintf("error decoding AARE: %v", err))
+		return dlms.NewError(dlms.ErrorInvalidResponse, fmt.Sprintf("error decoding AARE: %v", err))
 	}
 
 	if aare.AssociationResult != dlms.AssociationResultAccepted && aare.SourceDiagnostic != dlms.SourceDiagnosticNone && aare.InitiateResponse != nil {
 		if aare.ConfirmedServiceError != nil {
-			return NewError(ErrorAuthenticationFailed, fmt.Sprintf("association failed: %d - %d (%s)", aare.AssociationResult, aare.SourceDiagnostic, aare.ConfirmedServiceError.String()))
+			return dlms.NewError(dlms.ErrorAuthenticationFailed, fmt.Sprintf("association failed: %d - %d (%s)", aare.AssociationResult, aare.SourceDiagnostic, aare.ConfirmedServiceError.String()))
 		}
-		return NewError(ErrorAuthenticationFailed, fmt.Sprintf("association failed: %d - %d", aare.AssociationResult, aare.SourceDiagnostic))
+		return dlms.NewError(dlms.ErrorAuthenticationFailed, fmt.Sprintf("association failed: %d - %d", aare.AssociationResult, aare.SourceDiagnostic))
 	}
 
 	c.isAssociated = true
@@ -121,26 +121,26 @@ func (c *client) CloseAssociation() error {
 	defer c.mutex.Unlock()
 
 	if !c.transport.IsConnected() {
-		return NewError(ErrorInvalidState, "not connected")
+		return dlms.NewError(dlms.ErrorInvalidState, "not connected")
 	}
 
 	if !c.isAssociated {
-		return NewError(ErrorInvalidState, "not associated")
+		return dlms.NewError(dlms.ErrorInvalidState, "not associated")
 	}
 
 	src, err := dlms.EncodeRLRQ(&c.settings)
 	if err != nil {
-		return NewError(ErrorInvalidParameter, fmt.Sprintf("error encoding RLRQ: %v", err))
+		return dlms.NewError(dlms.ErrorInvalidParameter, fmt.Sprintf("error encoding RLRQ: %v", err))
 	}
 
 	out, err := c.transport.Send(src)
 	if err != nil {
-		return NewError(ErrorCommunicationFailed, fmt.Sprintf("error sending RLRQ: %v", err))
+		return dlms.NewError(dlms.ErrorCommunicationFailed, fmt.Sprintf("error sending RLRQ: %v", err))
 	}
 
 	_, err = dlms.DecodeRLRE(&c.settings, &out)
 	if err != nil {
-		return NewError(ErrorInvalidResponse, fmt.Sprintf("error decoding RLRE: %v", err))
+		return dlms.NewError(dlms.ErrorInvalidResponse, fmt.Sprintf("error decoding RLRE: %v", err))
 	}
 
 	c.closeAssociation()
@@ -161,13 +161,13 @@ func (c *client) IsAssociated() bool {
 
 func (c *client) encodeSendReceiveAndDecode(req dlms.CosemPDU) (pdu dlms.CosemPDU, err error) {
 	if !c.isAssociated {
-		err = NewError(ErrorInvalidState, "client is not associated")
+		err = dlms.NewError(dlms.ErrorInvalidState, "client is not associated")
 		return
 	}
 
 	src, err := req.Encode()
 	if err != nil {
-		err = NewError(ErrorInvalidParameter, fmt.Sprintf("error encoding PDU: %v", err))
+		err = dlms.NewError(dlms.ErrorInvalidParameter, fmt.Sprintf("error encoding PDU: %v", err))
 		return
 	}
 
@@ -177,13 +177,13 @@ func (c *client) encodeSendReceiveAndDecode(req dlms.CosemPDU) (pdu dlms.CosemPD
 			c.closeAssociation()
 		}
 
-		err = NewError(ErrorCommunicationFailed, fmt.Sprintf("error sending PDU: %v", err))
+		err = dlms.NewError(dlms.ErrorCommunicationFailed, fmt.Sprintf("error sending PDU: %v", err))
 		return
 	}
 
 	pdu, err = dlms.DecodeCosem(&out)
 	if err != nil {
-		err = NewError(ErrorInvalidResponse, fmt.Sprintf("error decoding PDU: %v", err))
+		err = dlms.NewError(dlms.ErrorInvalidResponse, fmt.Sprintf("error decoding PDU: %v", err))
 		return
 	}
 
