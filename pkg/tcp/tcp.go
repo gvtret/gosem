@@ -16,7 +16,7 @@ const (
 	maxLength = 2048
 )
 
-type TCP struct {
+type tcp struct {
 	port        int
 	host        string
 	timeout     time.Duration
@@ -26,7 +26,7 @@ type TCP struct {
 }
 
 func New(port int, host string, timeout time.Duration) dlms.Transport {
-	t := &TCP{
+	t := &tcp{
 		port:        port,
 		host:        host,
 		timeout:     timeout,
@@ -37,7 +37,7 @@ func New(port int, host string, timeout time.Duration) dlms.Transport {
 	return t
 }
 
-func (t *TCP) Connect() error {
+func (t *tcp) Connect() error {
 	if !t.isConnected {
 		address := net.JoinHostPort(t.host, strconv.Itoa(t.port))
 
@@ -61,7 +61,7 @@ func (t *TCP) Connect() error {
 	return nil
 }
 
-func (t *TCP) Disconnect() error {
+func (t *tcp) Disconnect() error {
 	if t.isConnected {
 		err := t.conn.Close()
 		if err != nil {
@@ -82,14 +82,14 @@ func (t *TCP) Disconnect() error {
 	return nil
 }
 
-func (t *TCP) IsConnected() bool {
+func (t *tcp) IsConnected() bool {
 	return t.isConnected
 }
 
-func (t *TCP) SetAddress(client int, server int) {
+func (t *tcp) SetAddress(client int, server int) {
 }
 
-func (t *TCP) Send(src []byte) ([]byte, error) {
+func (t *tcp) Send(src []byte) ([]byte, error) {
 	if !t.isConnected {
 		return nil, fmt.Errorf("not connected")
 	}
@@ -121,7 +121,7 @@ func (t *TCP) Send(src []byte) ([]byte, error) {
 	return out[:n], nil
 }
 
-func (t *TCP) SetLogger(logger *log.Logger) {
+func (t *tcp) SetLogger(logger *log.Logger) {
 	t.logger = logger
 }
 

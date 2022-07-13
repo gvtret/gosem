@@ -7,7 +7,7 @@ import (
 	"github.com/Circutor/gosem/pkg/dlms"
 )
 
-func (c *Client) ActionRequest(mth *dlms.MethodDescriptor, data interface{}) (err error) {
+func (c *client) ActionRequest(mth *dlms.MethodDescriptor, data interface{}) (err error) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 

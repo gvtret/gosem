@@ -205,7 +205,7 @@ func TestClient_GetRequestRequestWithSelectiveAccess(t *testing.T) {
 	tm.AssertExpectations(t)
 }
 
-func associate() (*dlmsclient.Client, *mocks.TransportMock, error) {
+func associate() (dlms.Client, *mocks.TransportMock, error) {
 	in := decodeHexString("601DA109060760857405080101BE10040E01000000065F1F040000181F0100")
 	out := decodeHexString("6129A109060760857405080101A203020100A305A103020100BE10040E0800065F1F040000101D00800007")
 

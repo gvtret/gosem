@@ -14,14 +14,14 @@ const (
 	maxLength    = 2048
 )
 
-type Wrapper struct {
+type wrapper struct {
 	transport   dlms.Transport
 	source      uint16
 	destination uint16
 }
 
 func New(transport dlms.Transport, client int, server int) dlms.Transport {
-	w := &Wrapper{
+	w := &wrapper{
 		transport:   transport,
 		source:      uint16(client),
 		destination: uint16(server),
@@ -30,24 +30,24 @@ func New(transport dlms.Transport, client int, server int) dlms.Transport {
 	return w
 }
 
-func (w *Wrapper) Connect() error {
+func (w *wrapper) Connect() error {
 	return w.transport.Connect()
 }
 
-func (w *Wrapper) Disconnect() error {
+func (w *wrapper) Disconnect() error {
 	return w.transport.Disconnect()
 }
 
-func (w *Wrapper) IsConnected() bool {
+func (w *wrapper) IsConnected() bool {
 	return w.transport.IsConnected()
 }
 
-func (w *Wrapper) SetAddress(client int, server int) {
+func (w *wrapper) SetAddress(client int, server int) {
 	w.source = uint16(client)
 	w.destination = uint16(server)
 }
 
-func (w *Wrapper) Send(src []byte) ([]byte, error) {
+func (w *wrapper) Send(src []byte) ([]byte, error) {
 	if !w.transport.IsConnected() {
 		return nil, fmt.Errorf("not connected")
 	}
@@ -78,11 +78,11 @@ func (w *Wrapper) Send(src []byte) ([]byte, error) {
 	return out[headerLength:], nil
 }
 
-func (w *Wrapper) SetLogger(logger *log.Logger) {
+func (w *wrapper) SetLogger(logger *log.Logger) {
 	w.transport.SetLogger(logger)
 }
 
-func (w *Wrapper) parseHeader(src []byte) error {
+func (w *wrapper) parseHeader(src []byte) error {
 	if len(src) < headerLength {
 		return fmt.Errorf("message too short")
 	}

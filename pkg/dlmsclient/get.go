@@ -11,14 +11,14 @@ import (
 	"github.com/Circutor/gosem/pkg/dlms"
 )
 
-func (c *Client) GetRequest(att *dlms.AttributeDescriptor, data interface{}) (err error) {
+func (c *client) GetRequest(att *dlms.AttributeDescriptor, data interface{}) (err error) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 
 	return c.getRequestWithUnmarshal(att, nil, data)
 }
 
-func (c *Client) GetRequestWithSelectiveAccessByDate(att *dlms.AttributeDescriptor, start time.Time, end time.Time, data interface{}) (err error) {
+func (c *client) GetRequestWithSelectiveAccessByDate(att *dlms.AttributeDescriptor, start time.Time, end time.Time, data interface{}) (err error) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 
@@ -26,7 +26,7 @@ func (c *Client) GetRequestWithSelectiveAccessByDate(att *dlms.AttributeDescript
 	return c.getRequestWithUnmarshal(att, acc, data)
 }
 
-func (c *Client) GetRequestWithStructOfElements(data interface{}) (err error) {
+func (c *client) GetRequestWithStructOfElements(data interface{}) (err error) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 
@@ -59,7 +59,7 @@ func (c *Client) GetRequestWithStructOfElements(data interface{}) (err error) {
 	return nil
 }
 
-func (c *Client) getAttributeDescriptor(field reflect.StructField) (*dlms.AttributeDescriptor, error) {
+func (c *client) getAttributeDescriptor(field reflect.StructField) (*dlms.AttributeDescriptor, error) {
 	tag := field.Tag.Get("obis")
 	if tag == "" {
 		return nil, nil
@@ -85,7 +85,7 @@ func (c *Client) getAttributeDescriptor(field reflect.StructField) (*dlms.Attrib
 	return attribute, nil
 }
 
-func (c *Client) getRequestWithUnmarshal(att *dlms.AttributeDescriptor, acc *dlms.SelectiveAccessDescriptor, data interface{}) (err error) {
+func (c *client) getRequestWithUnmarshal(att *dlms.AttributeDescriptor, acc *dlms.SelectiveAccessDescriptor, data interface{}) (err error) {
 	axdrData, err := c.getRequest(att, acc)
 	if err != nil {
 		return
@@ -101,7 +101,7 @@ func (c *Client) getRequestWithUnmarshal(att *dlms.AttributeDescriptor, acc *dlm
 	return
 }
 
-func (c *Client) getRequest(att *dlms.AttributeDescriptor, acc *dlms.SelectiveAccessDescriptor) (data axdr.DlmsData, err error) {
+func (c *client) getRequest(att *dlms.AttributeDescriptor, acc *dlms.SelectiveAccessDescriptor) (data axdr.DlmsData, err error) {
 	if att == nil {
 		err = NewError(ErrorInvalidParameter, "attribute descriptor cannot be nil")
 		return

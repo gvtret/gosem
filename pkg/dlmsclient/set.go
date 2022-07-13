@@ -7,7 +7,7 @@ import (
 	"github.com/Circutor/gosem/pkg/dlms"
 )
 
-func (c *Client) SetRequest(att *dlms.AttributeDescriptor, data interface{}) (err error) {
+func (c *client) SetRequest(att *dlms.AttributeDescriptor, data interface{}) (err error) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 

@@ -13,7 +13,7 @@ const (
 	unicastInvokeID = 0xC1
 )
 
-type Client struct {
+type client struct {
 	settings     dlms.Settings
 	transport    dlms.Transport
 	timeout      time.Duration
@@ -22,8 +22,8 @@ type Client struct {
 	mutex        sync.Mutex
 }
 
-func New(settings dlms.Settings, transport dlms.Transport, timeout time.Duration) *Client {
-	c := &Client{
+func New(settings dlms.Settings, transport dlms.Transport, timeout time.Duration) dlms.Client {
+	c := &client{
 		settings:     settings,
 		transport:    transport,
 		timeout:      timeout,
@@ -35,7 +35,7 @@ func New(settings dlms.Settings, transport dlms.Transport, timeout time.Duration
 	return c
 }
 
-func (c *Client) Connect() error {
+func (c *client) Connect() error {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 
@@ -53,7 +53,7 @@ func (c *Client) Connect() error {
 	return nil
 }
 
-func (c *Client) Disconnect() error {
+func (c *client) Disconnect() error {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 
@@ -67,18 +67,18 @@ func (c *Client) Disconnect() error {
 	return nil
 }
 
-func (c *Client) IsConnected() bool {
+func (c *client) IsConnected() bool {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 
 	return c.transport.IsConnected()
 }
 
-func (c *Client) SetLogger(logger *log.Logger) {
+func (c *client) SetLogger(logger *log.Logger) {
 	c.transport.SetLogger(logger)
 }
 
-func (c *Client) Associate() error {
+func (c *client) Associate() error {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 
@@ -116,7 +116,7 @@ func (c *Client) Associate() error {
 	return nil
 }
 
-func (c *Client) CloseAssociation() error {
+func (c *client) CloseAssociation() error {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 
@@ -148,7 +148,7 @@ func (c *Client) CloseAssociation() error {
 	return nil
 }
 
-func (c *Client) IsAssociated() bool {
+func (c *client) IsAssociated() bool {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 
@@ -159,7 +159,7 @@ func (c *Client) IsAssociated() bool {
 	return c.isAssociated
 }
 
-func (c *Client) encodeSendReceiveAndDecode(req dlms.CosemPDU) (pdu dlms.CosemPDU, err error) {
+func (c *client) encodeSendReceiveAndDecode(req dlms.CosemPDU) (pdu dlms.CosemPDU, err error) {
 	if !c.isAssociated {
 		err = NewError(ErrorInvalidState, "client is not associated")
 		return
@@ -194,7 +194,7 @@ func (c *Client) encodeSendReceiveAndDecode(req dlms.CosemPDU) (pdu dlms.CosemPD
 	return
 }
 
-func (c *Client) closeAssociation() {
+func (c *client) closeAssociation() {
 	c.isAssociated = false
 	if c.timeoutTimer != nil {
 		c.timeoutTimer.Stop()
