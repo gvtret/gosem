@@ -11,6 +11,7 @@ const (
 	ErrorCommunicationFailed
 	ErrorInvalidResponse
 	ErrorAuthenticationFailed
+	ErrorInvalidPassword
 	ErrorGetRejected
 	ErrorSetRejected
 	ErrorActionRejected

@@ -105,7 +105,11 @@ func (c *client) Associate() error {
 		return dlms.NewError(dlms.ErrorInvalidResponse, fmt.Sprintf("error decoding AARE: %v", err))
 	}
 
-	if aare.AssociationResult != dlms.AssociationResultAccepted && aare.SourceDiagnostic != dlms.SourceDiagnosticNone && aare.InitiateResponse != nil {
+	if aare.AssociationResult != dlms.AssociationResultAccepted || aare.SourceDiagnostic != dlms.SourceDiagnosticNone || aare.InitiateResponse == nil {
+		if aare.SourceDiagnostic == dlms.SourceDiagnosticAuthenticationFailure {
+			return dlms.NewError(dlms.ErrorInvalidPassword, fmt.Sprintf("association failed (invalid password): %d - %d", aare.AssociationResult, aare.SourceDiagnostic))
+		}
+
 		if aare.ConfirmedServiceError != nil {
 			return dlms.NewError(dlms.ErrorAuthenticationFailed, fmt.Sprintf("association failed: %d - %d (%s)", aare.AssociationResult, aare.SourceDiagnostic, aare.ConfirmedServiceError.String()))
 		}
