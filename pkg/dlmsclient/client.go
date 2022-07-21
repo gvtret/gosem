@@ -74,6 +74,14 @@ func (c *client) IsConnected() bool {
 	return c.transport.IsConnected()
 }
 
+func (c *client) GetSettings() dlms.Settings {
+	return c.settings
+}
+
+func (c *client) SetSettings(settings dlms.Settings) {
+	c.settings = settings
+}
+
 func (c *client) SetLogger(logger *log.Logger) {
 	c.transport.SetLogger(logger)
 }

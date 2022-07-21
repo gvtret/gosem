@@ -12,6 +12,8 @@ type Client interface {
 	Connect() error
 	Disconnect() error
 	IsConnected() bool
+	GetSettings() Settings
+	SetSettings(settings Settings)
 	SetLogger(logger *log.Logger)
 	Associate() error
 	CloseAssociation() error

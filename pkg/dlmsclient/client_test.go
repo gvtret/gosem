@@ -222,6 +222,22 @@ func TestClient_TimeoutRefreshWithCommunications(t *testing.T) {
 	tm.AssertExpectations(t)
 }
 
+func TestClient_GetAndSetSettings(t *testing.T) {
+	tm := new(mocks.TransportMock)
+
+	settings, _ := dlms.NewSettingsWithLowAuthentication([]byte("00000002"))
+	c := dlmsclient.New(settings, tm, 0)
+
+	settings = c.GetSettings()
+	assert.Equal(t, []byte("00000002"), settings.Password)
+
+	settings.Password = []byte("00000003")
+	c.SetSettings(settings)
+
+	settings = c.GetSettings()
+	assert.Equal(t, []byte("00000003"), settings.Password)
+}
+
 func decodeHexString(s string) []byte {
 	b, _ := hex.DecodeString(s)
 	return b
