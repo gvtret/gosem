@@ -94,7 +94,7 @@ func (c *client) getRequestWithUnmarshal(att *dlms.AttributeDescriptor, acc *dlm
 	if data != nil {
 		err = axdr.UnmarshalData(axdrData, data)
 		if err != nil {
-			return dlms.NewError(dlms.ErrorInvalidResponse, fmt.Sprintf("error unmarshaling data: %v", err))
+			return dlms.NewError(dlms.ErrorInvalidResponse, fmt.Sprintf("error unmarshaling obis %s data: %v", att.InstanceID.String(), err))
 		}
 	}
 
