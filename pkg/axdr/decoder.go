@@ -276,10 +276,10 @@ func DecodeBoolean(src *[]byte) (outByte []byte, outVal bool, err error) {
 		return
 	}
 	outByte = (*src)[:1]
-	if outByte[0] == 0xFF {
-		outVal = true
-	} else {
+	if outByte[0] == 0x00 {
 		outVal = false
+	} else {
+		outVal = true
 	}
 	(*src) = (*src)[1:]
 	return
