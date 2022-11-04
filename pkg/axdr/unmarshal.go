@@ -21,8 +21,11 @@ func unify(data *DlmsData, rv reflect.Value) error {
 	gotKind := reflect.ValueOf(data.Value).Kind()
 
 	_, isTime := rv.Interface().(time.Time)
+	_, isDlmsData := rv.Interface().(DlmsData)
 
 	switch {
+	case isDlmsData:
+		rv.Set(reflect.ValueOf(*data))
 	case expectedKind == reflect.Slice && gotKind == reflect.Slice:
 		return unifySlice(data, rv)
 	case expectedKind == reflect.Struct && gotKind == reflect.Slice:

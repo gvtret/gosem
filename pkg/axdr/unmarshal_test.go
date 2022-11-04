@@ -45,6 +45,30 @@ func TestUnmarshalData(t *testing.T) {
 	}
 }
 
+func TestUnmarshalPartial(t *testing.T) {
+	src := decodeHexString("01020204090C07D00106050F0030FF003C01121234050ABBCCDD11010204090C07D00106050F0030FF003C0112567805000000001102")
+	var result [][]DlmsData
+
+	dec := NewDataDecoder(&src)
+	data, err := dec.Decode(&src)
+	if err != nil {
+		t.Errorf("Error decoding data: %v", err)
+	}
+
+	err = UnmarshalData(data, &result)
+	if err != nil {
+		t.Errorf("Error unmarshaling data: %v", err)
+	}
+
+	if len(result) != 2 {
+		t.Errorf("Expected 2 results, got %d", len(result))
+	}
+
+	if len(result[0]) != 4 {
+		t.Errorf("Expected 4 results, got %d", len(result))
+	}
+}
+
 func TestUnmarshalDataFail(t *testing.T) {
 	// nil data
 	src := decodeHexString("0102020312123405000000001101020312567805000000001102")
