@@ -19,7 +19,7 @@ func (c *client) ActionRequest(mth *dlms.MethodDescriptor, data interface{}) (er
 	if !ok {
 		dt, err = axdr.MarshalData(data)
 		if err != nil {
-			return dlms.NewError(dlms.ErrorInvalidParameter, fmt.Sprintf("error marshaling data: %v", err))
+			return dlms.NewError(dlms.ErrorInvalidParameter, fmt.Sprintf("error marshaling %s data: %v", mth.String(), err))
 		}
 	}
 
@@ -32,11 +32,11 @@ func (c *client) ActionRequest(mth *dlms.MethodDescriptor, data interface{}) (er
 
 	resp, ok := pdu.(dlms.ActionResponseNormal)
 	if !ok {
-		return dlms.NewError(dlms.ErrorInvalidResponse, fmt.Sprintf("unexpected PDU type: %T", pdu))
+		return dlms.NewError(dlms.ErrorInvalidResponse, fmt.Sprintf("in %s unexpected PDU response type: %T", mth.String(), pdu))
 	}
 
 	if resp.Response.Result != dlms.TagActSuccess {
-		return dlms.NewError(dlms.ErrorActionRejected, fmt.Sprintf("action rejected: %s", resp.Response.Result.String()))
+		return dlms.NewError(dlms.ErrorActionRejected, fmt.Sprintf("action %s rejected: %s", mth.String(), resp.Response.Result.String()))
 	}
 
 	return

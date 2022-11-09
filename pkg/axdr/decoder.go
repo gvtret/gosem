@@ -555,10 +555,10 @@ func DecodeDateTime(src *[]byte) (outByte []byte, outVal time.Time, err error) {
 	}
 	outByte = (*src)[:12]
 
-	if outByte[11] == 0xff {
-		err = fmt.Errorf("clock status value(%v) not OK(0x00)", outByte[11])
-		return
-	}
+	// if outByte[11] == 0xff {
+	// 	err = fmt.Errorf("clock status value(%v) not OK(0x00)", outByte[11])
+	// 	return
+	// }
 
 	year := int(binary.BigEndian.Uint16(outByte[0:2]))
 	month := int(outByte[2])

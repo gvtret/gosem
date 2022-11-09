@@ -94,7 +94,7 @@ func (c *client) getRequestWithUnmarshal(att *dlms.AttributeDescriptor, acc *dlm
 	if data != nil {
 		err = axdr.UnmarshalData(axdrData, data)
 		if err != nil {
-			return dlms.NewError(dlms.ErrorInvalidResponse, fmt.Sprintf("error unmarshaling obis %s data: %v", att.InstanceID.String(), err))
+			return dlms.NewError(dlms.ErrorInvalidResponse, fmt.Sprintf("error unmarshaling %s data: %v", att.String(), err))
 		}
 	}
 
@@ -119,7 +119,7 @@ func (c *client) getRequest(att *dlms.AttributeDescriptor, acc *dlms.SelectiveAc
 		data, err = resp.Result.ValueAsData()
 		if err != nil {
 			access, _ := resp.Result.ValueAsAccess()
-			err = dlms.NewError(dlms.ErrorGetRejected, fmt.Sprintf("get rejected: %s", access.String()))
+			err = dlms.NewError(dlms.ErrorGetRejected, fmt.Sprintf("get %s rejected: %s", att.String(), access.String()))
 		}
 	case dlms.GetResponseWithDataBlock:
 		blockNumber := 1
@@ -127,12 +127,12 @@ func (c *client) getRequest(att *dlms.AttributeDescriptor, acc *dlms.SelectiveAc
 		for {
 			if resp.Result.IsResult {
 				access, _ := resp.Result.ResultAsAccess()
-				err = dlms.NewError(dlms.ErrorGetRejected, fmt.Sprintf("get rejected: %s", access.String()))
+				err = dlms.NewError(dlms.ErrorGetRejected, fmt.Sprintf("get %s rejected: %s", att.String(), access.String()))
 				return
 			}
 
 			if blockNumber != int(resp.Result.BlockNumber) {
-				err = dlms.NewError(dlms.ErrorInvalidResponse, fmt.Sprintf("block number mismatch: expected %d, got %d", blockNumber, resp.Result.BlockNumber))
+				err = dlms.NewError(dlms.ErrorInvalidResponse, fmt.Sprintf("block number mismatch in %s: expected %d, got %d", att.String(), blockNumber, resp.Result.BlockNumber))
 				return
 			}
 
@@ -154,7 +154,7 @@ func (c *client) getRequest(att *dlms.AttributeDescriptor, acc *dlms.SelectiveAc
 			var ok bool
 			resp, ok = pdu.(dlms.GetResponseWithDataBlock)
 			if !ok {
-				err = dlms.NewError(dlms.ErrorInvalidResponse, fmt.Sprintf("expected GetResponseWithDataBlock, got %T", pdu))
+				err = dlms.NewError(dlms.ErrorInvalidResponse, fmt.Sprintf("in %s expected GetResponseWithDataBlock response, got %T", att.String(), pdu))
 				return
 			}
 		}
@@ -162,11 +162,11 @@ func (c *client) getRequest(att *dlms.AttributeDescriptor, acc *dlms.SelectiveAc
 		decoder := axdr.NewDataDecoder(&out)
 		data, err = decoder.Decode(&out)
 		if err != nil {
-			err = dlms.NewError(dlms.ErrorInvalidResponse, fmt.Sprintf("error decoding data: %v", err))
+			err = dlms.NewError(dlms.ErrorInvalidResponse, fmt.Sprintf("error decoding %s data: %v", att.String(), err))
 			return
 		}
 	default:
-		err = dlms.NewError(dlms.ErrorInvalidResponse, fmt.Sprintf("unexpected PDU type: %T", pdu))
+		err = dlms.NewError(dlms.ErrorInvalidResponse, fmt.Sprintf("in %s unexpected PDU response type: %T", att.String(), pdu))
 	}
 
 	return

@@ -31,6 +31,10 @@ func (ad MethodDescriptor) Encode() (out []byte, err error) {
 	return
 }
 
+func (ad MethodDescriptor) String() string {
+	return fmt.Sprintf("{ %d, %s, %d }", ad.ClassID, ad.InstanceID.String(), ad.MethodID)
+}
+
 func DecodeMethodDescriptor(ori *[]byte) (out MethodDescriptor, err error) {
 	src := append([]byte(nil), (*ori)...)
 

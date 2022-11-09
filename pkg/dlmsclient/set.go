@@ -19,7 +19,7 @@ func (c *client) SetRequest(att *dlms.AttributeDescriptor, data interface{}) (er
 	if !ok {
 		dt, err = axdr.MarshalData(data)
 		if err != nil {
-			return dlms.NewError(dlms.ErrorInvalidParameter, fmt.Sprintf("error marshaling data: %v", err))
+			return dlms.NewError(dlms.ErrorInvalidParameter, fmt.Sprintf("error marshaling %s data: %v", att.String(), err))
 		}
 	}
 
@@ -32,11 +32,11 @@ func (c *client) SetRequest(att *dlms.AttributeDescriptor, data interface{}) (er
 
 	resp, ok := pdu.(dlms.SetResponseNormal)
 	if !ok {
-		return dlms.NewError(dlms.ErrorInvalidResponse, fmt.Sprintf("unexpected PDU type: %T", pdu))
+		return dlms.NewError(dlms.ErrorInvalidResponse, fmt.Sprintf("in %s unexpected PDU response type: %T", att.String(), pdu))
 	}
 
 	if resp.Result != dlms.TagAccSuccess {
-		return dlms.NewError(dlms.ErrorSetRejected, fmt.Sprintf("set rejected: %s", resp.Result.String()))
+		return dlms.NewError(dlms.ErrorSetRejected, fmt.Sprintf("set %s rejected: %s", att.String(), resp.Result.String()))
 	}
 
 	return

@@ -31,6 +31,10 @@ func (ad AttributeDescriptor) Encode() (out []byte, err error) {
 	return
 }
 
+func (ad AttributeDescriptor) String() string {
+	return fmt.Sprintf("{ %d, %s, %d }", ad.ClassID, ad.InstanceID.String(), ad.AttributeID)
+}
+
 func DecodeAttributeDescriptor(ori *[]byte) (out AttributeDescriptor, err error) {
 	src := append([]byte(nil), (*ori)...)
 
