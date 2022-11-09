@@ -24,6 +24,13 @@ func unify(data *DlmsData, rv reflect.Value) error {
 	_, isDlmsData := rv.Interface().(DlmsData)
 
 	switch {
+	case expectedKind == reflect.Ptr:
+		elem := reflect.New(rv.Type().Elem())
+		err := unify(data, reflect.Indirect(elem))
+		if err != nil {
+			return err
+		}
+		rv.Set(elem)
 	case isDlmsData:
 		rv.Set(reflect.ValueOf(*data))
 	case expectedKind == reflect.Slice && gotKind == reflect.Slice:

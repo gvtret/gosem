@@ -205,6 +205,37 @@ func TestClient_GetRequestRequestWithSelectiveAccess(t *testing.T) {
 	tm.AssertExpectations(t)
 }
 
+func TestClient_GetRequestWithStructOfElements(t *testing.T) {
+	var data struct {
+		Value1 uint  `obis:"1,1-1:94.34.100.255,2"`
+		Value2 uint  `obis:"1,1-1:94.34.104.255,2"`
+		Value3 *uint `obis:"70,0-0:96.3.10.255,3"`
+	}
+
+	c, tm, err := associate()
+	assert.NoError(t, err)
+
+	in := decodeHexString("C001C1000101015E2264FF0200")
+	out := decodeHexString("C401C1001104")
+	tm.On("Send", in).Return(out, nil).Once()
+
+	in = decodeHexString("C001C1000101015E2268FF0200")
+	out = decodeHexString("C401C1001101")
+	tm.On("Send", in).Return(out, nil).Once()
+
+	in = decodeHexString("C001C10046000060030AFF0300")
+	out = decodeHexString("C401C10109")
+	tm.On("Send", in).Return(out, nil).Once()
+
+	err = c.GetRequestWithStructOfElements(&data)
+	assert.NoError(t, err)
+	assert.Equal(t, uint(4), data.Value1)
+	assert.Equal(t, uint(1), data.Value2)
+	assert.Nil(t, data.Value3)
+
+	tm.AssertExpectations(t)
+}
+
 func associate() (dlms.Client, *mocks.TransportMock, error) {
 	in := decodeHexString("601DA109060760857405080101BE10040E01000000065F1F040000181F0100")
 	out := decodeHexString("6129A109060760857405080101A203020100A305A103020100BE10040E0800065F1F040000101D00800007")

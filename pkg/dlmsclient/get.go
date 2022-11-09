@@ -1,6 +1,7 @@
 package dlmsclient
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 	"strconv"
@@ -52,7 +53,13 @@ func (c *client) GetRequestWithStructOfElements(data interface{}) (err error) {
 		field := v.Field(i)
 		err = c.getRequestWithUnmarshal(ad, nil, field.Addr().Interface())
 		if err != nil {
-			return err
+			// If a get is rejected in a field which is a pointer, then we will continue without any error
+			var dlmsError *dlms.Error
+			if errors.As(err, &dlmsError) && dlmsError.Code() == dlms.ErrorGetRejected && field.Kind() == reflect.Ptr {
+				field.Set(reflect.Zero(field.Type()))
+			} else {
+				return err
+			}
 		}
 	}
 
