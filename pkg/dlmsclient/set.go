@@ -2,6 +2,7 @@ package dlmsclient
 
 import (
 	"fmt"
+	"reflect"
 
 	"github.com/Circutor/gosem/pkg/axdr"
 	"github.com/Circutor/gosem/pkg/dlms"
@@ -11,6 +12,46 @@ func (c *client) SetRequest(att *dlms.AttributeDescriptor, data interface{}) (er
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 
+	return c.setRequest(att, data)
+}
+
+func (c *client) SetRequestWithStructOfElements(data interface{}) (err error) {
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
+
+	v := eindirect(reflect.ValueOf(data))
+
+	if v.Kind() != reflect.Struct {
+		return dlms.NewError(dlms.ErrorInvalidParameter, "data must be a struct")
+	}
+
+	for i := 0; i < v.NumField(); i++ {
+		ad, err := c.getAttributeDescriptor(v.Type().Field(i))
+		if err != nil {
+			return err
+		}
+
+		if ad == nil {
+			continue
+		}
+
+		if v.Field(i).Kind() == reflect.Pointer {
+			// All fields need to have been set beforehand: nil fields will be ignored
+			if v.Field(i).IsNil() {
+				continue
+			}
+		}
+
+		err = c.setRequest(ad, v.Field(i).Interface())
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (c *client) setRequest(att *dlms.AttributeDescriptor, data interface{}) (err error) {
 	if att == nil {
 		return dlms.NewError(dlms.ErrorInvalidParameter, "attribute descriptor must be non-nil")
 	}
@@ -40,4 +81,13 @@ func (c *client) SetRequest(att *dlms.AttributeDescriptor, data interface{}) (er
 	}
 
 	return
+}
+
+func eindirect(v reflect.Value) reflect.Value {
+	switch v.Kind() {
+	case reflect.Ptr, reflect.Interface:
+		return eindirect(v.Elem())
+	default:
+		return v
+	}
 }

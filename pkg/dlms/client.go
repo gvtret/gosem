@@ -22,5 +22,6 @@ type Client interface {
 	GetRequestWithSelectiveAccessByDate(att *AttributeDescriptor, start time.Time, end time.Time, data interface{}) (err error)
 	GetRequestWithStructOfElements(data interface{}) (err error)
 	SetRequest(att *AttributeDescriptor, data interface{}) (err error)
+	SetRequestWithStructOfElements(data interface{}) (err error)
 	ActionRequest(mth *MethodDescriptor, data interface{}) (err error)
 }

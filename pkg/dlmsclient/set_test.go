@@ -90,3 +90,35 @@ func TestClient_SetRequestFail(t *testing.T) {
 
 	tm.AssertExpectations(t)
 }
+
+func TestClient_SetRequestWithStructOfElements(t *testing.T) {
+	var value1 uint32 = 10000
+
+	data := struct {
+		Value1 *uint32 `obis:"3,0-1:94.35.11.255,2"`
+		Value2 uint16  `obis:"1,1-1:94.34.104.255,2"`
+		Value3 *int32  `obis:"70,0-0:96.3.10.255,3"`
+	}{
+		Value1: &value1,
+		Value2: 12345,
+		Value3: nil, // nil fields are ignored
+	}
+
+	c, tm, err := associate()
+	assert.NoError(t, err)
+
+	in := decodeHexString("C101C1000300015E230BFF02000600002710")
+	out := decodeHexString("C501C100")
+	tm.On("Send", in).Return(out, nil).Once()
+
+	in = decodeHexString("C101C1000101015E2268FF0200123039")
+	out = decodeHexString("C501C100")
+	tm.On("Send", in).Return(out, nil).Once()
+
+	var v interface{} = &data
+
+	err = c.SetRequestWithStructOfElements(&v)
+	assert.NoError(t, err)
+
+	tm.AssertExpectations(t)
+}
