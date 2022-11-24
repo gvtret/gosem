@@ -4,6 +4,9 @@ import (
 	"encoding/hex"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestUnmarshalData(t *testing.T) {
@@ -14,35 +17,22 @@ func TestUnmarshalData(t *testing.T) {
 		Value3 uint
 	}
 
-	src := decodeHexString("01020204090C07D00106050F0030FF003C01121234050ABBCCDD11010204090C07D00106050F0030FF003C0112567805000000001102")
-	var result []TestData
+	src := decodeHexString("01020204090C07D00106050F0030FF003C01121234050ABBCCDD11010204090C07D00106050F0030FFFF880112567805000000001102")
 
 	dec := NewDataDecoder(&src)
 	data, err := dec.Decode(&src)
-	if err != nil {
-		t.Errorf("Error decoding data: %v", err)
-	}
+	assert.NoError(t, err)
 
+	var result []TestData
 	err = UnmarshalData(data, &result)
-	if err != nil {
-		t.Errorf("Error unmarshaling data: %v", err)
-	}
+	assert.NoError(t, err)
 
-	if len(result) != 2 {
-		t.Errorf("Expected 2 results, got %d", len(result))
-	}
-	if result[0].Time1.Unix() != 947167248 {
-		t.Errorf("Expected time to be 947167248, got %s", result[0].Time1)
-	}
-	if result[0].Value1 != 0x1234 {
-		t.Errorf("Expected 0x1234, got 0x%X", result[0].Value1)
-	}
-	if result[0].Value2 != 0xABBCCDD {
-		t.Errorf("Expected 0xABBCCDD, got 0x%X", result[0].Value2)
-	}
-	if result[1].Value3 != 0x02 {
-		t.Errorf("Expected 0x02, got 0x%X", result[1].Value3)
-	}
+	require.Len(t, result, 2)
+	assert.Equal(t, time.Date(2000, 01, 06, 15, 0, 48, 0, time.FixedZone("UTC+1", 3600)).Unix(), result[0].Time1.Unix())
+	assert.Equal(t, time.Date(2000, 01, 06, 15, 0, 48, 0, time.FixedZone("UTC-2", -7200)).Unix(), result[1].Time1.Unix())
+	assert.Equal(t, uint16(0x1234), result[0].Value1)
+	assert.Equal(t, int(0xABBCCDD), result[0].Value2)
+	assert.Equal(t, uint(0x02), result[1].Value3)
 }
 
 func TestUnmarshalPartial(t *testing.T) {
@@ -51,22 +41,13 @@ func TestUnmarshalPartial(t *testing.T) {
 
 	dec := NewDataDecoder(&src)
 	data, err := dec.Decode(&src)
-	if err != nil {
-		t.Errorf("Error decoding data: %v", err)
-	}
+	assert.NoError(t, err)
 
 	err = UnmarshalData(data, &result)
-	if err != nil {
-		t.Errorf("Error unmarshaling data: %v", err)
-	}
+	assert.NoError(t, err)
 
-	if len(result) != 2 {
-		t.Errorf("Expected 2 results, got %d", len(result))
-	}
-
-	if len(result[0]) != 4 {
-		t.Errorf("Expected 4 results, got %d", len(result))
-	}
+	require.Len(t, result, 2)
+	assert.Len(t, result[0], 4)
 }
 
 func TestUnmarshalDataFail(t *testing.T) {
@@ -75,14 +56,10 @@ func TestUnmarshalDataFail(t *testing.T) {
 
 	dec := NewDataDecoder(&src)
 	data, err := dec.Decode(&src)
-	if err != nil {
-		t.Errorf("Error decoding data: %v", err)
-	}
+	assert.NoError(t, err)
 
 	err = UnmarshalData(data, nil)
-	if err == nil {
-		t.Errorf("Expected error, got nil")
-	}
+	assert.Error(t, err)
 
 	// Invalid variable kind
 	type invalidTestData struct {
@@ -94,9 +71,7 @@ func TestUnmarshalDataFail(t *testing.T) {
 	var invalidResult []invalidTestData
 
 	err = UnmarshalData(data, &invalidResult)
-	if err == nil {
-		t.Errorf("Expected error, got nil")
-	}
+	assert.Error(t, err)
 
 	// Missing struct element
 	type anotherInvalidTestData struct {
@@ -107,9 +82,7 @@ func TestUnmarshalDataFail(t *testing.T) {
 	var anotherInvalidResult []anotherInvalidTestData
 
 	err = UnmarshalData(data, &anotherInvalidResult)
-	if err == nil {
-		t.Errorf("Expected error, got nil")
-	}
+	assert.Error(t, err)
 
 	// Invalid time format
 	src = decodeHexString("090B07D00106050F0030FF003C")
@@ -119,9 +92,7 @@ func TestUnmarshalDataFail(t *testing.T) {
 	var time1 time.Time
 
 	err = UnmarshalData(data, &time1)
-	if err == nil {
-		t.Errorf("Expected error, got nil")
-	}
+	assert.Error(t, err)
 }
 
 func decodeHexString(s string) []byte {

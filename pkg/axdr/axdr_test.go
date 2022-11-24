@@ -3,10 +3,12 @@ package axdr
 import (
 	"bytes"
 	"encoding/hex"
-	"reflect"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestEncodeLength(t *testing.T) {
@@ -1291,7 +1293,7 @@ func TestDecodeDateTime(t *testing.T) {
 
 func TestDecoder1(t *testing.T) {
 	d1 := DlmsData{Tag: TagLongUnsigned, Value: uint16(60226)}
-	d2 := DlmsData{Tag: TagDateTime, Value: time.Date(2020, time.March, 16, 0, 0, 0, 0, time.UTC)}
+	d2 := DlmsData{Tag: TagDateTime, Value: time.Date(2020, time.March, 16, 0, 0, 0, 0, time.Local)}
 	d3 := DlmsData{Tag: TagBitString, Value: "0"}
 	d4 := DlmsData{Tag: TagDoubleLongUnsigned, Value: uint32(33426304)}
 	d5 := DlmsData{Tag: TagLongUnsigned, Value: uint16(3105)}
@@ -1299,33 +1301,18 @@ func TestDecoder1(t *testing.T) {
 	src, _ := hex.DecodeString("0101020512EB421907E40310FF000000FF8000000401000601FE0B80120C21")
 
 	dec := NewDataDecoder(&src)
-	t1, err2 := dec.Decode(&src)
-	if err2 != nil {
-		t.Errorf("got an error when decoding:%v", err2)
-	}
-	if t1.Tag != TagArray {
-		t.Errorf("First level should be TagArray, received: %v", reflect.TypeOf(t1.Tag).Kind())
-	}
+	t1, err := dec.Decode(&src)
+	assert.NoError(t, err)
+	assert.Equal(t, TagArray, t1.Tag)
 
 	t2 := t1.Value.([]*DlmsData)[0]
-	if t2.Tag != TagStructure {
-		t.Errorf("Second level should be TagStructure, received: %v", reflect.TypeOf(t2.Tag).Kind())
-	}
+	assert.Equal(t, TagStructure, t2.Tag)
 
 	t3 := t2.Value.([]*DlmsData)
-	if t3[0].Value != d1.Value {
-		t.Errorf("should be same as d1 %v, received: %v", d1.Value, t3[0].Value)
-	}
-	if t3[1].Value != d2.Value {
-		t.Errorf("should be same as d2 %v, received: %v", d2.Value, t3[1].Value)
-	}
-	if t3[2].Value != d3.Value {
-		t.Errorf("should be same as d3 %v, received: %v", d3.Value, t3[2].Value)
-	}
-	if t3[3].Value != d4.Value {
-		t.Errorf("should be same as d4 %v, received: %v", d4.Value, t3[3].Value)
-	}
-	if t3[4].Value != d5.Value {
-		t.Errorf("should be same as d5 %v, received: %v", d5.Value, t3[4].Value)
-	}
+	require.Len(t, t3, 5)
+	assert.Equal(t, d1.Value, t3[0].Value)
+	assert.Equal(t, d2.Value, t3[1].Value)
+	assert.Equal(t, d3.Value, t3[2].Value)
+	assert.Equal(t, d4.Value, t3[3].Value)
+	assert.Equal(t, d5.Value, t3[4].Value)
 }

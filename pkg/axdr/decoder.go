@@ -547,7 +547,7 @@ func DecodeTime(src *[]byte) (outByte []byte, outVal time.Time, err error) {
 // hundredths of second,
 // deviation highbyte, -- interpreted as long in minutes of local time of UTC
 // deviation lowbyte,
-// clock status -- 0x00 means ok, 0xFF means not specified
+// clock status
 func DecodeDateTime(src *[]byte) (outByte []byte, outVal time.Time, err error) {
 	if len(*src) < 12 {
 		err = ErrLengthLess
@@ -555,8 +555,8 @@ func DecodeDateTime(src *[]byte) (outByte []byte, outVal time.Time, err error) {
 	}
 	outByte = (*src)[:12]
 
-	// if outByte[11] == 0xff {
-	// 	err = fmt.Errorf("clock status value(%v) not OK(0x00)", outByte[11])
+	// if (outByte[11] & 0x01) != 0 {
+	// 	err = fmt.Errorf("invalid clock value (%02X)", outByte[11])
 	// 	return
 	// }
 
@@ -572,17 +572,21 @@ func DecodeDateTime(src *[]byte) (outByte []byte, outVal time.Time, err error) {
 		hundredths = 0
 	}
 
-	deviation := int(binary.BigEndian.Uint16(outByte[9:11]))
+	deviation := binary.BigEndian.Uint16(outByte[9:11])
 	location := time.UTC
-	if deviation != 0 && deviation != 0x8000 {
+	if deviation == 0x8000 {
+		location = time.Local
+	} else if deviation != 0 {
+		d := int(int16(deviation))
+
 		utc := "UTC"
-		if deviation > 0 {
-			utc += "+" + strconv.Itoa(deviation/60)
-		} else if deviation < 0 {
-			utc += "-" + strconv.Itoa(-deviation/60)
+		if d > 0 {
+			utc += "+" + strconv.Itoa(d/60)
+		} else if d < 0 {
+			utc += "-" + strconv.Itoa(-d/60)
 		}
 
-		location = time.FixedZone(utc, deviation*60)
+		location = time.FixedZone(utc, d*60)
 	}
 
 	outVal = time.Date(year, time.Month(month), day, hour, minute, second, hundredths*10000000, location)
