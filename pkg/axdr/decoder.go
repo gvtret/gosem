@@ -589,7 +589,13 @@ func DecodeDateTime(src *[]byte) (outByte []byte, outVal time.Time, err error) {
 		location = time.FixedZone(utc, d*60)
 	}
 
-	outVal = time.Date(year, time.Month(month), day, hour, minute, second, hundredths*10000000, location)
+	str := fmt.Sprintf("%04d-%02d-%02dT%02d:%02d:%02d.%02dZ", year, month, day, hour, minute, second, hundredths)
+	if _, err := time.Parse(time.RFC3339Nano, str); err != nil {
+		outVal = time.Time{}
+	} else {
+		outVal = time.Date(year, time.Month(month), day, hour, minute, second, hundredths*10000000, location)
+	}
+
 	(*src) = (*src)[12:]
 	return
 }

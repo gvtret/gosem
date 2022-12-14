@@ -1260,34 +1260,37 @@ func TestDecodeTime(t *testing.T) {
 }
 
 func TestDecodeDateTime(t *testing.T) {
-	tables := []struct {
-		src []byte
-		bt  []byte
-		val time.Time
+	tests := []struct {
+		name string
+		src  string
+		bt   string
+		val  time.Time
 	}{
-		{[]byte{78, 32, 12, 30, 6, 23, 59, 59, 255, 0, 0, 0, 1, 2, 3}, []byte{78, 32, 12, 30, 6, 23, 59, 59, 255, 0, 0, 0}, time.Date(20000, time.December, 30, 23, 59, 59, 0, time.UTC)},
-		{[]byte{5, 220, 1, 1, 1, 0, 0, 0, 255, 0, 0, 0, 1, 2, 3}, []byte{5, 220, 1, 1, 1, 0, 0, 0, 255, 0, 0, 0}, time.Date(1500, time.January, 1, 0, 0, 0, 0, time.UTC)},
+		{"Current time", "07D00C1E06173B3BFF000000010203", "07D00C1E06173B3BFF000000", time.Date(2000, time.December, 30, 23, 59, 59, 0, time.UTC)},
+		{"Past time", "05DC010101000000FF000000010203", "05DC010101000000FF000000", time.Date(1500, time.January, 1, 0, 0, 0, 0, time.UTC)},
+		{"Local time", "07E40310FF000000FF800000010203", "07E40310FF000000FF800000", time.Date(2020, time.March, 16, 0, 0, 0, 0, time.Local)},
+		{"UTC positive", "07D00106050F0030FF003C01010203", "07D00106050F0030FF003C01", time.Date(2000, 01, 06, 15, 0, 48, 0, time.FixedZone("UTC+1", 3600))},
+		{"UTC negative", "07D00106050F0030FFFF8801010203", "07D00106050F0030FFFF8801", time.Date(2000, 01, 06, 15, 0, 48, 0, time.FixedZone("UTC-2", -7200))},
+		{"Empty date", "000000000000000000000000010203", "000000000000000000000000", time.Time{}},
+		{"Invalid date", "00B43A190210380AFF0078FF010203", "00B43A190210380AFF0078FF", time.Time{}},
 	}
-	for idx, table := range tables {
-		bt, val, err := DecodeDateTime(&table.src)
-		if err != nil {
-			t.Errorf("combination %v failed. got an error:%v", idx, err)
-		}
-		// compare byte value
-		sameByte := bytes.Compare(table.bt, bt)
-		if sameByte != 0 {
-			t.Errorf("combination %v failed. Byte get: %v, should:%v", idx, bt, table.bt)
-		}
-		// compare time value
-		sameValue := (table.val == val)
-		if !sameValue {
-			t.Errorf("combination %v failed. Value get: %v, should:%v", idx, val, table.val)
-		}
-		// compare remainder bytes of src
-		sameReminder := bytes.Compare(table.src, []byte{1, 2, 3})
-		if sameReminder != 0 {
-			t.Errorf("combination %v failed. Reminder get: %v, should:[1, 2, 3]", idx, table.src)
-		}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			src := decodeHexString(tt.src)
+
+			bt, val, err := DecodeDateTime(&src)
+			assert.NoError(t, err)
+
+			// Compare byte value
+			assert.Equal(t, decodeHexString(tt.bt), bt)
+
+			// Compare time value
+			assert.Equal(t, tt.val, val)
+
+			// Compare remainder bytes of src
+			assert.Equal(t, []byte{1, 2, 3}, src)
+		})
 	}
 }
 
