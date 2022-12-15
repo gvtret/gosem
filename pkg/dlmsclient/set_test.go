@@ -122,3 +122,47 @@ func TestClient_SetRequestWithStructOfElements(t *testing.T) {
 
 	tm.AssertExpectations(t)
 }
+
+func TestClient_SetRequestWithStructOfElementsWithFail(t *testing.T) {
+	data := struct {
+		ToSkip int
+		Value1 uint16 `obis:"3,0-1:94.35.11.255,2"`
+		Value2 uint16 `obis:"1,1-1:94.34.104.255,2"`
+	}{
+		ToSkip: 0,
+		Value1: 6789,
+		Value2: 12345,
+	}
+
+	c, tm, err := associate()
+	assert.NoError(t, err)
+
+	// If second element fails, then we expect an ErrorSetPartial
+
+	in := decodeHexString("C101C1000300015E230BFF0200121A85")
+	out := decodeHexString("C501C100")
+	tm.On("Send", in).Return(out, nil).Once()
+
+	in = decodeHexString("C101C1000101015E2268FF0200123039")
+	out = decodeHexString("C501C103")
+	tm.On("Send", in).Return(out, nil).Once()
+
+	var v interface{} = &data
+
+	err = c.SetRequestWithStructOfElements(&v)
+	var clientError *dlms.Error
+	assert.ErrorAs(t, err, &clientError)
+	assert.Equal(t, dlms.ErrorSetPartial, clientError.Code())
+
+	// If first element fails, then we expect an ErrorSetRejected
+
+	in = decodeHexString("C101C1000300015E230BFF0200121A85")
+	out = decodeHexString("C501C103")
+	tm.On("Send", in).Return(out, nil).Once()
+
+	err = c.SetRequestWithStructOfElements(&v)
+	assert.ErrorAs(t, err, &clientError)
+	assert.Equal(t, dlms.ErrorSetRejected, clientError.Code())
+
+	tm.AssertExpectations(t)
+}

@@ -25,6 +25,8 @@ func (c *client) SetRequestWithStructOfElements(data interface{}) (err error) {
 		return dlms.NewError(dlms.ErrorInvalidParameter, "data must be a struct")
 	}
 
+	isSomethingDone := false
+
 	for i := 0; i < v.NumField(); i++ {
 		ad, err := c.getAttributeDescriptor(v.Type().Field(i))
 		if err != nil {
@@ -44,8 +46,14 @@ func (c *client) SetRequestWithStructOfElements(data interface{}) (err error) {
 
 		err = c.setRequest(ad, v.Field(i).Interface())
 		if err != nil {
+			if isSomethingDone {
+				err = dlms.NewError(dlms.ErrorSetPartial, fmt.Sprintf("partial set: %v", err))
+			}
+
 			return err
 		}
+
+		isSomethingDone = true
 	}
 
 	return nil
