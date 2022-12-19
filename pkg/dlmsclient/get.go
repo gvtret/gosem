@@ -31,6 +31,10 @@ func (c *client) GetRequestWithStructOfElements(data interface{}) (err error) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 
+	return c.getRequestWithStructOfElements(data)
+}
+
+func (c *client) getRequestWithStructOfElements(data interface{}) (err error) {
 	rv := reflect.ValueOf(data)
 	if rv.Kind() != reflect.Ptr || rv.IsNil() {
 		return dlms.NewError(dlms.ErrorInvalidParameter, "data must be a non-nil pointer")
@@ -46,18 +50,23 @@ func (c *client) GetRequestWithStructOfElements(data interface{}) (err error) {
 		if err != nil {
 			return err
 		}
-		if ad == nil {
-			continue
-		}
 
 		field := v.Field(i)
-		err = c.getRequestWithUnmarshal(ad, nil, field.Addr().Interface())
-		if err != nil {
-			// If a get is rejected in a field which is a pointer, then we will continue without any error
-			var dlmsError *dlms.Error
-			if errors.As(err, &dlmsError) && dlmsError.Code() == dlms.ErrorGetRejected && field.Kind() == reflect.Ptr {
-				field.Set(reflect.Zero(field.Type()))
-			} else {
+
+		if ad != nil {
+			err = c.getRequestWithUnmarshal(ad, nil, field.Addr().Interface())
+			if err != nil {
+				// If a get is rejected in a field which is a pointer, then we will continue without any error
+				var dlmsError *dlms.Error
+				if errors.As(err, &dlmsError) && dlmsError.Code() == dlms.ErrorGetRejected && field.Kind() == reflect.Ptr {
+					field.Set(reflect.Zero(field.Type()))
+				} else {
+					return err
+				}
+			}
+		} else if field.Kind() == reflect.Struct {
+			err = c.getRequestWithStructOfElements(field.Addr().Interface())
+			if err != nil {
 				return err
 			}
 		}
