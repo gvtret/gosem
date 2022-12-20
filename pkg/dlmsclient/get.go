@@ -34,45 +34,11 @@ func (c *client) GetRequestWithStructOfElements(data interface{}) (err error) {
 	return c.getRequestWithStructOfElements(data)
 }
 
-func (c *client) getRequestWithStructOfElements(data interface{}) (err error) {
-	rv := reflect.ValueOf(data)
-	if rv.Kind() != reflect.Ptr || rv.IsNil() {
-		return dlms.NewError(dlms.ErrorInvalidParameter, "data must be a non-nil pointer")
-	}
+func (c *client) CheckRequestWithStructOfElements(data interface{}) (err error) {
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
 
-	v := reflect.Indirect(rv)
-	if v.Kind() != reflect.Struct {
-		return dlms.NewError(dlms.ErrorInvalidParameter, "data must be a pointer to a struct")
-	}
-
-	for i := 0; i < v.NumField(); i++ {
-		ad, err := c.getAttributeDescriptor(v.Type().Field(i))
-		if err != nil {
-			return err
-		}
-
-		field := v.Field(i)
-
-		if ad != nil {
-			err = c.getRequestWithUnmarshal(ad, nil, field.Addr().Interface())
-			if err != nil {
-				// If a get is rejected in a field which is a pointer, then we will continue without any error
-				var dlmsError *dlms.Error
-				if errors.As(err, &dlmsError) && dlmsError.Code() == dlms.ErrorGetRejected && field.Kind() == reflect.Ptr {
-					field.Set(reflect.Zero(field.Type()))
-				} else {
-					return err
-				}
-			}
-		} else if field.Kind() == reflect.Struct {
-			err = c.getRequestWithStructOfElements(field.Addr().Interface())
-			if err != nil {
-				return err
-			}
-		}
-	}
-
-	return nil
+	return c.checkRequestWithStructOfElements(data)
 }
 
 func (c *client) getAttributeDescriptor(field reflect.StructField) (*dlms.AttributeDescriptor, error) {
@@ -186,4 +152,102 @@ func (c *client) getRequest(att *dlms.AttributeDescriptor, acc *dlms.SelectiveAc
 	}
 
 	return
+}
+
+func (c *client) getRequestWithStructOfElements(data interface{}) (err error) {
+	rv := reflect.ValueOf(data)
+	if rv.Kind() != reflect.Ptr || rv.IsNil() {
+		return dlms.NewError(dlms.ErrorInvalidParameter, "data must be a non-nil pointer")
+	}
+
+	v := reflect.Indirect(rv)
+	if v.Kind() != reflect.Struct {
+		return dlms.NewError(dlms.ErrorInvalidParameter, "data must be a pointer to a struct")
+	}
+
+	for i := 0; i < v.NumField(); i++ {
+		ad, err := c.getAttributeDescriptor(v.Type().Field(i))
+		if err != nil {
+			return err
+		}
+
+		field := v.Field(i)
+
+		if ad != nil {
+			err = c.getRequestWithUnmarshal(ad, nil, field.Addr().Interface())
+			if err != nil {
+				// If a get is rejected in a field which is a pointer, then we will continue without any error
+				var dlmsError *dlms.Error
+				if errors.As(err, &dlmsError) && dlmsError.Code() == dlms.ErrorGetRejected && field.Kind() == reflect.Ptr {
+					field.Set(reflect.Zero(field.Type()))
+				} else {
+					return err
+				}
+			}
+		} else if field.Kind() == reflect.Struct {
+			err = c.getRequestWithStructOfElements(field.Addr().Interface())
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+func (c *client) checkRequestWithStructOfElements(data interface{}) (err error) {
+	rv := reflect.ValueOf(data)
+	if rv.Kind() != reflect.Ptr || rv.IsNil() {
+		return dlms.NewError(dlms.ErrorInvalidParameter, "data must be a non-nil pointer")
+	}
+
+	v := reflect.Indirect(rv)
+	if v.Kind() != reflect.Struct {
+		return dlms.NewError(dlms.ErrorInvalidParameter, "data must be a pointer to a struct")
+	}
+
+	for i := 0; i < v.NumField(); i++ {
+		ad, err := c.getAttributeDescriptor(v.Type().Field(i))
+		if err != nil {
+			return err
+		}
+
+		field := v.Field(i)
+
+		if ad != nil {
+			if v.Field(i).Kind() == reflect.Pointer {
+				// All nil fields will be ignored
+				if v.Field(i).IsNil() {
+					continue
+				}
+			}
+
+			// Get expected value
+			expected := reflect.Indirect(field).Interface()
+
+			err = c.getRequestWithUnmarshal(ad, nil, field.Addr().Interface())
+			if err != nil {
+				return err
+			}
+
+			if str, ok := expected.(string); ok {
+				expected = strings.ToLower(str)
+			}
+
+			// Get got value
+			got := reflect.Indirect(field).Interface()
+
+			// Compare values
+			if expected != got {
+				return dlms.NewError(dlms.ErrorCheckDoesNotMatch, fmt.Sprintf("values are not equal. Expected %v, got %v", expected, got))
+			}
+		} else if field.Kind() == reflect.Struct {
+			err = c.checkRequestWithStructOfElements(field.Addr().Interface())
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
 }

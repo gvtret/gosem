@@ -208,7 +208,7 @@ func TestClient_GetRequestRequestWithSelectiveAccess(t *testing.T) {
 func TestClient_GetRequestWithStructOfElements(t *testing.T) {
 	var data struct {
 		Value1 uint  `obis:"1,1-1:94.34.100.255,2"`
-		Value2 uint  `obis:"1,1-1:94.34.104.255,2"`
+		Value2 *uint `obis:"1,1-1:94.34.104.255,2"`
 		Value3 *uint `obis:"70,0-0:96.3.10.255,3"`
 	}
 
@@ -230,7 +230,7 @@ func TestClient_GetRequestWithStructOfElements(t *testing.T) {
 	err = c.GetRequestWithStructOfElements(&data)
 	assert.NoError(t, err)
 	assert.Equal(t, uint(4), data.Value1)
-	assert.Equal(t, uint(1), data.Value2)
+	assert.Equal(t, uint(1), *data.Value2)
 	assert.Nil(t, data.Value3)
 
 	tm.AssertExpectations(t)
@@ -271,6 +271,62 @@ func TestClient_GetRequestWithNestedStructOfElements(t *testing.T) {
 	assert.Equal(t, uint(4), data.Value1)
 	assert.Equal(t, uint(1), data.Data2.Value)
 	assert.Nil(t, data.Data3.Value)
+
+	tm.AssertExpectations(t)
+}
+
+func TestClient_CheckRequestWithStructOfElements(t *testing.T) {
+	var data struct {
+		Value1 *uint8 `obis:"1,1-1:94.34.104.255,2"`
+		Value2 string `obis:"1,0-0:96.1.1.255,2"`
+	}
+
+	value1 := uint8(4)
+	value2 := "2043594B3132"
+
+	data.Value1 = &value1
+	data.Value2 = value2
+
+	c, tm, err := associate()
+	assert.NoError(t, err)
+
+	in := decodeHexString("C001C1000101015E2268FF0200")
+	out := decodeHexString("C401C1001104")
+	tm.On("Send", in).Return(out, nil).Once()
+
+	in = decodeHexString("C001C100010000600101FF0200")
+	out = decodeHexString("C401C10009062043594B3132")
+	tm.On("Send", in).Return(out, nil).Once()
+
+	err = c.CheckRequestWithStructOfElements(&data)
+	assert.NoError(t, err)
+
+	tm.AssertExpectations(t)
+
+	// If the first value is nil, just check the second value
+	data.Value1 = nil
+
+	in = decodeHexString("C001C100010000600101FF0200")
+	out = decodeHexString("C401C10009062043594B3132")
+	tm.On("Send", in).Return(out, nil).Once()
+
+	err = c.CheckRequestWithStructOfElements(&data)
+	assert.NoError(t, err)
+
+	tm.AssertExpectations(t)
+
+	// If the first value doesn't match, should fail
+	value1 = 8
+	data.Value1 = &value1
+
+	in = decodeHexString("C001C1000101015E2268FF0200")
+	out = decodeHexString("C401C1001104")
+	tm.On("Send", in).Return(out, nil).Once()
+
+	err = c.CheckRequestWithStructOfElements(&data)
+	var clientError *dlms.Error
+	assert.ErrorAs(t, err, &clientError)
+	assert.Equal(t, dlms.ErrorCheckDoesNotMatch, clientError.Code())
 
 	tm.AssertExpectations(t)
 }

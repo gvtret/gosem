@@ -24,4 +24,5 @@ type Client interface {
 	SetRequest(att *AttributeDescriptor, data interface{}) (err error)
 	SetRequestWithStructOfElements(data interface{}) (err error)
 	ActionRequest(mth *MethodDescriptor, data interface{}) (err error)
+	CheckRequestWithStructOfElements(data interface{}) (err error)
 }
