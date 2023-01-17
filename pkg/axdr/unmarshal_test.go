@@ -28,8 +28,8 @@ func TestUnmarshalData(t *testing.T) {
 	assert.NoError(t, err)
 
 	require.Len(t, result, 2)
-	assert.Equal(t, time.Date(2000, 01, 06, 15, 0, 48, 0, time.FixedZone("UTC+1", 3600)).Unix(), result[0].Time1.Unix())
-	assert.Equal(t, time.Date(2000, 01, 06, 15, 0, 48, 0, time.FixedZone("UTC-2", -7200)).Unix(), result[1].Time1.Unix())
+	assert.Equal(t, time.Date(2000, time.January, 6, 15, 0, 48, 0, time.FixedZone("UTC+1", 3600)).Unix(), result[0].Time1.Unix())
+	assert.Equal(t, time.Date(2000, time.January, 6, 15, 0, 48, 0, time.FixedZone("UTC-2", -7200)).Unix(), result[1].Time1.Unix())
 	assert.Equal(t, uint16(0x1234), result[0].Value1)
 	assert.Equal(t, int(0xABBCCDD), result[0].Value2)
 	assert.Equal(t, uint(0x02), result[1].Value3)

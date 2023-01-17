@@ -356,10 +356,16 @@ func EncodeDateTime(data time.Time) ([]byte, error) {
 	output := make([]byte, 12)
 	_, offset := data.Zone()
 
+	// Day of week is from 1 to 7, and 1 is Monday
+	weekday := data.Weekday()
+	if weekday == time.Sunday {
+		weekday = 7
+	}
+
 	binary.BigEndian.PutUint16(output[:2], uint16(data.Year()))
 	output[2] = byte(int(data.Month()))
 	output[3] = byte(data.Day())
-	output[4] = byte(int(data.Weekday()))
+	output[4] = byte(weekday)
 	output[5] = byte(data.Hour())
 	output[6] = byte(data.Minute())
 	output[7] = byte(data.Second())

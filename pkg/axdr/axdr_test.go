@@ -487,33 +487,26 @@ func TestEncodeTime(t *testing.T) {
 }
 
 func TestEncodeDateTime(t *testing.T) {
-	dt := time.Date(20000, time.December, 30, 23, 59, 59, 990000000, time.UTC)
-	ts, err := EncodeDateTime(dt)
-	res := bytes.Compare(ts, []byte{78, 32, 12, 30, 6, 23, 59, 59, 99, 0, 0, 0})
-	if res != 0 || err != nil {
-		t.Errorf("t1 failed. val: %d, err:%v", ts, err)
+	local, _ := time.LoadLocation("Europe/Madrid")
+
+	tests := []struct {
+		name     string
+		expected string
+		val      time.Time
+	}{
+		{"Future time", "4E200C1E06173B3B63000000", time.Date(20000, time.December, 30, 23, 59, 59, 990000000, time.UTC)},
+		{"Past time", "05DC01010100000000000000", time.Date(1500, time.January, 1, 0, 0, 0, 0, time.UTC)},
+		{"Local time", "07E403100100000000003C00", time.Date(2020, time.March, 16, 0, 0, 0, 0, local)},
+		{"Summer local time", "07E40701030A000000007880", time.Date(2020, time.July, 1, 10, 0, 0, 0, local)},
+		{"Sunday", "07E7010F0700000000000000", time.Date(2023, time.January, 15, 0, 0, 0, 0, time.UTC)},
 	}
 
-	dt = time.Date(1500, time.January, 1, 0, 0, 0, 0, time.UTC)
-	ts, err = EncodeDateTime(dt)
-	res = bytes.Compare(ts, []byte{5, 220, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0})
-	if res != 0 || err != nil {
-		t.Errorf("t2 failed. val: %d, err:%v", ts, err)
-	}
-
-	l, _ := time.LoadLocation("Europe/Madrid")
-	dt = time.Date(2020, time.January, 1, 10, 0, 0, 0, l)
-	ts, err = EncodeDateTime(dt)
-	res = bytes.Compare(ts, []byte{7, 228, 1, 1, 3, 10, 0, 0, 0, 0, 60, 0})
-	if res != 0 || err != nil {
-		t.Errorf("t3 failed. val: %d, err:%v", ts, err)
-	}
-
-	dt = time.Date(2020, time.July, 1, 10, 0, 0, 0, l)
-	ts, err = EncodeDateTime(dt)
-	res = bytes.Compare(ts, []byte{7, 228, 7, 1, 3, 10, 0, 0, 0, 0, 120, 128})
-	if res != 0 || err != nil {
-		t.Errorf("t4 failed. val: %d, err:%v", ts, err)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			encoded, err := EncodeDateTime(tt.val)
+			assert.NoError(t, err)
+			assert.Equal(t, decodeHexString(tt.expected), encoded)
+		})
 	}
 }
 
@@ -1269,8 +1262,8 @@ func TestDecodeDateTime(t *testing.T) {
 		{"Current time", "07D00C1E06173B3BFF000000010203", "07D00C1E06173B3BFF000000", time.Date(2000, time.December, 30, 23, 59, 59, 0, time.UTC)},
 		{"Past time", "05DC010101000000FF000000010203", "05DC010101000000FF000000", time.Date(1500, time.January, 1, 0, 0, 0, 0, time.UTC)},
 		{"Local time", "07E40310FF000000FF800000010203", "07E40310FF000000FF800000", time.Date(2020, time.March, 16, 0, 0, 0, 0, time.Local)},
-		{"UTC positive", "07D00106050F0030FF003C01010203", "07D00106050F0030FF003C01", time.Date(2000, 01, 06, 15, 0, 48, 0, time.FixedZone("UTC+1", 3600))},
-		{"UTC negative", "07D00106050F0030FFFF8801010203", "07D00106050F0030FFFF8801", time.Date(2000, 01, 06, 15, 0, 48, 0, time.FixedZone("UTC-2", -7200))},
+		{"UTC positive", "07D00106050F0030FF003C01010203", "07D00106050F0030FF003C01", time.Date(2000, time.January, 6, 15, 0, 48, 0, time.FixedZone("UTC+1", 3600))},
+		{"UTC negative", "07D00106050F0030FFFF8801010203", "07D00106050F0030FFFF8801", time.Date(2000, time.January, 6, 15, 0, 48, 0, time.FixedZone("UTC-2", -7200))},
 		{"Empty date", "000000000000000000000000010203", "000000000000000000000000", time.Time{}},
 		{"Invalid date", "00B43A190210380AFF0078FF010203", "00B43A190210380AFF0078FF", time.Time{}},
 	}
