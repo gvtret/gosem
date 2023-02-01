@@ -13,10 +13,6 @@ type EventNotificationRequest struct {
 	AttributeValue axdr.DlmsData
 }
 
-func (ev EventNotificationRequest) getTimebyValue() time.Time {
-	return *ev.Time
-}
-
 func CreateEventNotificationRequest(tm *time.Time, attInfo AttributeDescriptor, attValue axdr.DlmsData) *EventNotificationRequest {
 	return &EventNotificationRequest{
 		Time:           tm,
@@ -32,7 +28,7 @@ func (ev EventNotificationRequest) Encode() (out []byte, err error) {
 		buf.WriteByte(0)
 	} else {
 		buf.WriteByte(1)
-		tm, e := axdr.EncodeDateTime(ev.getTimebyValue())
+		tm, e := axdr.EncodeDateTime(*ev.Time)
 		if e != nil {
 			err = e
 			return
@@ -60,19 +56,21 @@ func (ev EventNotificationRequest) Encode() (out []byte, err error) {
 func DecodeEventNotificationRequest(ori *[]byte) (out EventNotificationRequest, err error) {
 	src := append([]byte(nil), (*ori)...)
 
-	if src[0] != TagEventNotificationRequest.Value() {
-		err = ErrWrongTag(0, src[0], byte(TagEventNotificationRequest))
+	_, tag, _ := axdr.DecodeUnsigned(&src)
+	if tag != TagEventNotificationRequest.Value() {
+		err = ErrWrongTag(0, tag, byte(TagDataNotification))
 		return
 	}
 
-	haveTime := src[1]
-	src = src[2:]
+	_, haveTime, err := axdr.DecodeUnsigned(&src)
+	if err != nil {
+		return
+	}
 
 	if haveTime == 0x0 {
-		var nilTime *time.Time
-		out.Time = nilTime
+		out.Time = nil
 	} else {
-		src = src[1:] // length of time
+		axdr.DecodeUnsigned(&src) // length of time
 		_, time, e := axdr.DecodeDateTime(&src)
 		if e != nil {
 			err = e
@@ -89,6 +87,6 @@ func DecodeEventNotificationRequest(ori *[]byte) (out EventNotificationRequest, 
 	decoder := axdr.NewDataDecoder(&src)
 	out.AttributeValue, err = decoder.Decode(&src)
 
-	(*ori) = (*ori)[len((*ori))-len(src):]
+	(*ori) = (*ori)[len(*ori)-len(src):]
 	return
 }

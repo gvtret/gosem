@@ -27,8 +27,6 @@ linters:
     - prealloc
     - predeclared
     - revive
-    - rowserrcheck
-    - sqlclosecheck
     - stylecheck
     - thelper
     - tparallel

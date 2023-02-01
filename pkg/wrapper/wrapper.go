@@ -18,6 +18,9 @@ type wrapper struct {
 	transport   dlms.Transport
 	source      uint16
 	destination uint16
+	dc          dlms.DataChannel
+	tc          dlms.DataChannel
+	logger      *log.Logger
 }
 
 func New(transport dlms.Transport, client int, server int) dlms.Transport {
@@ -25,13 +28,47 @@ func New(transport dlms.Transport, client int, server int) dlms.Transport {
 		transport:   transport,
 		source:      uint16(client),
 		destination: uint16(server),
+		dc:          nil,
+		tc:          make(dlms.DataChannel, 10),
+		logger:      nil,
 	}
+
+	transport.SetReception(w.tc)
+
+	go w.manager()
 
 	return w
 }
 
+func (w *wrapper) Close() {
+	w.transport.Close()
+	if w.dc != nil {
+		close(w.dc)
+		w.dc = nil
+	}
+}
+
 func (w *wrapper) Connect() error {
-	return w.transport.Connect()
+	if err := w.transport.Connect(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (w *wrapper) manager() {
+	for {
+		data := <-w.tc
+
+		err := w.parseHeader(data)
+		if err != nil {
+			if w.logger != nil {
+				w.logger.Printf("Invalid received data: %e", err)
+			}
+		} else if w.dc != nil {
+			w.dc <- data[headerLength:]
+		}
+	}
 }
 
 func (w *wrapper) Disconnect() error {
@@ -47,13 +84,17 @@ func (w *wrapper) SetAddress(client int, server int) {
 	w.destination = uint16(server)
 }
 
-func (w *wrapper) Send(src []byte) ([]byte, error) {
+func (w *wrapper) SetReception(dc dlms.DataChannel) {
+	w.dc = dc
+}
+
+func (w *wrapper) Send(src []byte) error {
 	if !w.transport.IsConnected() {
-		return nil, fmt.Errorf("not connected")
+		return fmt.Errorf("not connected")
 	}
 
 	if len(src) > (maxLength - headerLength) {
-		return nil, fmt.Errorf("message too long")
+		return fmt.Errorf("message too long")
 	}
 
 	uri := make([]byte, headerLength+len(src))
@@ -65,47 +106,41 @@ func (w *wrapper) Send(src []byte) ([]byte, error) {
 
 	copy(uri[headerLength:], src)
 
-	out, err := w.transport.Send(uri)
-	if err != nil {
-		return nil, fmt.Errorf("error sending: %w", err)
-	}
-
-	err = w.parseHeader(out)
-	if err != nil {
-		return nil, fmt.Errorf("error parsing header: %w", err)
-	}
-
-	return out[headerLength:], nil
+	return w.transport.Send(uri)
 }
 
 func (w *wrapper) SetLogger(logger *log.Logger) {
+	w.logger = logger
 	w.transport.SetLogger(logger)
 }
 
 func (w *wrapper) parseHeader(src []byte) error {
 	if len(src) < headerLength {
-		return fmt.Errorf("message too short")
+		return fmt.Errorf("message too short, received only %d bytes", len(src))
 	}
 
-	if binary.BigEndian.Uint16(src[0:2]) != uint16(version) {
-		return fmt.Errorf("invalid version")
+	receivedVersion := int(binary.BigEndian.Uint16(src[0:2]))
+	if receivedVersion != version {
+		return fmt.Errorf("invalid version, expected %d, received %d", version, receivedVersion)
 	}
 
-	if binary.BigEndian.Uint16(src[2:4]) != w.destination {
-		return fmt.Errorf("invalid destination")
+	receivedDestination := binary.BigEndian.Uint16(src[2:4])
+	if receivedDestination != w.destination {
+		return fmt.Errorf("invalid destination, expected %d, received %d", w.destination, receivedDestination)
 	}
 
-	if binary.BigEndian.Uint16(src[4:6]) != w.source {
-		return fmt.Errorf("invalid source")
+	receivedSource := binary.BigEndian.Uint16(src[4:6])
+	if receivedSource != w.source {
+		return fmt.Errorf("invalid source, expected %d, received %d", w.source, receivedSource)
 	}
 
-	length := int(binary.BigEndian.Uint16(src[6:8]))
-	if length > (maxLength - headerLength) {
-		return fmt.Errorf("message too long")
+	length := int(binary.BigEndian.Uint16(src[6:8])) + headerLength
+	if length > maxLength {
+		return fmt.Errorf("expected message too long (%d)", length)
 	}
 
-	if len(src) != (headerLength + length) {
-		return fmt.Errorf("message length mismatch")
+	if len(src) != length {
+		return fmt.Errorf("message length mismatch, expected %d, received %d", length, len(src))
 	}
 
 	return nil

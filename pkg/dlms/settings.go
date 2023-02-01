@@ -36,10 +36,11 @@ type Ciphering struct {
 }
 
 type Settings struct {
-	Authentication Authentication
-	Password       []byte
-	Ciphering      Ciphering
-	MaxPduSize     int
+	Authentication   Authentication
+	Password         []byte
+	Ciphering        Ciphering
+	MaxPduSize       int
+	ConformanceBlock int
 }
 
 func NewSettingsWithoutAuthentication() (Settings, error) {
@@ -48,6 +49,9 @@ func NewSettingsWithoutAuthentication() (Settings, error) {
 		Password:       nil,
 		Ciphering:      Ciphering{},
 		MaxPduSize:     256,
+		ConformanceBlock: ConformanceBlockBlockTransferWithGetOrRead | ConformanceBlockBlockTransferWithSetOrWrite |
+			ConformanceBlockGet | ConformanceBlockSet | ConformanceBlockSelectiveAccess | ConformanceBlockEventNotification |
+			ConformanceBlockAction,
 	}
 
 	return s, nil
@@ -67,6 +71,9 @@ func NewSettingsWithLowAuthenticationAndCiphering(password []byte, cipher Cipher
 		Password:       password,
 		Ciphering:      cipher,
 		MaxPduSize:     256,
+		ConformanceBlock: ConformanceBlockBlockTransferWithGetOrRead | ConformanceBlockBlockTransferWithSetOrWrite |
+			ConformanceBlockGet | ConformanceBlockSet | ConformanceBlockSelectiveAccess | ConformanceBlockEventNotification |
+			ConformanceBlockAction,
 	}
 
 	return s, nil

@@ -386,6 +386,10 @@ func DecodeBCD(src *[]byte) (outByte []byte, outVal int8, err error) {
 }
 
 func DecodeInteger(src *[]byte) (outByte []byte, outVal int8, err error) {
+	if len(*src) < 1 {
+		err = ErrLengthLess
+		return
+	}
 	outByte = (*src)[:1]
 	outVal = int8(outByte[0])
 	(*src) = (*src)[1:]
@@ -405,6 +409,10 @@ func DecodeLong(src *[]byte) (outByte []byte, outVal int16, err error) {
 }
 
 func DecodeUnsigned(src *[]byte) (outByte []byte, outVal uint8, err error) {
+	if len(*src) < 1 {
+		err = ErrLengthLess
+		return
+	}
 	outByte = (*src)[:1]
 	outVal = outByte[0]
 	(*src) = (*src)[1:]

@@ -2,6 +2,7 @@ package tcp
 
 import (
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"log"
 	"net"
@@ -20,6 +21,7 @@ type tcp struct {
 	port        int
 	host        string
 	timeout     time.Duration
+	dc          dlms.DataChannel
 	conn        net.Conn
 	isConnected bool
 	logger      *log.Logger
@@ -30,11 +32,20 @@ func New(port int, host string, timeout time.Duration) dlms.Transport {
 		port:        port,
 		host:        host,
 		timeout:     timeout,
+		dc:          nil,
 		isConnected: false,
 		logger:      nil,
 	}
 
 	return t
+}
+
+func (t *tcp) Close() {
+	t.Disconnect()
+	if t.dc != nil {
+		close(t.dc)
+		t.dc = nil
+	}
 }
 
 func (t *tcp) Connect() error {
@@ -54,6 +65,8 @@ func (t *tcp) Connect() error {
 			t.logger.Printf("Connected to %s", address)
 		}
 
+		go t.manager()
+
 		t.conn = conn
 		t.isConnected = true
 	}
@@ -63,20 +76,16 @@ func (t *tcp) Connect() error {
 
 func (t *tcp) Disconnect() error {
 	if t.isConnected {
-		err := t.conn.Close()
-		if err != nil {
-			if t.logger != nil {
-				t.logger.Printf("Disconnect from %s failed: %v", t.host, err)
-			}
+		t.isConnected = false
 
-			return fmt.Errorf("disconnect failed: %w", err)
+		if t.conn != nil {
+			t.conn.Close()
+			t.conn = nil
 		}
 
 		if t.logger != nil {
 			t.logger.Printf("Disconnected from %s", t.host)
 		}
-
-		t.isConnected = false
 	}
 
 	return nil
@@ -89,40 +98,69 @@ func (t *tcp) IsConnected() bool {
 func (t *tcp) SetAddress(client int, server int) {
 }
 
-func (t *tcp) Send(src []byte) ([]byte, error) {
+func (t *tcp) SetReception(dc dlms.DataChannel) {
+	t.dc = dc
+}
+
+func (t *tcp) Send(src []byte) error {
 	if !t.isConnected {
-		return nil, fmt.Errorf("not connected")
+		return fmt.Errorf("not connected")
 	}
 
-	t.conn.SetDeadline(time.Now().Add(t.timeout))
+	t.conn.SetWriteDeadline(time.Now().Add(t.timeout))
 
 	_, err := t.conn.Write(src)
 	if err != nil {
 		t.Disconnect()
-		return nil, fmt.Errorf("write failed: %w", err)
+		return fmt.Errorf("write failed: %w", err)
 	}
 
 	if t.logger != nil {
 		t.logger.Printf("TX (%s): %s", t.host, encodeHexString(src))
 	}
 
-	out := make([]byte, maxLength)
-
-	n, err := t.conn.Read(out)
-	if err != nil {
-		t.Disconnect()
-		return nil, fmt.Errorf("read failed: %w", err)
-	}
-
-	if t.logger != nil {
-		t.logger.Printf("RX (%s): %s", t.host, encodeHexString(out[:n]))
-	}
-
-	return out[:n], nil
+	return nil
 }
 
 func (t *tcp) SetLogger(logger *log.Logger) {
 	t.logger = logger
+}
+
+func (t *tcp) manager() {
+	for {
+		if !t.isConnected {
+			return
+		}
+
+		data, err := t.read()
+		if err != nil {
+			t.Disconnect()
+
+			return
+		}
+
+		if len(data) > 0 && t.dc != nil {
+			t.dc <- data
+		}
+	}
+}
+
+func (t *tcp) read() ([]byte, error) {
+	rxBuffer := make([]byte, maxLength)
+
+	rxLen, err := t.conn.Read(rxBuffer)
+	if err != nil {
+		var netErr net.Error
+		if !errors.As(err, &netErr) || !netErr.Timeout() {
+			return nil, fmt.Errorf("read error: %w", err)
+		}
+	}
+
+	if t.logger != nil {
+		t.logger.Printf("RX (%s): %s", t.host, encodeHexString(rxBuffer[:rxLen]))
+	}
+
+	return rxBuffer[:rxLen], nil
 }
 
 func encodeHexString(b []byte) string {

@@ -14,23 +14,37 @@ const (
 )
 
 type client struct {
-	settings     dlms.Settings
-	transport    dlms.Transport
-	timeout      time.Duration
-	isAssociated bool
-	timeoutTimer *time.Timer
-	mutex        sync.Mutex
+	settings           dlms.Settings
+	transport          dlms.Transport
+	replyTimeout       time.Duration
+	associationTimeout time.Duration
+	isAssociated       bool
+	timeoutTimer       *time.Timer
+	tc                 dlms.DataChannel
+	dc                 dlms.DataChannel
+	dataNotification   chan dlms.DataNotification
+	mutex              sync.Mutex
+	subsMutex          sync.Mutex
 }
 
-func New(settings dlms.Settings, transport dlms.Transport, timeout time.Duration) dlms.Client {
+func New(settings dlms.Settings, transport dlms.Transport, replyTimeout time.Duration, associationTimeout time.Duration) dlms.Client {
 	c := &client{
-		settings:     settings,
-		transport:    transport,
-		timeout:      timeout,
-		isAssociated: false,
-		timeoutTimer: nil,
-		mutex:        sync.Mutex{},
+		settings:           settings,
+		transport:          transport,
+		replyTimeout:       replyTimeout,
+		associationTimeout: associationTimeout,
+		isAssociated:       false,
+		timeoutTimer:       nil,
+		tc:                 make(dlms.DataChannel, 10),
+		dc:                 nil,
+		dataNotification:   nil,
+		mutex:              sync.Mutex{},
+		subsMutex:          sync.Mutex{},
 	}
+
+	transport.SetReception(c.tc)
+
+	go c.manager()
 
 	return c
 }
@@ -44,8 +58,8 @@ func (c *client) Connect() error {
 		return dlms.NewError(dlms.ErrorCommunicationFailed, fmt.Sprintf("error connecting: %v", err))
 	}
 
-	if c.timeout != 0 {
-		c.timeoutTimer = time.AfterFunc(c.timeout, func() {
+	if c.associationTimeout != 0 {
+		c.timeoutTimer = time.AfterFunc(c.associationTimeout, func() {
 			c.Disconnect()
 		})
 	}
@@ -72,6 +86,13 @@ func (c *client) IsConnected() bool {
 	defer c.mutex.Unlock()
 
 	return c.transport.IsConnected()
+}
+
+func (c *client) SetDataNotificationChannel(ec chan dlms.DataNotification) {
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
+
+	c.dataNotification = ec
 }
 
 func (c *client) GetSettings() dlms.Settings {
@@ -103,9 +124,9 @@ func (c *client) Associate() error {
 		return dlms.NewError(dlms.ErrorInvalidParameter, fmt.Sprintf("error encoding AARQ: %v", err))
 	}
 
-	out, err := c.transport.Send(src)
+	out, err := c.sendReceive(src)
 	if err != nil {
-		return dlms.NewError(dlms.ErrorCommunicationFailed, fmt.Sprintf("error sending AARQ: %v", err))
+		return err
 	}
 
 	aare, err := dlms.DecodeAARE(&c.settings, &out)
@@ -145,9 +166,9 @@ func (c *client) CloseAssociation() error {
 		return dlms.NewError(dlms.ErrorInvalidParameter, fmt.Sprintf("error encoding RLRQ: %v", err))
 	}
 
-	out, err := c.transport.Send(src)
+	out, err := c.sendReceive(src)
 	if err != nil {
-		return dlms.NewError(dlms.ErrorCommunicationFailed, fmt.Sprintf("error sending RLRQ: %v", err))
+		return err
 	}
 
 	_, err = dlms.DecodeRLRE(&c.settings, &out)
@@ -171,6 +192,62 @@ func (c *client) IsAssociated() bool {
 	return c.isAssociated
 }
 
+func (c *client) manager() {
+	for {
+		data := <-c.tc
+
+		dn, err := dlms.DecodeDataNotification(&data)
+		if err == nil {
+			c.mutex.Lock()
+			if c.dataNotification != nil {
+				c.dataNotification <- dn
+			}
+			c.mutex.Unlock()
+		} else {
+			c.subsMutex.Lock()
+			if c.dc != nil {
+				c.dc <- data
+			}
+			c.subsMutex.Unlock()
+		}
+	}
+}
+
+func (c *client) sendReceive(src []byte) ([]byte, error) {
+	c.subscribe()
+	defer c.unsubscribe()
+
+	err := c.transport.Send(src)
+	if err != nil {
+		return nil, dlms.NewError(dlms.ErrorCommunicationFailed, fmt.Sprintf("error sending AARQ: %v", err))
+	}
+
+	// Wait for the device response
+	timeout := time.NewTimer(c.replyTimeout)
+	defer timeout.Stop()
+
+	select {
+	case data := <-c.dc:
+		return data, nil
+	case <-timeout.C:
+		return nil, dlms.NewError(dlms.ErrorCommunicationFailed, "timeout reached")
+	}
+}
+
+func (c *client) subscribe() {
+	c.subsMutex.Lock()
+	defer c.subsMutex.Unlock()
+
+	c.dc = make(dlms.DataChannel)
+}
+
+func (c *client) unsubscribe() {
+	c.subsMutex.Lock()
+	defer c.subsMutex.Unlock()
+
+	c.dc = nil
+}
+
 func (c *client) encodeSendReceiveAndDecode(req dlms.CosemPDU) (pdu dlms.CosemPDU, err error) {
 	if !c.isAssociated {
 		err = dlms.NewError(dlms.ErrorInvalidState, "client is not associated")
@@ -183,13 +260,12 @@ func (c *client) encodeSendReceiveAndDecode(req dlms.CosemPDU) (pdu dlms.CosemPD
 		return
 	}
 
-	out, err := c.transport.Send(src)
+	out, err := c.sendReceive(src)
 	if err != nil {
 		if !c.transport.IsConnected() {
 			c.closeAssociation()
 		}
 
-		err = dlms.NewError(dlms.ErrorCommunicationFailed, fmt.Sprintf("error sending PDU: %v", err))
 		return
 	}
 
@@ -200,7 +276,7 @@ func (c *client) encodeSendReceiveAndDecode(req dlms.CosemPDU) (pdu dlms.CosemPD
 	}
 
 	if c.timeoutTimer != nil {
-		c.timeoutTimer.Reset(c.timeout)
+		c.timeoutTimer.Reset(c.associationTimeout)
 	}
 
 	return

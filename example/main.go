@@ -51,9 +51,9 @@ func main() {
 		panic(err)
 	}
 
-	t := tcp.New(4059, "10.0.120.137", 1*time.Second)
+	t := tcp.New(4059, "10.0.120.216", 1*time.Second)
 	w := wrapper.New(t, 1, 1)
-	c := dlmsclient.New(settings, w, 0)
+	c := dlmsclient.New(settings, w, 1*time.Second, 0)
 	c.SetLogger(l)
 
 	err = c.Connect()

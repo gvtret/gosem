@@ -10,60 +10,44 @@ import (
 )
 
 func TestClient_ActionRequest(t *testing.T) {
-	c, tm, err := associate()
-	assert.NoError(t, err)
-
-	in := decodeHexString("C301C10046000060030AFF01010F00")
-	out := decodeHexString("C701C10000")
-	tm.On("Send", in).Return(out, nil).Once()
+	c, tm, rdc := associate(t)
 
 	var data int8
 
-	err = c.ActionRequest(dlms.CreateMethodDescriptor(70, "0-0:96.3.10.255", 1), data)
+	sendReceive(tm, rdc, "C301C10046000060030AFF01010F00", "C701C10000")
+	err := c.ActionRequest(dlms.CreateMethodDescriptor(70, "0-0:96.3.10.255", 1), data)
 	assert.NoError(t, err)
 
 	tm.AssertExpectations(t)
 }
 
 func TestClient_ActionRequestFail(t *testing.T) {
-	c, tm, err := associate()
-	assert.NoError(t, err)
+	c, tm, rdc := associate(t)
 
 	data := axdr.CreateAxdrInteger(0)
 	disconnectorMethodDescriptor := dlms.CreateMethodDescriptor(70, "0-0:96.3.10.255", 1)
 
 	// Action failed
-	in := decodeHexString("C301C10046000060030AFF01010F00")
-	out := decodeHexString("C701C1010102")
-	tm.On("Send", in).Return(out, nil).Once()
-
-	err = c.ActionRequest(disconnectorMethodDescriptor, data)
+	sendReceive(tm, rdc, "C301C10046000060030AFF01010F00", "C701C1010102")
+	err := c.ActionRequest(disconnectorMethodDescriptor, data)
 	var clientError *dlms.Error
 	assert.ErrorAs(t, err, &clientError)
 	assert.Equal(t, dlms.ErrorActionRejected, clientError.Code())
 
 	// Unexpected response
-	in = decodeHexString("C301C10046000060030AFF01010F00")
-	out = decodeHexString("0E010203")
-	tm.On("Send", in).Return(out, nil).Once()
-
+	sendReceive(tm, rdc, "C301C10046000060030AFF01010F00", "0E010203")
 	err = c.ActionRequest(disconnectorMethodDescriptor, data)
 	assert.ErrorAs(t, err, &clientError)
 	assert.Equal(t, dlms.ErrorInvalidResponse, clientError.Code())
 
 	// Invalid response
-	in = decodeHexString("C301C10046000060030AFF01010F00")
-	out = decodeHexString("AE12")
-	tm.On("Send", in).Return(out, nil).Once()
-
+	sendReceive(tm, rdc, "C301C10046000060030AFF01010F00", "AE12")
 	err = c.ActionRequest(disconnectorMethodDescriptor, data)
 	assert.ErrorAs(t, err, &clientError)
 	assert.Equal(t, dlms.ErrorInvalidResponse, clientError.Code())
 
 	// Send failed
-	in = decodeHexString("C301C10046000060030AFF01010F00")
-	out = decodeHexString("")
-	tm.On("Send", in).Return(out, fmt.Errorf("error")).Once()
+	tm.On("Send", decodeHexString("C301C10046000060030AFF01010F00")).Return(fmt.Errorf("error")).Once()
 	tm.On("IsConnected").Return(false).Once()
 
 	err = c.ActionRequest(disconnectorMethodDescriptor, data)

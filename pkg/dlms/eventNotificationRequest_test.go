@@ -1,11 +1,11 @@
 package dlms
 
 import (
-	"bytes"
 	"testing"
 	"time"
 
 	"github.com/Circutor/gosem/pkg/axdr"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestNew_EventNotificationRequest(t *testing.T) {
@@ -13,74 +13,66 @@ func TestNew_EventNotificationRequest(t *testing.T) {
 	attrDesc := *CreateAttributeDescriptor(1, "1.0.0.3.0.255", 2)
 	attrVal := *axdr.CreateAxdrBoolean(true)
 
-	a := *CreateEventNotificationRequest(&tm, attrDesc, attrVal)
-	t1, e := a.Encode()
-	if e != nil {
-		t.Errorf("t1 Encode Failed. err: %v", e)
-	}
-	result := []byte{194, 1, 12, 5, 220, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 3, 0, 255, 2, 3, 255}
-	res := bytes.Compare(t1, result)
-	if res != 0 {
-		t.Errorf("t1 Failed. get: %d, should:%v", t1, result)
-	}
+	enr := *CreateEventNotificationRequest(&tm, attrDesc, attrVal)
+	encoded, err := enr.Encode()
+	assert.NoError(t, err)
 
-	// --- with nil time
-	var nilTime *time.Time
-	a = *CreateEventNotificationRequest(nilTime, attrDesc, attrVal)
-	t1, e = a.Encode()
-	if e != nil {
-		t.Errorf("t1 Encode Failed. err: %v", e)
-	}
-	result = []byte{194, 0, 0, 1, 1, 0, 0, 3, 0, 255, 2, 3, 255}
+	expected := decodeHexString("C2010C05DC0101010000000000000000010100000300FF0203FF")
+	assert.Equal(t, expected, encoded)
 
-	res = bytes.Compare(t1, result)
-	if res != 0 {
-		t.Errorf("t2 Failed. get: %d, should:%v", t1, result)
-	}
+	// With nil time
+	enr = *CreateEventNotificationRequest(nil, attrDesc, attrVal)
+	encoded, err = enr.Encode()
+	assert.NoError(t, err)
+
+	expected = decodeHexString("C20000010100000300FF0203FF")
+	assert.Equal(t, expected, encoded)
 }
 
 func TestDecode_EventNotificationRequest(t *testing.T) {
-	src := []byte{194, 1, 12, 5, 220, 1, 1, 1, 0, 0, 0, 255, 0, 0, 0, 0, 1, 1, 0, 0, 3, 0, 255, 2, 3, 255}
-	a, err := DecodeEventNotificationRequest(&src)
-	if err != nil {
-		t.Errorf("t1 failed on DecodeEventNotificationRequest. Err: %v", err)
-	}
+	src := decodeHexString("C2010C05DC0101010000000000000000010100000300FF0203FF")
+	enr, err := DecodeEventNotificationRequest(&src)
+	assert.NoError(t, err)
 
 	tm := time.Date(1500, time.January, 1, 0, 0, 0, 0, time.UTC)
 	attrDesc := *CreateAttributeDescriptor(1, "1.0.0.3.0.255", 2)
 	attrVal := *axdr.CreateAxdrBoolean(true)
-	b := *CreateEventNotificationRequest(&tm, attrDesc, attrVal)
 
-	if *a.Time != *b.Time {
-		t.Errorf("t1 err Time. get: %v, should: %v", a.Time, b.Time)
-	}
+	assert.Equal(t, tm, *enr.Time)
+	assert.Equal(t, attrDesc.ClassID, enr.AttributeInfo.ClassID)
+	assert.Equal(t, attrDesc.InstanceID.Bytes(), enr.AttributeInfo.InstanceID.Bytes())
+	assert.Equal(t, attrDesc.AttributeID, enr.AttributeInfo.AttributeID)
+	assert.Equal(t, attrVal.Tag, enr.AttributeValue.Tag)
+	assert.Equal(t, attrVal.Value, enr.AttributeValue.Value)
 
-	if a.AttributeInfo.ClassID != b.AttributeInfo.ClassID {
-		t.Errorf("t1 Failed. AttributeInfo.ClassID get: %v, should:%v", a.AttributeInfo.ClassID, b.AttributeInfo.ClassID)
-	}
-	res := bytes.Compare(a.AttributeInfo.InstanceID.Bytes(), b.AttributeInfo.InstanceID.Bytes())
-	if res != 0 {
-		t.Errorf("t1 Failed. AttributeInfo.InstanceID get: %v, should:%v", a.AttributeInfo.InstanceID.Bytes(), b.AttributeInfo.InstanceID.Bytes())
-	}
-	if a.AttributeInfo.AttributeID != b.AttributeInfo.AttributeID {
-		t.Errorf("t1 Failed. AttributeInfo.AttributeID get: %v, should:%v", a.AttributeInfo.AttributeID, b.AttributeInfo.AttributeID)
-	}
+	// With nil time
+	src = decodeHexString("C20000010100000300FF0203FF")
+	enr, err = DecodeEventNotificationRequest(&src)
+	assert.NoError(t, err)
+	assert.Nil(t, enr.Time)
 
-	if a.AttributeValue.Tag != b.AttributeValue.Tag {
-		t.Errorf("t1 Failed. AttributeValue.Tag get: %v, should:%v", a.AttributeValue.Tag, b.AttributeValue.Tag)
-	}
-	if a.AttributeValue.Value != b.AttributeValue.Value {
-		t.Errorf("t1 Failed. AttributeValue.Value get: %v, should:%v", a.AttributeValue.Value, b.AttributeValue.Value)
-	}
+	// Invalid frames
+	src = decodeHexString("")
+	_, err = DecodeEventNotificationRequest(&src)
+	assert.Error(t, err)
 
-	// --- with nil time
-	src = []byte{194, 0, 0, 1, 1, 0, 0, 3, 0, 255, 2, 3, 255}
-	a, err = DecodeEventNotificationRequest(&src)
-	if err != nil {
-		t.Errorf("t2 failed on DecodeEventNotificationRequest. Err: %v", err)
-	}
+	src = decodeHexString("00")
+	_, err = DecodeEventNotificationRequest(&src)
+	assert.Error(t, err)
 
-	if a.Time != nil {
-		t.Errorf("t2 err Time should be nil. get: %v", a.Time)
-	}
+	src = decodeHexString("C2")
+	_, err = DecodeEventNotificationRequest(&src)
+	assert.Error(t, err)
+
+	src = decodeHexString("C200")
+	_, err = DecodeEventNotificationRequest(&src)
+	assert.Error(t, err)
+
+	src = decodeHexString("C20101")
+	_, err = DecodeEventNotificationRequest(&src)
+	assert.Error(t, err)
+
+	src = decodeHexString("C20000010100000300")
+	_, err = DecodeEventNotificationRequest(&src)
+	assert.Error(t, err)
 }

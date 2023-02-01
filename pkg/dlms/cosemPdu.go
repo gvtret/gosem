@@ -13,6 +13,7 @@ const (
 	TagReadResponse             cosemTag = 12
 	TagWriteResponse            cosemTag = 13
 	TagConfirmedServiceError    cosemTag = 14
+	TagDataNotification         cosemTag = 15
 	TagUnconfirmedWriteRequest  cosemTag = 22
 	TagInformationReportRequest cosemTag = 24
 	TagGloInitiateRequest       cosemTag = 33
@@ -67,24 +68,6 @@ func (s cosemTag) Value() uint8 {
 	return uint8(s)
 }
 
-func (s cosemTag) isExist(bt byte) bool {
-	switch bt {
-	case
-		TagConfirmedServiceError.Value(),
-		TagGetRequest.Value(),
-		TagSetRequest.Value(),
-		TagEventNotificationRequest.Value(),
-		TagActionRequest.Value(),
-		TagGetResponse.Value(),
-		TagSetResponse.Value(),
-		TagActionResponse.Value(),
-		TagExceptionResponse.Value():
-		return true
-	}
-
-	return false
-}
-
 type CosemI interface {
 	New() (out CosemPDU, err error)
 	Decode() (out CosemPDU, err error)
@@ -96,15 +79,15 @@ type CosemPDU interface {
 
 // DecodeCosem is a global function to decode payload based on implemented DLMS/COSEM APDU en/decoder
 func DecodeCosem(src *[]byte) (out CosemPDU, err error) {
-	var t cosemTag
-	if !t.isExist((*src)[0]) {
-		err = fmt.Errorf("byte idx 0 (%v) is not recognized, or relevant DLMS/COSEM is not yet implemented", (*src)[0])
-		return
+	if len(*src) == 0 {
+		return nil, fmt.Errorf("couldn't decode an empty frame")
 	}
 
 	switch (*src)[0] {
 	case TagConfirmedServiceError.Value():
 		out, err = DecodeConfirmedServiceError(src)
+	case TagDataNotification.Value():
+		out, err = DecodeDataNotification(src)
 	case TagGetRequest.Value():
 		var decoder GetRequest
 		out, err = decoder.Decode(src)
@@ -127,6 +110,8 @@ func DecodeCosem(src *[]byte) (out CosemPDU, err error) {
 		out, err = DecodeEventNotificationRequest(src)
 	case TagExceptionResponse.Value():
 		out, err = DecodeExceptionResponse(src)
+	default:
+		err = fmt.Errorf("byte idx 0 (%v) is not recognized, or relevant DLMS/COSEM is not yet implemented", (*src)[0])
 	}
 
 	return

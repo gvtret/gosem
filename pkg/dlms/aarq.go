@@ -42,6 +42,34 @@ const (
 	ApplicationContextSNCiphering   ApplicationContext = 4
 )
 
+// Conformance block
+const (
+	ConformanceBlockReservedZero                = 0b100000000000000000000000
+	ConformanceBlockGeneralProtection           = 0b010000000000000000000000
+	ConformanceBlockGeneralBlockTransfer        = 0b001000000000000000000000
+	ConformanceBlockRead                        = 0b000100000000000000000000
+	ConformanceBlockWrite                       = 0b000010000000000000000000
+	ConformanceBlockUnconfirmedWrite            = 0b000001000000000000000000
+	ConformanceBlockReservedSix                 = 0b000000100000000000000000
+	ConformanceBlockReservedSeven               = 0b000000010000000000000000
+	ConformanceBlockAttribute0SupportedWithSet  = 0b000000001000000000000000
+	ConformanceBlockPriorityMgmtSupported       = 0b000000000100000000000000
+	ConformanceBlockAttribute0SupportedWithGet  = 0b000000000010000000000000
+	ConformanceBlockBlockTransferWithGetOrRead  = 0b000000000001000000000000
+	ConformanceBlockBlockTransferWithSetOrWrite = 0b000000000000100000000000
+	ConformanceBlockBlockTransferWithAction     = 0b000000000000010000000000
+	ConformanceBlockMultipleReferences          = 0b000000000000001000000000
+	ConformanceBlockInformationReport           = 0b000000000000000100000000
+	ConformanceBlockDataNotification            = 0b000000000000000010000000
+	ConformanceBlockAccess                      = 0b000000000000000001000000
+	ConformanceBlockParametrizedAccess          = 0b000000000000000000100000
+	ConformanceBlockGet                         = 0b000000000000000000010000
+	ConformanceBlockSet                         = 0b000000000000000000001000
+	ConformanceBlockSelectiveAccess             = 0b000000000000000000000100
+	ConformanceBlockEventNotification           = 0b000000000000000000000010
+	ConformanceBlockAction                      = 0b000000000000000000000001
+)
+
 func EncodeAARQ(settings *Settings) (out []byte, err error) {
 	var buf bytes.Buffer
 
@@ -175,7 +203,11 @@ func getInitiateRequest(settings *Settings) (out []byte) {
 		buf.Write(settings.Ciphering.DedicatedKey)
 	}
 
-	buf.Write([]byte{0x00, 0x00, 0x06, 0x5F, 0x1F, 0x04, 0x00, 0x00, 0x18, 0x1F})
+	buf.Write([]byte{0x00, 0x00, 0x06, 0x5F, 0x1F, 0x04, 0x00})
+
+	bytesConformanceBlock := make([]byte, 4)
+	binary.BigEndian.PutUint32(bytesConformanceBlock, uint32(settings.ConformanceBlock))
+	buf.Write(bytesConformanceBlock[1:])
 
 	maxPduSize := make([]byte, 2)
 	binary.BigEndian.PutUint16(maxPduSize, uint16(settings.MaxPduSize))
