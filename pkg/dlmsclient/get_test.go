@@ -209,6 +209,7 @@ func TestClient_CheckRequestWithStructOfElements(t *testing.T) {
 	var data struct {
 		Value1 *uint8 `obis:"1,1-1:94.34.104.255,2"`
 		Value2 string `obis:"1,0-0:96.1.1.255,2"`
+		Value3 []int8 `obis:"3,0-0:94.34.4.255,2"`
 	}
 
 	value1 := uint8(4)
@@ -216,11 +217,13 @@ func TestClient_CheckRequestWithStructOfElements(t *testing.T) {
 
 	data.Value1 = &value1
 	data.Value2 = value2
+	data.Value3 = []int8{3, 4}
 
 	c, tm, rdc := associate(t)
 
 	sendReceive(tm, rdc, "C001C1000101015E2268FF0200", "C401C1001104")
 	sendReceive(tm, rdc, "C001C100010000600101FF0200", "C401C10009062043594B3132")
+	sendReceive(tm, rdc, "C001C1000300005E2204FF0200", "C401C10001020F030F04")
 	err := c.CheckRequestWithStructOfElements(&data)
 	assert.NoError(t, err)
 
@@ -230,6 +233,7 @@ func TestClient_CheckRequestWithStructOfElements(t *testing.T) {
 	data.Value1 = nil
 
 	sendReceive(tm, rdc, "C001C100010000600101FF0200", "C401C10009062043594B3132")
+	sendReceive(tm, rdc, "C001C1000300005E2204FF0200", "C401C10001020F030F04")
 	err = c.CheckRequestWithStructOfElements(&data)
 	assert.NoError(t, err)
 
@@ -244,6 +248,16 @@ func TestClient_CheckRequestWithStructOfElements(t *testing.T) {
 	var clientError *dlms.Error
 	assert.ErrorAs(t, err, &clientError)
 	assert.Equal(t, dlms.ErrorCheckDoesNotMatch, clientError.Code())
+
+	tm.AssertExpectations(t)
+
+	// Values in a slice should also be checked
+	data.Value1 = nil
+
+	sendReceive(tm, rdc, "C001C100010000600101FF0200", "C401C10009062043594B3132")
+	sendReceive(tm, rdc, "C001C1000300005E2204FF0200", "C401C10001020F030F05")
+	err = c.CheckRequestWithStructOfElements(&data)
+	assert.Error(t, err)
 
 	tm.AssertExpectations(t)
 }

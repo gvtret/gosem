@@ -225,7 +225,10 @@ func (c *client) checkRequestWithStructOfElements(data interface{}) (err error) 
 			// Get expected value
 			expected := reflect.Indirect(field).Interface()
 
-			err = c.getRequestWithUnmarshal(ad, nil, field.Addr().Interface())
+			// Copy the expected value
+			copy := reflect.New(reflect.Indirect(field).Type())
+
+			err = c.getRequestWithUnmarshal(ad, nil, copy.Interface())
 			if err != nil {
 				return err
 			}
@@ -235,10 +238,10 @@ func (c *client) checkRequestWithStructOfElements(data interface{}) (err error) 
 			}
 
 			// Get got value
-			got := reflect.Indirect(field).Interface()
+			got := reflect.Indirect(copy).Interface()
 
 			// Compare values
-			if expected != got {
+			if !reflect.DeepEqual(expected, got) {
 				return dlms.NewError(dlms.ErrorCheckDoesNotMatch, fmt.Sprintf("values are not equal. Expected %v, got %v", expected, got))
 			}
 		} else if field.Kind() == reflect.Struct {
