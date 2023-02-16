@@ -11,7 +11,7 @@ import (
 )
 
 type Cipher struct {
-	Tag          cosemTag
+	Tag          CosemTag
 	Security     Security
 	SystemTitle  []byte
 	Key          []byte

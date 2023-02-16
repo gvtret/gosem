@@ -73,10 +73,13 @@ func TestDecodeRejectedAARE(t *testing.T) {
 
 func TestDecodeAAREWithSecurity(t *testing.T) {
 	ciphering, _ := NewCiphering(
+		SecurityLevelDedicatedKey,
 		SecurityEncryption|SecurityAuthentication,
 		decodeHexString("4349520000000001"),
 		decodeHexString("00112233445566778899AABBCCDDEEFF"),
-		decodeHexString("00112233445566778899AABBCCDDEEFF"))
+		1,
+		decodeHexString("00112233445566778899AABBCCDDEEFF"),
+	)
 
 	settings := &Settings{
 		Ciphering: ciphering,

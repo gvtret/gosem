@@ -169,9 +169,9 @@ func generateUserInformation(settings *Settings) (out []byte, err error) {
 			SystemTitle:  settings.Ciphering.SystemTitle,
 			Key:          settings.Ciphering.UnicastKey,
 			AuthKey:      settings.Ciphering.AuthenticationKey,
-			FrameCounter: settings.Ciphering.InvocationCounter,
+			FrameCounter: settings.Ciphering.UnicastKeyIC,
 		}
-		settings.Ciphering.InvocationCounter++
+		settings.Ciphering.UnicastKeyIC++
 
 		initiateRequest, err = CipherData(cfg, initiateRequest)
 		if err != nil {

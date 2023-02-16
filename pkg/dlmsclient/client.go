@@ -248,16 +248,21 @@ func (c *client) unsubscribe() {
 	c.dc = nil
 }
 
-func (c *client) encodeSendReceiveAndDecode(req dlms.CosemPDU) (pdu dlms.CosemPDU, err error) {
+func (c *client) encodeSendReceiveAndDecode(req dlms.CosemPDU) (dlms.CosemPDU, error) {
 	if !c.isAssociated {
-		err = dlms.NewError(dlms.ErrorInvalidState, "client is not associated")
-		return
+		return nil, dlms.NewError(dlms.ErrorInvalidState, "client is not associated")
 	}
 
 	src, err := req.Encode()
 	if err != nil {
-		err = dlms.NewError(dlms.ErrorInvalidParameter, fmt.Sprintf("error encoding PDU: %v", err))
-		return
+		return nil, dlms.NewError(dlms.ErrorInvalidParameter, fmt.Sprintf("error encoding PDU: %v", err))
+	}
+
+	if c.settings.Ciphering.Level != dlms.SecurityLevelNone {
+		src, err = c.cipherData(src)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	out, err := c.sendReceive(src)
@@ -266,20 +271,95 @@ func (c *client) encodeSendReceiveAndDecode(req dlms.CosemPDU) (pdu dlms.CosemPD
 			c.closeAssociation()
 		}
 
-		return
+		return nil, err
 	}
 
-	pdu, err = dlms.DecodeCosem(&out)
+	if c.settings.Ciphering.Level != dlms.SecurityLevelNone {
+		out, err = c.decipherData(out)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	pdu, err := dlms.DecodeCosem(&out)
 	if err != nil {
 		err = dlms.NewError(dlms.ErrorInvalidResponse, fmt.Sprintf("error decoding PDU: %v", err))
-		return
+		return nil, err
 	}
 
 	if c.timeoutTimer != nil {
 		c.timeoutTimer.Reset(c.associationTimeout)
 	}
 
-	return
+	return pdu, nil
+}
+
+func (c *client) cipherData(src []byte) ([]byte, error) {
+	tag := dlms.CosemTag(src[0])
+	if tag != dlms.TagGetRequest && tag != dlms.TagSetRequest && tag != dlms.TagActionRequest {
+		return nil, fmt.Errorf("unexpected tag %d", tag)
+	}
+
+	cipher := dlms.Cipher{
+		Security:    c.settings.Ciphering.Security,
+		SystemTitle: c.settings.Ciphering.SystemTitle,
+		AuthKey:     c.settings.Ciphering.AuthenticationKey,
+	}
+
+	if c.settings.Ciphering.Level == dlms.SecurityLevelGlobalKey {
+		switch dlms.CosemTag(src[0]) {
+		case dlms.TagGetRequest:
+			cipher.Tag = dlms.TagGloGetRequest
+		case dlms.TagSetRequest:
+			cipher.Tag = dlms.TagGloSetRequest
+		case dlms.TagActionRequest:
+			cipher.Tag = dlms.TagGloActionRequest
+		}
+
+		if len(c.settings.Ciphering.UnicastKey) != 16 {
+			return nil, fmt.Errorf("invalid unicast key")
+		}
+
+		cipher.Key = c.settings.Ciphering.UnicastKey
+		cipher.FrameCounter = c.settings.Ciphering.UnicastKeyIC
+		c.settings.Ciphering.UnicastKeyIC++
+	} else {
+		switch dlms.CosemTag(src[0]) {
+		case dlms.TagGetRequest:
+			cipher.Tag = dlms.TagDedGetRequest
+		case dlms.TagSetRequest:
+			cipher.Tag = dlms.TagDedSetRequest
+		case dlms.TagActionRequest:
+			cipher.Tag = dlms.TagDedActionRequest
+		}
+
+		if len(c.settings.Ciphering.DedicatedKey) != 16 {
+			return nil, fmt.Errorf("invalid dedicated key")
+		}
+
+		cipher.Key = c.settings.Ciphering.DedicatedKey
+		cipher.FrameCounter = c.settings.Ciphering.DedicatedKeyIC
+		c.settings.Ciphering.DedicatedKeyIC++
+	}
+
+	return dlms.CipherData(cipher, src)
+}
+
+func (c *client) decipherData(src []byte) ([]byte, error) {
+	cipher := dlms.Cipher{
+		Tag:         dlms.CosemTag(src[0]),
+		Security:    c.settings.Ciphering.Security,
+		SystemTitle: c.settings.Ciphering.SourceSystemTitle,
+		AuthKey:     c.settings.Ciphering.AuthenticationKey,
+	}
+
+	if c.settings.Ciphering.Level == dlms.SecurityLevelGlobalKey {
+		cipher.Key = c.settings.Ciphering.UnicastKey
+	} else {
+		cipher.Key = c.settings.Ciphering.DedicatedKey
+	}
+
+	return dlms.DecipherData(cipher, src)
 }
 
 func (c *client) closeAssociation() {

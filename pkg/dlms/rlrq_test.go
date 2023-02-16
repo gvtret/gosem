@@ -19,14 +19,15 @@ func TestEncodeRLRQ(t *testing.T) {
 }
 
 func TestEncodeRLRWithUserInformation(t *testing.T) {
-	ciphering := Ciphering{
-		Security:          SecurityEncryption | SecurityAuthentication,
-		SystemTitle:       decodeHexString("4349520000000001"),
-		UnicastKey:        decodeHexString("00112233445566778899AABBCCDDEEFF"),
-		AuthenticationKey: decodeHexString("00112233445566778899AABBCCDDEEFF"),
-		DedicatedKey:      decodeHexString("E803739DBE338C3A790D8D1B12C63FE2"),
-		InvocationCounter: 0x00000107,
-	}
+	ciphering, _ := NewCiphering(
+		SecurityLevelDedicatedKey,
+		SecurityEncryption|SecurityAuthentication,
+		decodeHexString("4349520000000001"),
+		decodeHexString("00112233445566778899AABBCCDDEEFF"),
+		0x00000107,
+		decodeHexString("00112233445566778899AABBCCDDEEFF"),
+	)
+	ciphering.DedicatedKey = decodeHexString("E803739DBE338C3A790D8D1B12C63FE2")
 
 	settings, _ := NewSettingsWithLowAuthenticationAndCiphering([]byte("JuS66BCZ"), ciphering)
 

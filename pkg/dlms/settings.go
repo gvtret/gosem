@@ -1,6 +1,9 @@
 package dlms
 
-import "fmt"
+import (
+	"crypto/rand"
+	"fmt"
+)
 
 type Authentication byte
 
@@ -16,6 +19,14 @@ const (
 	AuthenticationHighEcdsa  Authentication = 7 // High authentication is used. Password is hashed with ECDSA.
 )
 
+type SecurityLevel byte
+
+const (
+	SecurityLevelNone SecurityLevel = iota
+	SecurityLevelGlobalKey
+	SecurityLevelDedicatedKey
+)
+
 type Security byte
 
 const (
@@ -26,13 +37,15 @@ const (
 )
 
 type Ciphering struct {
+	Level             SecurityLevel
 	Security          Security
 	SystemTitle       []byte
 	SourceSystemTitle []byte
 	UnicastKey        []byte
 	AuthenticationKey []byte
-	InvocationCounter uint32
+	UnicastKeyIC      uint32
 	DedicatedKey      []byte
+	DedicatedKeyIC    uint32
 }
 
 type Settings struct {
@@ -79,7 +92,7 @@ func NewSettingsWithLowAuthenticationAndCiphering(password []byte, cipher Cipher
 	return s, nil
 }
 
-func NewCiphering(security Security, systemTitle []byte, unicastKey []byte, authenticationKey []byte) (Ciphering, error) {
+func NewCiphering(level SecurityLevel, security Security, systemTitle []byte, unicastKey []byte, unicastKeyIC uint32, authenticationKey []byte) (Ciphering, error) {
 	if len(systemTitle) != 8 {
 		return Ciphering{}, fmt.Errorf("system title must be 8 bytes long")
 	}
@@ -92,15 +105,32 @@ func NewCiphering(security Security, systemTitle []byte, unicastKey []byte, auth
 		return Ciphering{}, fmt.Errorf("authentication key must be 16 bytes long")
 	}
 
+	dk, err := generateKey()
+	if err != nil {
+		return Ciphering{}, fmt.Errorf("could not generate dedicated key: %w", err)
+	}
+
 	c := Ciphering{
+		Level:             level,
 		Security:          security,
 		SystemTitle:       systemTitle,
 		SourceSystemTitle: nil,
 		UnicastKey:        unicastKey,
 		AuthenticationKey: authenticationKey,
-		InvocationCounter: 0,
-		DedicatedKey:      nil,
+		UnicastKeyIC:      unicastKeyIC,
+		DedicatedKey:      dk,
+		DedicatedKeyIC:    1,
 	}
 
 	return c, nil
+}
+
+func generateKey() ([]byte, error) {
+	dk := make([]byte, 16)
+	_, err := rand.Read(dk)
+	if err != nil {
+		return nil, err
+	}
+
+	return dk, nil
 }

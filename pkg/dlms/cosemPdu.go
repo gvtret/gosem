@@ -2,52 +2,52 @@ package dlms
 
 import "fmt"
 
-type cosemTag uint8
+type CosemTag uint8
 
 const (
 	// ---- standardized DLMS APDUs
-	TagInitiateRequest          cosemTag = 1
-	TagReadRequest              cosemTag = 5
-	TagWriteRequest             cosemTag = 6
-	TagInitiateResponse         cosemTag = 8
-	TagReadResponse             cosemTag = 12
-	TagWriteResponse            cosemTag = 13
-	TagConfirmedServiceError    cosemTag = 14
-	TagDataNotification         cosemTag = 15
-	TagUnconfirmedWriteRequest  cosemTag = 22
-	TagInformationReportRequest cosemTag = 24
-	TagGloInitiateRequest       cosemTag = 33
-	TagGloInitiateResponse      cosemTag = 40
-	TagGloConfirmedServiceError cosemTag = 46
-	TagAARQ                     cosemTag = 96
-	TagAARE                     cosemTag = 97
-	TagRLRQ                     cosemTag = 98
-	TagRLRE                     cosemTag = 99
+	TagInitiateRequest          CosemTag = 1
+	TagReadRequest              CosemTag = 5
+	TagWriteRequest             CosemTag = 6
+	TagInitiateResponse         CosemTag = 8
+	TagReadResponse             CosemTag = 12
+	TagWriteResponse            CosemTag = 13
+	TagConfirmedServiceError    CosemTag = 14
+	TagDataNotification         CosemTag = 15
+	TagUnconfirmedWriteRequest  CosemTag = 22
+	TagInformationReportRequest CosemTag = 24
+	TagGloInitiateRequest       CosemTag = 33
+	TagGloInitiateResponse      CosemTag = 40
+	TagGloConfirmedServiceError CosemTag = 46
+	TagAARQ                     CosemTag = 96
+	TagAARE                     CosemTag = 97
+	TagRLRQ                     CosemTag = 98
+	TagRLRE                     CosemTag = 99
 	// --- APDUs used for data communication services
-	TagGetRequest               cosemTag = 192
-	TagSetRequest               cosemTag = 193
-	TagEventNotificationRequest cosemTag = 194
-	TagActionRequest            cosemTag = 195
-	TagGetResponse              cosemTag = 196
-	TagSetResponse              cosemTag = 197
-	TagActionResponse           cosemTag = 199
+	TagGetRequest               CosemTag = 192
+	TagSetRequest               CosemTag = 193
+	TagEventNotificationRequest CosemTag = 194
+	TagActionRequest            CosemTag = 195
+	TagGetResponse              CosemTag = 196
+	TagSetResponse              CosemTag = 197
+	TagActionResponse           CosemTag = 199
 	// --- global ciphered pdus
-	TagGloGetRequest               cosemTag = 200
-	TagGloSetRequest               cosemTag = 201
-	TagGloEventNotificationRequest cosemTag = 202
-	TagGloActionRequest            cosemTag = 203
-	TagGloGetResponse              cosemTag = 204
-	TagGloSetResponse              cosemTag = 205
-	TagGloActionResponse           cosemTag = 207
+	TagGloGetRequest               CosemTag = 200
+	TagGloSetRequest               CosemTag = 201
+	TagGloEventNotificationRequest CosemTag = 202
+	TagGloActionRequest            CosemTag = 203
+	TagGloGetResponse              CosemTag = 204
+	TagGloSetResponse              CosemTag = 205
+	TagGloActionResponse           CosemTag = 207
 	// --- dedicated ciphered pdus
-	TagDedGetRequest               cosemTag = 208
-	TagDedSetRequest               cosemTag = 209
-	TagDedEventNotificationRequest cosemTag = 210
-	TagDedActionRequest            cosemTag = 211
-	TagDedGetResponse              cosemTag = 212
-	TagDedSetResponse              cosemTag = 213
-	TagDedActionResponse           cosemTag = 215
-	TagExceptionResponse           cosemTag = 216
+	TagDedGetRequest               CosemTag = 208
+	TagDedSetRequest               CosemTag = 209
+	TagDedEventNotificationRequest CosemTag = 210
+	TagDedActionRequest            CosemTag = 211
+	TagDedGetResponse              CosemTag = 212
+	TagDedSetResponse              CosemTag = 213
+	TagDedActionResponse           CosemTag = 215
+	TagExceptionResponse           CosemTag = 216
 )
 
 func ErrWrongTag(idx int, get byte, correct byte) error {
@@ -64,7 +64,7 @@ func ErrWrongSlice(current []byte, correct []byte) error {
 
 // Value will return primitive value of the target.
 // This is used for comparing with non custom typed object
-func (s cosemTag) Value() uint8 {
+func (s CosemTag) Value() uint8 {
 	return uint8(s)
 }
 

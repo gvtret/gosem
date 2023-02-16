@@ -226,9 +226,9 @@ func (c *client) checkRequestWithStructOfElements(data interface{}) (err error) 
 			expected := reflect.Indirect(field).Interface()
 
 			// Copy the expected value
-			copy := reflect.New(reflect.Indirect(field).Type())
+			value := reflect.New(reflect.Indirect(field).Type())
 
-			err = c.getRequestWithUnmarshal(ad, nil, copy.Interface())
+			err = c.getRequestWithUnmarshal(ad, nil, value.Interface())
 			if err != nil {
 				return err
 			}
@@ -238,7 +238,7 @@ func (c *client) checkRequestWithStructOfElements(data interface{}) (err error) 
 			}
 
 			// Get got value
-			got := reflect.Indirect(copy).Interface()
+			got := reflect.Indirect(value).Interface()
 
 			// Compare values
 			if !reflect.DeepEqual(expected, got) {
