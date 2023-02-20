@@ -22,7 +22,8 @@ type client struct {
 	timeoutTimer       *time.Timer
 	tc                 dlms.DataChannel
 	dc                 dlms.DataChannel
-	dataNotification   chan dlms.DataNotification
+	notificationID     string
+	notificationChan   chan dlms.Notification
 	mutex              sync.Mutex
 	subsMutex          sync.Mutex
 }
@@ -37,7 +38,8 @@ func New(settings dlms.Settings, transport dlms.Transport, replyTimeout time.Dur
 		timeoutTimer:       nil,
 		tc:                 make(dlms.DataChannel, 10),
 		dc:                 nil,
-		dataNotification:   nil,
+		notificationID:     "",
+		notificationChan:   nil,
 		mutex:              sync.Mutex{},
 		subsMutex:          sync.Mutex{},
 	}
@@ -47,6 +49,10 @@ func New(settings dlms.Settings, transport dlms.Transport, replyTimeout time.Dur
 	go c.manager()
 
 	return c
+}
+
+func (c *client) SetAddress(client int, server int) {
+	c.transport.SetAddress(client, server)
 }
 
 func (c *client) Connect() error {
@@ -88,11 +94,12 @@ func (c *client) IsConnected() bool {
 	return c.transport.IsConnected()
 }
 
-func (c *client) SetDataNotificationChannel(ec chan dlms.DataNotification) {
+func (c *client) SetNotificationChannel(id string, nc chan dlms.Notification) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 
-	c.dataNotification = ec
+	c.notificationID = id
+	c.notificationChan = nc
 }
 
 func (c *client) GetSettings() dlms.Settings {
@@ -199,8 +206,13 @@ func (c *client) manager() {
 		dn, err := dlms.DecodeDataNotification(&data)
 		if err == nil {
 			c.mutex.Lock()
-			if c.dataNotification != nil {
-				c.dataNotification <- dn
+			nc := dlms.Notification{
+				ID:               c.notificationID,
+				DataNotification: dn,
+			}
+
+			if c.notificationChan != nil {
+				c.notificationChan <- nc
 			}
 			c.mutex.Unlock()
 		} else {
@@ -209,6 +221,10 @@ func (c *client) manager() {
 				c.dc <- data
 			}
 			c.subsMutex.Unlock()
+		}
+
+		if len(data) == 0 {
+			continue
 		}
 	}
 }

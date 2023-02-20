@@ -222,16 +222,17 @@ func TestClient_GetAndSetSettings(t *testing.T) {
 	assert.Equal(t, []byte("00000003"), settings.Password)
 }
 
-func TestClient_DataNotification(t *testing.T) {
+func TestClient_Notification(t *testing.T) {
 	c, tm, rdc := associate(t)
 
-	dataNotification := make(chan dlms.DataNotification, 10)
-	c.SetDataNotificationChannel(dataNotification)
+	notification := make(chan dlms.Notification, 10)
+	c.SetNotificationChannel("My ID", notification)
 
 	rdc <- decodeHexString("0F0063D76A0003FF")
 
-	dn := <-dataNotification
-	assert.Equal(t, uint32(6543210), dn.InvokeIDAndPriority)
+	dc := <-notification
+	assert.Equal(t, "My ID", dc.ID)
+	assert.Equal(t, uint32(6543210), dc.DataNotification.InvokeIDAndPriority)
 
 	tm.AssertExpectations(t)
 }
