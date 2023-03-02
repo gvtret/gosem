@@ -155,6 +155,26 @@ func TestClient_GetRequestRequestWithSelectiveAccess(t *testing.T) {
 	tm.AssertExpectations(t)
 }
 
+func TestClient_GetRequestWithSelectiveAccessByDateAndValues(t *testing.T) {
+	c, tm, rdc := associate(t)
+
+	var data []uint32
+
+	sendReceive(tm, rdc, "C001C100070100630100FF0201010204020412000809060000010000FF0F02120000090C07E40101030A000000000000090C07E40101030B0000000000000102020412000809060000010000FF0F02120000020412000109060000600A07FF0F02120000", "C401C100010206000000010600000002")
+	timeStart := time.Date(2020, time.January, 1, 10, 0, 0, 0, time.UTC)
+	timeEnd := time.Date(2020, time.January, 1, 11, 0, 0, 0, time.UTC)
+
+	vad := make([]dlms.AttributeDescriptor, 2)
+	vad[0] = *dlms.CreateAttributeDescriptor(8, "0.0.1.0.0.255", 2)
+	vad[1] = *dlms.CreateAttributeDescriptor(1, "0.0.96.10.7.255", 2)
+
+	err := c.GetRequestWithSelectiveAccessByDateAndValues(dlms.CreateAttributeDescriptor(7, "1-0:99.1.0.255", 2), timeStart, timeEnd, vad, &data)
+	assert.NoError(t, err)
+	assert.Len(t, data, 2)
+
+	tm.AssertExpectations(t)
+}
+
 func TestClient_GetRequestWithStructOfElements(t *testing.T) {
 	var data struct {
 		Value1 uint  `obis:"1,1-1:94.34.100.255,2"`

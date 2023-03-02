@@ -7,55 +7,60 @@ import (
 	"github.com/Circutor/gosem/pkg/axdr"
 )
 
-type accesSelector uint8
+type accessSelector uint8
 
 const (
-	AccessSelectorRange accesSelector = 0x1
-	AccessSelectorEntry accesSelector = 0x2
+	AccessSelectorRange accessSelector = 0x1
+	AccessSelectorEntry accessSelector = 0x2
 )
 
 // Value will return primitive value of the target.
 // This is used for comparing with non custom typed object
-func (s accesSelector) Value() uint8 {
+func (s accessSelector) Value() uint8 {
 	return uint8(s)
 }
 
 type SelectiveAccessDescriptor struct {
-	AccessSelector  accesSelector
+	AccessSelector  accessSelector
 	AccessParameter axdr.DlmsData
 }
 
-func CreateSelectiveAccessDescriptor(as accesSelector, ap interface{}) *SelectiveAccessDescriptor {
-	if as == AccessSelectorRange {
-		// make sure AccessParameter is a [2]time.Time
-		ranges := ap.([]time.Time)
-		// selector range should be of:
-		// structure { structure {classid, obis, attributeid, dataidx}, range-start, range-end, selected val }
-		ClassID := *axdr.CreateAxdrLongUnsigned(8)
-		obisCode := *axdr.CreateAxdrOctetString("0.0.1.0.0.255") // obis of clock
-		AttributeID := *axdr.CreateAxdrInteger(2)
-		dataIdx := *axdr.CreateAxdrLongUnsigned(0)
-		rangeStart := *axdr.CreateAxdrOctetString(ranges[0])
-		rangeEnd := *axdr.CreateAxdrOctetString(ranges[1])
-		selectedValue := *axdr.CreateAxdrArray([]*axdr.DlmsData{})
+func CreateSelectiveAccessByRangeDescriptor(from time.Time, to time.Time, values []AttributeDescriptor) *SelectiveAccessDescriptor {
+	restrictingObject := createAttributeDescriptorWithIndex(8, "0.0.1.0.0.255", 2, 0)
 
-		restrictingObject := *axdr.CreateAxdrStructure([]*axdr.DlmsData{&ClassID, &obisCode, &AttributeID, &dataIdx})
-		rangeDescriptor := *axdr.CreateAxdrStructure([]*axdr.DlmsData{&restrictingObject, &rangeStart, &rangeEnd, &selectedValue})
+	fromValue := axdr.CreateAxdrOctetString(from)
+	toValue := axdr.CreateAxdrOctetString(to)
 
-		return &SelectiveAccessDescriptor{AccessSelector: as, AccessParameter: rangeDescriptor}
+	selected := make([]*axdr.DlmsData, 0, len(values))
+	for _, v := range values {
+		selected = append(selected, createAttributeDescriptorWithIndex(v.ClassID, v.InstanceID.String(), v.AttributeID, 0))
 	}
+	selectedValues := axdr.CreateAxdrArray(selected)
 
-	// make sure AccessParameter is a [2]uint32
-	entries := ap.([]uint32)
-	// selector enty should be of:
-	// structure {fromEntry, toEntry, fromSelectedValue, toSelectedValue}
-	fromEntry := *axdr.CreateAxdrDoubleLongUnsigned(entries[0])
-	toEntry := *axdr.CreateAxdrDoubleLongUnsigned(entries[1])
+	rangeDescriptor := *axdr.CreateAxdrStructure([]*axdr.DlmsData{restrictingObject, fromValue, toValue, selectedValues})
+
+	return &SelectiveAccessDescriptor{AccessSelector: AccessSelectorRange, AccessParameter: rangeDescriptor}
+}
+
+func CreateSelectiveAccessByEntryDescriptor(from uint32, to uint32) *SelectiveAccessDescriptor {
+	fromEntry := *axdr.CreateAxdrDoubleLongUnsigned(from)
+	toEntry := *axdr.CreateAxdrDoubleLongUnsigned(to)
+
 	fromSelectedValue := *axdr.CreateAxdrLongUnsigned(0)
 	toSelectedValue := *axdr.CreateAxdrLongUnsigned(0)
 
 	entryDescriptor := *axdr.CreateAxdrStructure([]*axdr.DlmsData{&fromEntry, &toEntry, &fromSelectedValue, &toSelectedValue})
-	return &SelectiveAccessDescriptor{AccessSelector: as, AccessParameter: entryDescriptor}
+
+	return &SelectiveAccessDescriptor{AccessSelector: AccessSelectorEntry, AccessParameter: entryDescriptor}
+}
+
+func createAttributeDescriptorWithIndex(class uint16, obis string, attribute int8, index uint16) *axdr.DlmsData {
+	classID := *axdr.CreateAxdrLongUnsigned(class)
+	obisCode := *axdr.CreateAxdrOctetString(obis)
+	attributeID := *axdr.CreateAxdrInteger(attribute)
+	dataIdx := *axdr.CreateAxdrLongUnsigned(index)
+
+	return axdr.CreateAxdrStructure([]*axdr.DlmsData{&classID, &obisCode, &attributeID, &dataIdx})
 }
 
 func (s SelectiveAccessDescriptor) Encode() (out []byte, err error) {

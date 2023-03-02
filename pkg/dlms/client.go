@@ -27,6 +27,7 @@ type Client interface {
 	SetNotificationChannel(id string, nc chan Notification)
 	GetRequest(att *AttributeDescriptor, data interface{}) (err error)
 	GetRequestWithSelectiveAccessByDate(att *AttributeDescriptor, start time.Time, end time.Time, data interface{}) (err error)
+	GetRequestWithSelectiveAccessByDateAndValues(att *AttributeDescriptor, start time.Time, end time.Time, values []AttributeDescriptor, data interface{}) (err error)
 	GetRequestWithStructOfElements(data interface{}) (err error)
 	SetRequest(att *AttributeDescriptor, data interface{}) (err error)
 	SetRequestWithStructOfElements(data interface{}) (err error)

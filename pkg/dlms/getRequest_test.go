@@ -8,7 +8,7 @@ import (
 
 func TestNewGetRequestNormal(t *testing.T) {
 	attrDesc := *CreateAttributeDescriptor(1, "1.0.0.3.0.255", 2)
-	accsDesc := *CreateSelectiveAccessDescriptor(AccessSelectorEntry, []uint32{0, 5})
+	accsDesc := *CreateSelectiveAccessByEntryDescriptor(0, 5)
 
 	a := *CreateGetRequestNormal(81, attrDesc, &accsDesc)
 	t1, e := a.Encode()
@@ -48,7 +48,7 @@ func TestNewGetRequestNext(t *testing.T) {
 }
 
 func TestNewGetRequestWithList(t *testing.T) {
-	sad := *CreateSelectiveAccessDescriptor(AccessSelectorEntry, []uint32{0, 5})
+	sad := *CreateSelectiveAccessByEntryDescriptor(0, 5)
 	a1 := *CreateAttributeDescriptorWithSelection(1, "1.0.0.3.0.255", 2, &sad)
 
 	a := *CreateGetRequestWithList(69, []AttributeDescriptorWithSelection{a1})
@@ -91,7 +91,7 @@ func TestDecode_GetRequestNormal(t *testing.T) {
 	}
 
 	attrDesc := *CreateAttributeDescriptor(1, "1.0.0.3.0.255", 2)
-	accsDesc := *CreateSelectiveAccessDescriptor(AccessSelectorEntry, []uint32{0, 5})
+	accsDesc := *CreateSelectiveAccessByEntryDescriptor(0, 5)
 	b := *CreateGetRequestNormal(81, attrDesc, &accsDesc)
 
 	if a.InvokePriority != b.InvokePriority {
@@ -181,7 +181,7 @@ func TestDecode_GetRequestWithList(t *testing.T) {
 		t.Errorf("t1 Failed to DecodeGetRequestWithList. err:%v", err)
 	}
 
-	sad := *CreateSelectiveAccessDescriptor(AccessSelectorEntry, []uint32{0, 5})
+	sad := *CreateSelectiveAccessByEntryDescriptor(0, 5)
 	a1 := *CreateAttributeDescriptorWithSelection(1, "1.0.0.3.0.255", 2, &sad)
 	b := *CreateGetRequestWithList(69, []AttributeDescriptorWithSelection{a1})
 

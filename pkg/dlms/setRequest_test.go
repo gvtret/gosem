@@ -10,7 +10,7 @@ import (
 
 func TestNew_SetRequestNormal(t *testing.T) {
 	attrDesc := *CreateAttributeDescriptor(1, "1.0.0.3.0.255", 2)
-	accsDesc := *CreateSelectiveAccessDescriptor(AccessSelectorEntry, []uint32{0, 5})
+	accsDesc := *CreateSelectiveAccessByEntryDescriptor(0, 5)
 	dt := *axdr.CreateAxdrOctetString("0102030405")
 
 	a := *CreateSetRequestNormal(81, attrDesc, &accsDesc, dt)
@@ -39,7 +39,7 @@ func TestNew_SetRequestNormal(t *testing.T) {
 
 func TestNew_SetRequestWithFirstDataBlock(t *testing.T) {
 	attrDesc := *CreateAttributeDescriptor(1, "1.0.0.3.0.255", 2)
-	accsDesc := *CreateSelectiveAccessDescriptor(AccessSelectorEntry, []uint32{0, 5})
+	accsDesc := *CreateSelectiveAccessByEntryDescriptor(0, 5)
 	dt := *CreateDataBlockSA(true, 1, []byte{1, 2, 3, 4, 5})
 
 	a := *CreateSetRequestWithFirstDataBlock(81, attrDesc, &accsDesc, dt)
@@ -81,7 +81,7 @@ func TestNew_SetRequestWithDataBlock(t *testing.T) {
 }
 
 func TestNew_SetRequestWithList(t *testing.T) {
-	sad := *CreateSelectiveAccessDescriptor(AccessSelectorEntry, []uint32{0, 5})
+	sad := *CreateSelectiveAccessByEntryDescriptor(0, 5)
 	a1 := *CreateAttributeDescriptorWithSelection(1, "1.0.0.3.0.255", 2, &sad)
 	d1 := *axdr.CreateAxdrOctetString("0102030405")
 
@@ -135,7 +135,7 @@ func TestNew_SetRequestWithList(t *testing.T) {
 }
 
 func TestNew_SetRequestWithListAndFirstDataBlock(t *testing.T) {
-	sad := *CreateSelectiveAccessDescriptor(AccessSelectorEntry, []uint32{0, 5})
+	sad := *CreateSelectiveAccessByEntryDescriptor(0, 5)
 	a1 := *CreateAttributeDescriptorWithSelection(1, "1.0.0.3.0.255", 2, &sad)
 	dt := *CreateDataBlockSA(true, 1, []byte{1, 2, 3, 4, 5})
 
@@ -179,7 +179,7 @@ func TestDecode_SetRequestNormal(t *testing.T) {
 	}
 
 	attrDesc := *CreateAttributeDescriptor(1, "1.0.0.3.0.255", 2)
-	accsDesc := *CreateSelectiveAccessDescriptor(AccessSelectorEntry, []uint32{0, 5})
+	accsDesc := *CreateSelectiveAccessByEntryDescriptor(0, 5)
 	dt := *axdr.CreateAxdrOctetString("0102030405")
 	b := *CreateSetRequestNormal(81, attrDesc, &accsDesc, dt)
 
@@ -243,7 +243,7 @@ func TestDecode_SetRequestWithFirstDataBlock(t *testing.T) {
 	}
 
 	attrDesc := *CreateAttributeDescriptor(1, "1.0.0.3.0.255", 2)
-	accsDesc := *CreateSelectiveAccessDescriptor(AccessSelectorEntry, []uint32{0, 5})
+	accsDesc := *CreateSelectiveAccessByEntryDescriptor(0, 5)
 	dt := *CreateDataBlockSA(true, 1, []byte{1, 2, 3, 4, 5})
 	b := *CreateSetRequestWithFirstDataBlock(81, attrDesc, &accsDesc, dt)
 
@@ -338,7 +338,7 @@ func TestDecode_SetRequestWithList(t *testing.T) {
 		t.Errorf("t1 Failed to DecodeSetRequestWithList. err:%v", err)
 	}
 
-	sad := *CreateSelectiveAccessDescriptor(AccessSelectorEntry, []uint32{0, 5})
+	sad := *CreateSelectiveAccessByEntryDescriptor(0, 5)
 	a1 := *CreateAttributeDescriptorWithSelection(1, "1.0.0.3.0.255", 2, &sad)
 	d1 := *axdr.CreateAxdrOctetString("0102030405")
 	b := *CreateSetRequestWithList(69, []AttributeDescriptorWithSelection{a1}, []axdr.DlmsData{d1})
@@ -419,7 +419,7 @@ func TestDecode_SetRequestWithListAndFirstDataBlock(t *testing.T) {
 		t.Errorf("t1 Failed to DecodeSetRequestWithListAndFirstDataBlock. err:%v", err)
 	}
 
-	sad := *CreateSelectiveAccessDescriptor(AccessSelectorEntry, []uint32{0, 5})
+	sad := *CreateSelectiveAccessByEntryDescriptor(0, 5)
 	a1 := *CreateAttributeDescriptorWithSelection(1, "1.0.0.3.0.255", 2, &sad)
 	dt := *CreateDataBlockSA(true, 1, []byte{1, 2, 3, 4, 5})
 	b := *CreateSetRequestWithListAndFirstDataBlock(69, []AttributeDescriptorWithSelection{a1}, dt)

@@ -1,91 +1,72 @@
 package dlms
 
 import (
-	"bytes"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestSelectiveAccessDescriptor_Encode(t *testing.T) {
-	a := *CreateSelectiveAccessDescriptor(AccessSelectorEntry, []uint32{0, 5})
-	t1, e := a.Encode()
-	if e != nil {
-		t.Errorf("t1 Encode Failed. err: %v", e)
-	}
-	result := []byte{2, 2, 4, 6, 0, 0, 0, 0, 6, 0, 0, 0, 5, 18, 0, 0, 18, 0, 0}
+	a := *CreateSelectiveAccessByEntryDescriptor(0, 5)
+	out, err := a.Encode()
+	assert.NoError(t, err)
 
-	res := bytes.Compare(t1, result)
-	if res != 0 {
-		t.Errorf("Test AccessSelectorEntry failed. get: %d, should:%v", t1, result)
-	}
+	expected := decodeHexString("02020406000000000600000005120000120000")
+	assert.Equal(t, expected, out)
 
 	timeStart := time.Date(2020, time.January, 1, 10, 0, 0, 0, time.UTC)
 	timeEnd := time.Date(2020, time.January, 1, 11, 0, 0, 0, time.UTC)
-	b := *CreateSelectiveAccessDescriptor(AccessSelectorRange, []time.Time{timeStart, timeEnd})
-	t2, e := b.Encode()
-	if e != nil {
-		t.Errorf("t2 Encode Failed. err: %v", e)
-	}
-	result = []byte{1, 2, 4, 2, 4, 18, 0, 8, 9, 6, 0, 0, 1, 0, 0, 255, 15, 2, 18, 0, 0, 9, 12, 7, 228, 1, 1, 3, 10, 0, 0, 0, 0, 0, 0, 9, 12, 7, 228, 1, 1, 3, 11, 0, 0, 0, 0, 0, 0, 1, 0}
+	b := *CreateSelectiveAccessByRangeDescriptor(timeStart, timeEnd, nil)
+	out, err = b.Encode()
+	assert.NoError(t, err)
 
-	res = bytes.Compare(t2, result)
-	if res != 0 {
-		t.Errorf("Test AccessSelectorRange failed. get: %d, should:%v", t2, result)
-	}
+	expected = decodeHexString("010204020412000809060000010000FF0F02120000090C07E40101030A000000000000090C07E40101030B0000000000000100")
+	assert.Equal(t, expected, out)
+
+	vad := make([]AttributeDescriptor, 2)
+	vad[0] = *CreateAttributeDescriptor(8, "0.0.1.0.0.255", 2)
+	vad[1] = *CreateAttributeDescriptor(1, "0.0.96.10.7.255", 2)
+
+	c := *CreateSelectiveAccessByRangeDescriptor(timeStart, timeEnd, vad)
+	out, err = c.Encode()
+	assert.NoError(t, err)
+
+	expected = decodeHexString("010204020412000809060000010000FF0F02120000090C07E40101030A000000000000090C07E40101030B0000000000000102020412000809060000010000FF0F02120000020412000109060000600A07FF0F02120000")
+	assert.Equal(t, expected, out)
 }
 
 func TestSelectiveAccessDescriptor_Decode(t *testing.T) {
 	// ------------------------ AccessSelectorEntry
-	src := []byte{2, 2, 4, 6, 0, 0, 0, 0, 6, 0, 0, 0, 5, 18, 0, 0, 18, 0, 0}
-	b := *CreateSelectiveAccessDescriptor(AccessSelectorEntry, []uint32{0, 5})
+	src := decodeHexString("02020406000000000600000005120000120000")
+	b := *CreateSelectiveAccessByEntryDescriptor(0, 5)
 
-	a, e := DecodeSelectiveAccessDescriptor(&src)
-	if e != nil {
-		t.Errorf("t1 Failed to Decode. err:%v", e)
-	}
-	if a.AccessSelector != b.AccessSelector {
-		t.Errorf("t1 AccessSelector Failed. get: %d, should:%v", a.AccessSelector, b.AccessSelector)
-	}
+	a, err := DecodeSelectiveAccessDescriptor(&src)
+	assert.NoError(t, err)
+	assert.Equal(t, a.AccessSelector, b.AccessSelector)
 
 	aByte, _ := a.AccessParameter.Encode()
 	bByte, _ := b.AccessParameter.Encode()
-
-	res := bytes.Compare(aByte, bByte)
-	if res != 0 {
-		t.Errorf("t1 AccessParameter Failed. get: %d, should:%v", a.AccessParameter.Value, b.AccessParameter.Value)
-	}
+	assert.Equal(t, aByte, bByte)
 
 	// ------------------------ AccessSelectorRange
-
-	src = []byte{1, 2, 4, 2, 4, 18, 0, 8, 9, 6, 0, 0, 1, 0, 0, 255, 15, 2, 18, 0, 0, 9, 12, 7, 228, 1, 1, 3, 10, 0, 0, 0, 0, 0, 0, 9, 12, 7, 228, 1, 1, 3, 11, 0, 0, 0, 0, 0, 0, 1, 0}
+	src = decodeHexString("010204020412000809060000010000FF0F02120000090C07E40101030A000000000000090C07E40101030B0000000000000100")
 	timeStart := time.Date(2020, time.January, 1, 10, 0, 0, 0, time.UTC)
 	timeEnd := time.Date(2020, time.January, 1, 11, 0, 0, 0, time.UTC)
-	b = *CreateSelectiveAccessDescriptor(AccessSelectorRange, []time.Time{timeStart, timeEnd})
+	b = *CreateSelectiveAccessByRangeDescriptor(timeStart, timeEnd, nil)
 
-	a, e = DecodeSelectiveAccessDescriptor(&src)
-	if e != nil {
-		t.Errorf("t2 Failed to Decode. err:%v", e)
-	}
-	if a.AccessSelector != b.AccessSelector {
-		t.Errorf("t2 AccessSelector Failed. get: %d, should:%v", a.AccessSelector, b.AccessSelector)
-	}
+	a, err = DecodeSelectiveAccessDescriptor(&src)
+	assert.NoError(t, err)
+	assert.Equal(t, a.AccessSelector, b.AccessSelector)
 
 	aByte, _ = a.AccessParameter.Encode()
 	bByte, _ = b.AccessParameter.Encode()
-
-	res = bytes.Compare(aByte, bByte)
-	if res != 0 {
-		t.Errorf("t2 AccessParameter Failed. get: %d, should:%v", a.AccessParameter.Value, b.AccessParameter.Value)
-	}
+	assert.Equal(t, aByte, bByte)
 
 	// --- making sure src wont change if decode fail
-	src = []byte{2, 2, 4, 6, 0, 0, 0, 0, 6, 0, 0, 0, 5, 255, 0, 0, 18, 0, 0}
+	src = decodeHexString("02020406000000000600000005FF0000120000")
 	oriLength := len(src)
-	a, e = DecodeSelectiveAccessDescriptor(&src)
-	if e == nil {
-		t.Errorf("t3 should fail")
-	}
-	if len(src) != oriLength {
-		t.Errorf("t3. src should not change on fail (%v)", src)
-	}
+	a, err = DecodeSelectiveAccessDescriptor(&src)
+	assert.Error(t, err)
+	assert.Len(t, src, oriLength)
 }

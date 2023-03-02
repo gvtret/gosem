@@ -23,7 +23,15 @@ func (c *client) GetRequestWithSelectiveAccessByDate(att *dlms.AttributeDescript
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 
-	acc := dlms.CreateSelectiveAccessDescriptor(dlms.AccessSelectorRange, []time.Time{start, end})
+	acc := dlms.CreateSelectiveAccessByRangeDescriptor(start, end, nil)
+	return c.getRequestWithUnmarshal(att, acc, data)
+}
+
+func (c *client) GetRequestWithSelectiveAccessByDateAndValues(att *dlms.AttributeDescriptor, start time.Time, end time.Time, values []dlms.AttributeDescriptor, data interface{}) (err error) {
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
+
+	acc := dlms.CreateSelectiveAccessByRangeDescriptor(start, end, values)
 	return c.getRequestWithUnmarshal(att, acc, data)
 }
 
