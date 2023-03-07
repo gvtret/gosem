@@ -141,7 +141,7 @@ func TestWrapper_Receive(t *testing.T) {
 	transportMock := mocks.NewTransportMock(t)
 
 	var tdc dlms.DataChannel
-	wdc := make(dlms.DataChannel, 1)
+	wdc := make(dlms.DataChannel, 10)
 
 	transportMock.On("SetReception", mock.Anything).Run(func(args mock.Arguments) {
 		tdc = args.Get(0).(dlms.DataChannel)
@@ -165,12 +165,33 @@ func TestWrapper_Receive(t *testing.T) {
 	// Too long
 	tdc <- decodeHexString("00010003000110000123456789")
 
-	// Length mismatch
-	tdc <- decodeHexString("00010003000100040123456789")
-
 	// Valid
 	tdc <- decodeHexString("00010003000100050123456789")
 	assert.Equal(t, decodeHexString("0123456789"), <-wdc)
+
+	transportMock.On("Close").Return(nil).Once()
+	w.Close()
+
+	transportMock.AssertExpectations(t)
+}
+
+func TestWrapper_ReceiveMultiple(t *testing.T) {
+	transportMock := mocks.NewTransportMock(t)
+
+	var tdc dlms.DataChannel
+	wdc := make(dlms.DataChannel, 10)
+
+	transportMock.On("SetReception", mock.Anything).Run(func(args mock.Arguments) {
+		tdc = args.Get(0).(dlms.DataChannel)
+	}).Once()
+
+	w := wrapper.New(transportMock, 1, 3)
+	w.SetReception(wdc)
+
+	// Valid
+	tdc <- decodeHexString("0001000300010005012345678900010003000100059876543210")
+	assert.Equal(t, decodeHexString("0123456789"), <-wdc)
+	assert.Equal(t, decodeHexString("9876543210"), <-wdc)
 
 	transportMock.On("Close").Return(nil).Once()
 	w.Close()

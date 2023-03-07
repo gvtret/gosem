@@ -95,8 +95,8 @@ func (c *client) IsConnected() bool {
 }
 
 func (c *client) SetNotificationChannel(id string, nc chan dlms.Notification) {
-	c.mutex.Lock()
-	defer c.mutex.Unlock()
+	c.subsMutex.Lock()
+	defer c.subsMutex.Unlock()
 
 	c.notificationID = id
 	c.notificationChan = nc
@@ -205,16 +205,16 @@ func (c *client) manager() {
 
 		dn, err := dlms.DecodeDataNotification(&data)
 		if err == nil {
-			c.mutex.Lock()
 			nc := dlms.Notification{
 				ID:               c.notificationID,
 				DataNotification: dn,
 			}
 
+			c.subsMutex.Lock()
 			if c.notificationChan != nil {
 				c.notificationChan <- nc
 			}
-			c.mutex.Unlock()
+			c.subsMutex.Unlock()
 		} else {
 			c.subsMutex.Lock()
 			if c.dc != nil {

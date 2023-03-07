@@ -60,13 +60,23 @@ func (w *wrapper) manager() {
 	for {
 		data := <-w.tc
 
-		err := w.parseHeader(data)
-		if err != nil {
-			if w.logger != nil {
-				w.logger.Printf("Invalid received data: %e", err)
+		for {
+			if len(data) == 0 {
+				break
 			}
-		} else if w.dc != nil {
-			w.dc <- data[headerLength:]
+
+			src, err := w.parseHeader(&data)
+			if err != nil {
+				if w.logger != nil {
+					w.logger.Printf("Invalid received data: %e", err)
+				}
+
+				break
+			}
+
+			if w.dc != nil {
+				w.dc <- src
+			}
 		}
 	}
 }
@@ -114,34 +124,34 @@ func (w *wrapper) SetLogger(logger *log.Logger) {
 	w.transport.SetLogger(logger)
 }
 
-func (w *wrapper) parseHeader(src []byte) error {
+func (w *wrapper) parseHeader(ori *[]byte) ([]byte, error) {
+	src := *ori
+
 	if len(src) < headerLength {
-		return fmt.Errorf("message too short, received only %d bytes", len(src))
+		return nil, fmt.Errorf("message too short, received only %d bytes", len(src))
 	}
 
 	receivedVersion := int(binary.BigEndian.Uint16(src[0:2]))
 	if receivedVersion != version {
-		return fmt.Errorf("invalid version, expected %d, received %d", version, receivedVersion)
+		return nil, fmt.Errorf("invalid version, expected %d, received %d", version, receivedVersion)
 	}
 
 	receivedDestination := binary.BigEndian.Uint16(src[2:4])
 	if receivedDestination != w.destination {
-		return fmt.Errorf("invalid destination, expected %d, received %d", w.destination, receivedDestination)
+		return nil, fmt.Errorf("invalid destination, expected %d, received %d", w.destination, receivedDestination)
 	}
 
 	receivedSource := binary.BigEndian.Uint16(src[4:6])
 	if receivedSource != w.source {
-		return fmt.Errorf("invalid source, expected %d, received %d", w.source, receivedSource)
+		return nil, fmt.Errorf("invalid source, expected %d, received %d", w.source, receivedSource)
 	}
 
 	length := int(binary.BigEndian.Uint16(src[6:8])) + headerLength
 	if length > maxLength {
-		return fmt.Errorf("expected message too long (%d)", length)
+		return nil, fmt.Errorf("expected message too long (%d)", length)
 	}
 
-	if len(src) != length {
-		return fmt.Errorf("message length mismatch, expected %d, received %d", length, len(src))
-	}
+	(*ori) = (*ori)[length:]
 
-	return nil
+	return src[headerLength:length], nil
 }

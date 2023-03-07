@@ -287,7 +287,7 @@ func associate(t *testing.T) (dlms.Client, *mocks.TransportMock, dlms.DataChanne
 
 	tm := mocks.NewTransportMock(t)
 
-	rdc := make(dlms.DataChannel, 1)
+	rdc := make(dlms.DataChannel, 10)
 	tm.On("SetReception", mock.Anything).Run(func(args mock.Arguments) {
 		rdc = args.Get(0).(dlms.DataChannel)
 	}).Once()

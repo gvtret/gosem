@@ -85,7 +85,7 @@ func TestClient_Associate(t *testing.T) {
 func TestClient_InvalidPassword(t *testing.T) {
 	tm := mocks.NewTransportMock(t)
 
-	rdc := make(dlms.DataChannel, 1)
+	rdc := make(dlms.DataChannel, 10)
 	tm.On("SetReception", mock.Anything).Run(func(args mock.Arguments) {
 		rdc = args.Get(0).(dlms.DataChannel)
 	}).Once()
@@ -110,7 +110,7 @@ func TestClient_InvalidPassword(t *testing.T) {
 func TestClient_InvalidPasswordLGZ(t *testing.T) {
 	tm := mocks.NewTransportMock(t)
 
-	rdc := make(dlms.DataChannel, 1)
+	rdc := make(dlms.DataChannel, 10)
 	tm.On("SetReception", mock.Anything).Run(func(args mock.Arguments) {
 		rdc = args.Get(0).(dlms.DataChannel)
 	}).Once()
@@ -177,7 +177,7 @@ func TestClient_Timeout(t *testing.T) {
 func TestClient_TimeoutRefreshWithCommunications(t *testing.T) {
 	tm := mocks.NewTransportMock(t)
 
-	rdc := make(dlms.DataChannel, 1)
+	rdc := make(dlms.DataChannel, 10)
 	tm.On("SetReception", mock.Anything).Run(func(args mock.Arguments) {
 		rdc = args.Get(0).(dlms.DataChannel)
 	}).Once()
@@ -237,10 +237,26 @@ func TestClient_Notification(t *testing.T) {
 	tm.AssertExpectations(t)
 }
 
+func TestClient_NotificationWithGet(t *testing.T) {
+	c, tm, rdc := associate(t)
+
+	tm.On("Send", decodeHexString("C001C100080000010000FF0300")).Run(func(args mock.Arguments) {
+		if rdc != nil {
+			rdc <- decodeHexString("0F00000461000101020509060009190900FF12004612046E120A451204FE")
+			rdc <- decodeHexString("C401C10010003C")
+		}
+	}).Return(nil).Once()
+
+	err := c.GetRequest(dlms.CreateAttributeDescriptor(8, "0-0:1.0.0.255", 3), nil)
+	assert.NoError(t, err)
+
+	tm.AssertExpectations(t)
+}
+
 func TestClient_CompleteCommunication(t *testing.T) {
 	tm := mocks.NewTransportMock(t)
 
-	rdc := make(dlms.DataChannel, 1)
+	rdc := make(dlms.DataChannel, 10)
 	tm.On("SetReception", mock.Anything).Run(func(args mock.Arguments) {
 		rdc = args.Get(0).(dlms.DataChannel)
 	}).Once()
@@ -269,7 +285,7 @@ func TestClient_CompleteCommunication(t *testing.T) {
 func TestClient_CompleteSecureCommunication(t *testing.T) {
 	tm := mocks.NewTransportMock(t)
 
-	rdc := make(dlms.DataChannel, 1)
+	rdc := make(dlms.DataChannel, 10)
 	tm.On("SetReception", mock.Anything).Run(func(args mock.Arguments) {
 		rdc = args.Get(0).(dlms.DataChannel)
 	}).Once()
