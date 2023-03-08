@@ -151,6 +151,10 @@ func (w *wrapper) parseHeader(ori *[]byte) ([]byte, error) {
 		return nil, fmt.Errorf("expected message too long (%d)", length)
 	}
 
+	if len(src) < length {
+		return nil, fmt.Errorf("message length too much short, expected %d, received %d", length, len(src))
+	}
+
 	(*ori) = (*ori)[length:]
 
 	return src[headerLength:length], nil

@@ -165,6 +165,9 @@ func TestWrapper_Receive(t *testing.T) {
 	// Too long
 	tdc <- decodeHexString("00010003000110000123456789")
 
+	// Length too much short
+	tdc <- decodeHexString("00010003000160040123456789")
+
 	// Valid
 	tdc <- decodeHexString("00010003000100050123456789")
 	assert.Equal(t, decodeHexString("0123456789"), <-wdc)
