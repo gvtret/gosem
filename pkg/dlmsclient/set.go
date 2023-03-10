@@ -1,6 +1,7 @@
 package dlmsclient
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 
@@ -15,7 +16,7 @@ func (c *client) SetRequest(att *dlms.AttributeDescriptor, data interface{}) (er
 	return c.setRequest(att, data)
 }
 
-func (c *client) SetRequestWithStructOfElements(data interface{}) (err error) {
+func (c *client) SetRequestWithStructOfElements(data interface{}, continueOnSetRejected bool) error {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 
@@ -25,7 +26,9 @@ func (c *client) SetRequestWithStructOfElements(data interface{}) (err error) {
 		return dlms.NewError(dlms.ErrorInvalidParameter, "data must be a struct")
 	}
 
+	var errSet error
 	isSomethingDone := false
+	isSomethingFailed := false
 
 	for i := 0; i < v.NumField(); i++ {
 		ad, err := c.getAttributeDescriptor(v.Type().Field(i))
@@ -46,17 +49,29 @@ func (c *client) SetRequestWithStructOfElements(data interface{}) (err error) {
 
 		err = c.setRequest(ad, v.Field(i).Interface())
 		if err != nil {
-			if isSomethingDone {
-				err = dlms.NewError(dlms.ErrorSetPartial, fmt.Sprintf("partial set: %v", err))
+			// If a set is rejected, we will continue anyway
+			var dlmsError *dlms.Error
+			if errors.As(err, &dlmsError) && dlmsError.Code() == dlms.ErrorSetRejected && continueOnSetRejected {
+				isSomethingFailed = true
+			} else {
+				if isSomethingDone {
+					err = dlms.NewError(dlms.ErrorSetPartial, fmt.Sprintf("partial set: %v", err))
+				}
+
+				return err
 			}
 
-			return err
+			errSet = err
+		} else {
+			isSomethingDone = true
 		}
-
-		isSomethingDone = true
 	}
 
-	return nil
+	if isSomethingFailed && isSomethingDone {
+		errSet = dlms.NewError(dlms.ErrorSetPartial, fmt.Sprintf("partial set: %v", errSet))
+	}
+
+	return errSet
 }
 
 func (c *client) setRequest(att *dlms.AttributeDescriptor, data interface{}) (err error) {

@@ -94,7 +94,7 @@ func TestClient_SetRequestWithStructOfElements(t *testing.T) {
 
 	sendReceive(tm, rdc, "C101C1000300015E230BFF02000600002710", "C501C100")
 	sendReceive(tm, rdc, "C101C1000101015E2268FF0200123039", "C501C100")
-	err := c.SetRequestWithStructOfElements(&v)
+	err := c.SetRequestWithStructOfElements(&v, true)
 	assert.NoError(t, err)
 
 	tm.AssertExpectations(t)
@@ -119,15 +119,31 @@ func TestClient_SetRequestWithStructOfElementsWithFail(t *testing.T) {
 
 	sendReceive(tm, rdc, "C101C1000300015E230BFF0200121A85", "C501C100")
 	sendReceive(tm, rdc, "C101C1000101015E2268FF0200123039", "C501C103")
-	err := c.SetRequestWithStructOfElements(&v)
+	err := c.SetRequestWithStructOfElements(&v, true)
 	var clientError *dlms.Error
 	assert.ErrorAs(t, err, &clientError)
 	assert.Equal(t, dlms.ErrorSetPartial, clientError.Code())
 
-	// If first element fails, then we expect an ErrorSetRejected
+	// If first element fails, then we expect an ErrorSetPartial
 
 	sendReceive(tm, rdc, "C101C1000300015E230BFF0200121A85", "C501C103")
-	err = c.SetRequestWithStructOfElements(&v)
+	sendReceive(tm, rdc, "C101C1000101015E2268FF0200123039", "C501C100")
+	err = c.SetRequestWithStructOfElements(&v, true)
+	assert.ErrorAs(t, err, &clientError)
+	assert.Equal(t, dlms.ErrorSetPartial, clientError.Code())
+
+	// If both fails, then we expect an ErrorSetRejected
+
+	sendReceive(tm, rdc, "C101C1000300015E230BFF0200121A85", "C501C103")
+	sendReceive(tm, rdc, "C101C1000101015E2268FF0200123039", "C501C103")
+	err = c.SetRequestWithStructOfElements(&v, true)
+	assert.ErrorAs(t, err, &clientError)
+	assert.Equal(t, dlms.ErrorSetRejected, clientError.Code())
+
+	// If first element fails, don't continue and we expect an ErrorSetRejected
+
+	sendReceive(tm, rdc, "C101C1000300015E230BFF0200121A85", "C501C103")
+	err = c.SetRequestWithStructOfElements(&v, false)
 	assert.ErrorAs(t, err, &clientError)
 	assert.Equal(t, dlms.ErrorSetRejected, clientError.Code())
 
