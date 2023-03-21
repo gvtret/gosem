@@ -589,12 +589,12 @@ func DecodeDateTime(src *[]byte) (outByte []byte, outVal time.Time, err error) {
 
 		utc := "UTC"
 		if d > 0 {
-			utc += "+" + strconv.Itoa(d/60)
+			utc += "-" + strconv.Itoa(d/60)
 		} else if d < 0 {
-			utc += "-" + strconv.Itoa(-d/60)
+			utc += "+" + strconv.Itoa(-d/60)
 		}
 
-		location = time.FixedZone(utc, d*60)
+		location = time.FixedZone(utc, -d*60)
 	}
 
 	str := fmt.Sprintf("%04d-%02d-%02dT%02d:%02d:%02d.%02dZ", year, month, day, hour, minute, second, hundredths)
