@@ -17,7 +17,7 @@ func TestDataNotification_New(t *testing.T) {
 	encoded, err := dn.Encode()
 	assert.NoError(t, err)
 
-	expected := decodeHexString("0F0063D76A010C07E7011F021222170000000003FF")
+	expected := decodeHexString("0F0063D76A0C07E7011F021222170000000003FF")
 	assert.Equal(t, expected, encoded)
 
 	// With nil time
@@ -30,7 +30,7 @@ func TestDataNotification_New(t *testing.T) {
 }
 
 func TestDataNotification_Decode(t *testing.T) {
-	src := decodeHexString("0F0063D76A010C07E7011F021222170000000003FF")
+	src := decodeHexString("0F0063D76A0C07E7011F021222170000000003FF")
 	dn, err := DecodeDataNotification(&src)
 	assert.NoError(t, err)
 

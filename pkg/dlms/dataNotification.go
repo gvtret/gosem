@@ -31,7 +31,6 @@ func (dn DataNotification) Encode() (out []byte, err error) {
 	if dn.DateTime == nil {
 		buf.WriteByte(0)
 	} else {
-		buf.WriteByte(1)
 		tm, _ := axdr.EncodeDateTime(*dn.DateTime)
 		buf.WriteByte(uint8(len(tm)))
 		buf.Write(tm)
@@ -63,21 +62,23 @@ func DecodeDataNotification(ori *[]byte) (out DataNotification, err error) {
 	}
 	out.InvokeIDAndPriority = invokeIDAndPriority
 
-	_, haveTime, err := axdr.DecodeUnsigned(&src)
+	_, dataTimeLen, err := axdr.DecodeUnsigned(&src)
 	if err != nil {
 		return
 	}
 
-	if haveTime == 0x0 {
+	if dataTimeLen == 0 {
 		out.DateTime = nil
-	} else {
-		axdr.DecodeUnsigned(&src) // length of time
+	} else if dataTimeLen == 12 {
 		_, time, e := axdr.DecodeDateTime(&src)
 		if e != nil {
 			err = e
 			return
 		}
 		out.DateTime = &time
+	} else {
+		err = ErrWrongLength(int(dataTimeLen), 12)
+		return
 	}
 
 	decoder := axdr.NewDataDecoder(&src)
