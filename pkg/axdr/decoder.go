@@ -16,6 +16,8 @@ type Decoder struct {
 	tag dataTag
 }
 
+var ReversedTimeZone = false
+
 var ErrLengthLess = errors.New("not enough byte length provided")
 
 // Get dataTag equivalent of supplied uint8
@@ -587,14 +589,18 @@ func DecodeDateTime(src *[]byte) (outByte []byte, outVal time.Time, err error) {
 	} else if deviation != 0 {
 		d := int(int16(deviation))
 
-		utc := "UTC"
-		if d > 0 {
-			utc += "-" + strconv.Itoa(d/60)
-		} else if d < 0 {
-			utc += "+" + strconv.Itoa(-d/60)
+		if !ReversedTimeZone {
+			d = -d
 		}
 
-		location = time.FixedZone(utc, -d*60)
+		utc := "UTC"
+		if d > 0 {
+			utc += "+" + strconv.Itoa(d/60)
+		} else if d < 0 {
+			utc += "-" + strconv.Itoa(-d/60)
+		}
+
+		location = time.FixedZone(utc, d*60)
 	}
 
 	str := fmt.Sprintf("%04d-%02d-%02dT%02d:%02d:%02d.%02dZ", year, month, day, hour, minute, second, hundredths)
