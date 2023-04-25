@@ -1,74 +1,44 @@
 package dlms
 
 import (
-	"bytes"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestDecodeAARE(t *testing.T) {
 	src := decodeHexString("6129A109060760857405080101A203020100A305A103020100BE10040E0800065F1F040000101D00800007")
 	aare, err := DecodeAARE(nil, &src)
-	if err != nil {
-		t.Errorf("Failed on DecodeAARE. Err: %v", err)
-	}
+	assert.NoError(t, err)
+	assert.Equal(t, ApplicationContextLNNoCiphering, aare.ApplicationContext)
+	assert.Equal(t, AssociationResultAccepted, aare.AssociationResult)
+	assert.Equal(t, SourceDiagnosticNone, aare.SourceDiagnostic)
 
-	if aare.ApplicationContext != ApplicationContextLNNoCiphering {
-		t.Errorf("Invalid ApplicationContext. Get %v", aare.ApplicationContext)
-	}
-
-	if aare.AssociationResult != AssociationResultAccepted {
-		t.Errorf("Invalid AssociationResult. Get %v", aare.AssociationResult)
-	}
-
-	if aare.SourceDiagnostic != SourceDiagnosticNone {
-		t.Errorf("Invalid SourceDiagnostic. Get %v", aare.SourceDiagnostic)
-	}
-
-	if aare.InitiateResponse == nil {
-		t.Errorf("InitiateResponse is nil")
-		return
-	}
-
-	if aare.ConfirmedServiceError != nil {
-		t.Errorf("ConfirmedServiceError is not nil")
-	}
-
-	if aare.InitiateResponse.ServerMaxReceivePduSize != 128 {
-		t.Errorf("Invalid ServerMaxReceivePduSize. Get %v", aare.InitiateResponse.ServerMaxReceivePduSize)
-	}
+	assert.NotNil(t, aare.InitiateResponse)
+	assert.Equal(t, uint16(128), aare.InitiateResponse.ServerMaxReceivePduSize)
+	assert.Nil(t, aare.ConfirmedServiceError)
 }
 
 func TestDecodeRejectedAARE(t *testing.T) {
 	src := decodeHexString("611FA109060760857405080101A203020101A305A10302010DBE0604040E010600")
+
 	aare, err := DecodeAARE(nil, &src)
-	if err != nil {
-		t.Errorf("Failed on DecodeAARE. Err: %v", err)
-	}
+	assert.NoError(t, err)
+	assert.Equal(t, ApplicationContextLNNoCiphering, aare.ApplicationContext)
+	assert.Equal(t, AssociationResultPermanentRejected, aare.AssociationResult)
+	assert.Equal(t, SourceDiagnosticAuthenticationFailure, aare.SourceDiagnostic)
+	assert.Nil(t, aare.InitiateResponse)
+	assert.Nil(t, aare.ConfirmedServiceError)
 
-	if aare.ApplicationContext != ApplicationContextLNNoCiphering {
-		t.Errorf("Invalid ApplicationContext. Get %v", aare.ApplicationContext)
-	}
-
-	if aare.AssociationResult != AssociationResultPermanentRejected {
-		t.Errorf("Invalid AssociationResult. Get %v", aare.AssociationResult)
-	}
-
-	if aare.SourceDiagnostic != SourceDiagnosticAuthenticationFailure {
-		t.Errorf("Invalid SourceDiagnostic. Get %v", aare.SourceDiagnostic)
-	}
-
-	if aare.InitiateResponse != nil {
-		t.Errorf("InitiateResponse is not nil")
-	}
-
-	if aare.ConfirmedServiceError == nil {
-		t.Errorf("ConfirmedServiceError is nil")
-		return
-	}
-
-	if aare.ConfirmedServiceError.ConfirmedServiceError != TagErrInitiateError {
-		t.Errorf("Invalid confirmed service error. Get %v", aare.ConfirmedServiceError.ConfirmedServiceError)
-	}
+	// Sagemcom reply
+	src = decodeHexString("6129A109060760857405080101A203020101A305A10302010DBE10040E0800065F1F040000101400800080")
+	aare, err = DecodeAARE(nil, &src)
+	assert.NoError(t, err)
+	assert.Equal(t, ApplicationContextLNNoCiphering, aare.ApplicationContext)
+	assert.Equal(t, AssociationResultPermanentRejected, aare.AssociationResult)
+	assert.Equal(t, SourceDiagnosticAuthenticationFailure, aare.SourceDiagnostic)
+	assert.Nil(t, aare.InitiateResponse)
+	assert.Nil(t, aare.ConfirmedServiceError)
 }
 
 func TestDecodeAAREWithSecurity(t *testing.T) {
@@ -87,25 +57,11 @@ func TestDecodeAAREWithSecurity(t *testing.T) {
 
 	src := decodeHexString("6148A109060760857405080103A203020100A305A103020100A40A04084C475A2022604828BE230421281F300000003149963E23D6DA824A369644B66A9A17C60C3CA3F63E58608FA192")
 	aare, err := DecodeAARE(settings, &src)
-	if err != nil {
-		t.Errorf("Failed on DecodeAARE. Err: %v", err)
-	}
-
-	if aare.ApplicationContext != ApplicationContextLNCiphering {
-		t.Errorf("ApplicationContext is not correct. Get %v", aare.ApplicationContext)
-	}
-
-	if aare.AssociationResult != AssociationResultAccepted {
-		t.Errorf("AssociationResult is not accepted. Get %v", aare.AssociationResult)
-	}
-
-	if aare.SourceDiagnostic != SourceDiagnosticNone {
-		t.Errorf("SourceDiagnostic is not None. Get %v", aare.AssociationResult)
-	}
+	assert.NoError(t, err)
+	assert.Equal(t, ApplicationContextLNCiphering, aare.ApplicationContext)
+	assert.Equal(t, AssociationResultAccepted, aare.AssociationResult)
+	assert.Equal(t, SourceDiagnosticNone, aare.SourceDiagnostic)
 
 	sourceSystemTitle := decodeHexString("4C475A2022604828")
-	res := bytes.Compare(aare.SourceSystemTitle, sourceSystemTitle)
-	if res != 0 {
-		t.Errorf("SourceSystemTitle is not correct. Get %v", encodeHexString(aare.SourceSystemTitle))
-	}
+	assert.Equal(t, sourceSystemTitle, aare.SourceSystemTitle)
 }

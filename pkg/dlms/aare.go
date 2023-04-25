@@ -99,7 +99,9 @@ func DecodeAARE(settings *Settings, ori *[]byte) (out AARE, err error) {
 			}
 		case BERTypeContext | BERTypeConstructed | PduTypeUserInformation:
 			// User information - 0xBE
-			out.InitiateResponse, out.ConfirmedServiceError, err = parseUserInformation(settings, tagLength, src)
+			if out.AssociationResult == AssociationResultAccepted && out.SourceDiagnostic == SourceDiagnosticNone {
+				out.InitiateResponse, out.ConfirmedServiceError, err = parseUserInformation(settings, tagLength, src)
+			}
 		}
 
 		if err != nil {
