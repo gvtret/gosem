@@ -210,6 +210,10 @@ func (c *client) manager() {
 				DataNotification: dn,
 			}
 
+			if c.timeoutTimer != nil {
+				c.timeoutTimer.Reset(c.associationTimeout)
+			}
+
 			c.subsMutex.Lock()
 			if c.notificationChan != nil {
 				c.notificationChan <- nc
@@ -221,10 +225,6 @@ func (c *client) manager() {
 				c.dc <- data
 			}
 			c.subsMutex.Unlock()
-		}
-
-		if len(data) == 0 {
-			continue
 		}
 	}
 }
