@@ -41,6 +41,10 @@ func New(port int, host string, timeout time.Duration) dlms.Transport {
 }
 
 func (t *tcp) Close() {
+	if t.logger != nil {
+		t.logger.Printf("Close received, disconnect from %s", t.host)
+	}
+
 	t.Disconnect()
 	if t.dc != nil {
 		close(t.dc)
@@ -111,6 +115,10 @@ func (t *tcp) Send(src []byte) error {
 
 	_, err := t.conn.Write(src)
 	if err != nil {
+		if t.logger != nil {
+			t.logger.Printf("Write failed (%v), disconnect from %s", err, t.host)
+		}
+
 		t.Disconnect()
 		return fmt.Errorf("write failed: %w", err)
 	}
@@ -134,6 +142,10 @@ func (t *tcp) manager() {
 
 		data, err := t.read()
 		if err != nil {
+			if t.logger != nil {
+				t.logger.Printf("Read failed (%v), disconnect from %s", err, t.host)
+			}
+
 			t.Disconnect()
 
 			return
