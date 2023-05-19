@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/Circutor/gosem/pkg/axdr"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestNew_ActionRequestNormal(t *testing.T) {
@@ -83,15 +84,10 @@ func TestNew_ActionRequestWithFirstPBlock(t *testing.T) {
 	md := *CreateMethodDescriptor(1, "1.0.0.3.0.255", 2)
 	dt := *CreateDataBlockSA(true, 1, []byte{1, 2, 3, 4, 5})
 	a := *CreateActionRequestWithFirstPBlock(81, md, dt)
-	t1, e := a.Encode()
-	if e != nil {
-		t.Errorf("t1 Encode Failed. err: %v", e)
-	}
-	result := []byte{195, 4, 81, 0, 1, 1, 0, 0, 3, 0, 255, 2, 255, 0, 0, 0, 1, 5, 1, 2, 3, 4, 5}
-	res := bytes.Compare(t1, result)
-	if res != 0 {
-		t.Errorf("t1 Failed. get: %d, should:%v", t1, result)
-	}
+	result, err := a.Encode()
+	assert.NoError(t, err)
+	expected := []byte{195, 4, 81, 0, 1, 1, 0, 0, 3, 0, 255, 2, 1, 0, 0, 0, 1, 5, 1, 2, 3, 4, 5}
+	assert.Equal(t, expected, result)
 }
 
 func TestNew_ActionRequestWithListAndFirstPBlock(t *testing.T) {
@@ -100,28 +96,18 @@ func TestNew_ActionRequestWithListAndFirstPBlock(t *testing.T) {
 	dt := *CreateDataBlockSA(true, 1, []byte{1, 2, 3, 4, 5})
 
 	a := *CreateActionRequestWithListAndFirstPBlock(81, []MethodDescriptor{a1}, dt)
-	t1, e := a.Encode()
-	if e != nil {
-		t.Errorf("t1 Encode Failed. err: %v", e)
-	}
-	result := []byte{195, 5, 81, 1, 0, 1, 1, 0, 0, 3, 0, 255, 2, 255, 0, 0, 0, 1, 5, 1, 2, 3, 4, 5}
-	res := bytes.Compare(t1, result)
-	if res != 0 {
-		t.Errorf("t1 Failed. get: %d, should:%v", t1, result)
-	}
+	result, err := a.Encode()
+	assert.NoError(t, err)
+	expected := []byte{195, 5, 81, 1, 0, 1, 1, 0, 0, 3, 0, 255, 2, 1, 0, 0, 0, 1, 5, 1, 2, 3, 4, 5}
+	assert.Equal(t, expected, result)
 
 	// with 2 MethodDescriptor
 	a2 := *CreateMethodDescriptor(1, "0.0.8.0.0.255", 2)
 	b := *CreateActionRequestWithListAndFirstPBlock(81, []MethodDescriptor{a1, a2}, dt)
-	t2, e := b.Encode()
-	if e != nil {
-		t.Errorf("t2 Encode Failed. err: %v", e)
-	}
-	result = []byte{195, 5, 81, 2, 0, 1, 1, 0, 0, 3, 0, 255, 2, 0, 1, 0, 0, 8, 0, 0, 255, 2, 255, 0, 0, 0, 1, 5, 1, 2, 3, 4, 5}
-	res = bytes.Compare(t2, result)
-	if res != 0 {
-		t.Errorf("t2 failed. get: %d, should:%v", t2, result)
-	}
+	result, err = b.Encode()
+	assert.NoError(t, err)
+	expected = []byte{195, 5, 81, 2, 0, 1, 1, 0, 0, 3, 0, 255, 2, 0, 1, 0, 0, 8, 0, 0, 255, 2, 1, 0, 0, 0, 1, 5, 1, 2, 3, 4, 5}
+	assert.Equal(t, expected, result)
 
 	// with empty MethodDescriptor
 	defer func() {
@@ -137,15 +123,10 @@ func TestNew_ActionRequestWithPBlock(t *testing.T) {
 	dt := *CreateDataBlockSA(true, 1, []byte{1, 2, 3, 4, 5})
 
 	a := *CreateActionRequestWithPBlock(81, dt)
-	t1, e := a.Encode()
-	if e != nil {
-		t.Errorf("t1 Encode Failed. err: %v", e)
-	}
-	result := []byte{195, 6, 81, 255, 0, 0, 0, 1, 5, 1, 2, 3, 4, 5}
-	res := bytes.Compare(t1, result)
-	if res != 0 {
-		t.Errorf("t1 Failed. get: %d, should:%v", t1, result)
-	}
+	result, err := a.Encode()
+	assert.NoError(t, err)
+	expected := []byte{195, 6, 81, 1, 0, 0, 0, 1, 5, 1, 2, 3, 4, 5}
+	assert.Equal(t, expected, result)
 }
 
 func TestDecode_ActionRequestNormal(t *testing.T) {

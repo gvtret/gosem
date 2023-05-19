@@ -40,7 +40,7 @@ func TestEncodeAARQWithLowAuthenticationAndCipher(t *testing.T) {
 	ciphering.DedicatedKey = decodeHexString("E803739DBE338C3A790D8D1B12C63FE2")
 
 	settings, _ := NewSettingsWithLowAuthenticationAndCiphering([]byte("JuS66BCZ"), ciphering)
-	settings.MaxPduSize = 512
+	settings.MaxPduRecvSize = 512
 
 	out, err := EncodeAARQ(&settings)
 	assert.NoError(t, err)

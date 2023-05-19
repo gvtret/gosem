@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/Circutor/gosem/pkg/axdr"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestAccessResult(t *testing.T) {
@@ -179,29 +180,17 @@ func TestDataBlockSA(t *testing.T) {
 	// with hexstring
 	a := *CreateDataBlockSA(true, 1, "07D20C04030A060BFF007800")
 
-	t1, e := a.Encode()
-	if e != nil {
-		t.Errorf("t1 Encode Failed. err: %v", e)
-	}
-	result := []byte{255, 0, 0, 0, 1, 12, 7, 210, 12, 4, 3, 10, 6, 11, 255, 0, 120, 0}
-
-	res := bytes.Compare(t1, result)
-	if res != 0 {
-		t.Errorf("t1 Failed. get: %d, should:%v", t1, result)
-	}
+	result, err := a.Encode()
+	assert.NoError(t, err)
+	expected := []byte{1, 0, 0, 0, 1, 12, 7, 210, 12, 4, 3, 10, 6, 11, 255, 0, 120, 0}
+	assert.Equal(t, expected, result)
 
 	// with byte slice
 	b := *CreateDataBlockSA(true, 1, []byte{1, 0, 0, 3, 0, 255})
-	t2, e := b.Encode()
-	if e != nil {
-		t.Errorf("t2 Encode Failed. err: %v", e)
-	}
-	result = []byte{255, 0, 0, 0, 1, 6, 1, 0, 0, 3, 0, 255}
-
-	res = bytes.Compare(t2, result)
-	if res != 0 {
-		t.Errorf("t2 Failed. get: %d, should:%v", t2, result)
-	}
+	result, err = b.Encode()
+	assert.NoError(t, err)
+	expected = []byte{1, 0, 0, 0, 1, 6, 1, 0, 0, 3, 0, 255}
+	assert.Equal(t, expected, result)
 
 	// with wrong value
 	defer func() {

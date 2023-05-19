@@ -210,7 +210,7 @@ func getInitiateRequest(settings *Settings) (out []byte) {
 	buf.Write(bytesConformanceBlock[1:])
 
 	maxPduSize := make([]byte, 2)
-	binary.BigEndian.PutUint16(maxPduSize, uint16(settings.MaxPduSize))
+	binary.BigEndian.PutUint16(maxPduSize, uint16(settings.MaxPduRecvSize))
 	buf.Write(maxPduSize)
 
 	out = buf.Bytes()

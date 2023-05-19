@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/Circutor/gosem/pkg/axdr"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestNew_ActionResponseNormal(t *testing.T) {
@@ -27,16 +28,10 @@ func TestNew_ActionResponseNormal(t *testing.T) {
 func TestNew_ActionResponseWithPBlock(t *testing.T) {
 	dt := *CreateDataBlockSA(true, 1, []byte{1, 2, 3, 4, 5})
 	a := *CreateActionResponseWithPBlock(81, dt)
-	t1, e := a.Encode()
-	if e != nil {
-		t.Errorf("t1 Encode Failed. err: %v", e)
-	}
-
-	result := []byte{199, 2, 81, 255, 0, 0, 0, 1, 5, 1, 2, 3, 4, 5}
-	res := bytes.Compare(t1, result)
-	if res != 0 {
-		t.Errorf("t1 Failed. get: %d, should:%v", t1, result)
-	}
+	result, err := a.Encode()
+	assert.NoError(t, err)
+	expected := []byte{199, 2, 81, 1, 0, 0, 0, 1, 5, 1, 2, 3, 4, 5}
+	assert.Equal(t, expected, result)
 }
 
 func TestNew_ActionResponseWithList(t *testing.T) {

@@ -270,6 +270,7 @@ func TestClient_CompleteCommunication(t *testing.T) {
 	tm.On("IsConnected").Return(true)
 	sendReceive(tm, rdc, "601DA109060760857405080101BE10040E01000000065F1F040000181F0100", "6129A109060760857405080101A203020100A305A103020100BE10040E0800065F1F040000101D00800007")
 	assert.NoError(t, c.Associate())
+	assert.Equal(t, 128, c.GetSettings().MaxPduSendSize)
 
 	sendReceive(tm, rdc, "C001C100080000010000FF0300", "C401C10010003C")
 	err := c.GetRequest(dlms.CreateAttributeDescriptor(8, "0-0:1.0.0.255", 3), nil)
@@ -301,7 +302,7 @@ func TestClient_CompleteSecureCommunication(t *testing.T) {
 	ciphering.DedicatedKey = decodeHexString("5E168412318BA71848C99B2B2AB33294")
 
 	settings, _ := dlms.NewSettingsWithLowAuthenticationAndCiphering([]byte("JuS66BCZ"), ciphering)
-	settings.MaxPduSize = 512
+	settings.MaxPduRecvSize = 512
 
 	c := dlmsclient.New(settings, tm, 5*time.Second, 0)
 
@@ -312,6 +313,7 @@ func TestClient_CompleteSecureCommunication(t *testing.T) {
 	sendReceive(tm, rdc, "6066A109060760857405080103A60A040843495200000000018A0207808B0760857405080201AC0A80084A7553363642435ABE3404322130300000005992D807DBCF8533E9AD675AE0948241FB8E6CF9AFA7006BAA134A473C9151B3362F56DC12F89E85DA97E176",
 		"6148A109060760857405080103A203020100A305A103020100A40A04084C475A2022604828BE230421281F300000005AE916783AF33B5317AD0E453A799A65F26AE97660CF8B14FEB7B0")
 	assert.NoError(t, c.Associate())
+	assert.Equal(t, 250, c.GetSettings().MaxPduSendSize)
 
 	sendReceive(tm, rdc, "D01E3000000001D3B903996D9508C5B6BCDEB025DD1800A5C92775FB55F317CF", "D4233000000001AA07A549F82E6B8EEA919659D91689BF995BE6F93C95A7208718A3B84EE4")
 	err := c.GetRequest(dlms.CreateAttributeDescriptor(8, "0-0:1.0.0.255", 2), nil)

@@ -152,6 +152,13 @@ func (c *client) Associate() error {
 		return dlms.NewError(dlms.ErrorAuthenticationFailed, fmt.Sprintf("association failed: %d - %d", aare.AssociationResult, aare.SourceDiagnostic))
 	}
 
+	if aare.InitiateResponse != nil {
+		maxPduSendSize := int(aare.InitiateResponse.ServerMaxReceivePduSize)
+		if maxPduSendSize < c.settings.MaxPduSendSize {
+			c.settings.MaxPduSendSize = maxPduSendSize
+		}
+	}
+
 	c.isAssociated = true
 	return nil
 }

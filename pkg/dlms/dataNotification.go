@@ -67,16 +67,17 @@ func DecodeDataNotification(ori *[]byte) (out DataNotification, err error) {
 		return
 	}
 
-	if dataTimeLen == 0 {
+	switch {
+	case dataTimeLen == 0:
 		out.DateTime = nil
-	} else if dataTimeLen == 12 {
+	case dataTimeLen == 12:
 		_, time, e := axdr.DecodeDateTime(&src)
 		if e != nil {
 			err = e
 			return
 		}
 		out.DateTime = &time
-	} else {
+	default:
 		err = ErrWrongLength(int(dataTimeLen), 12)
 		return
 	}

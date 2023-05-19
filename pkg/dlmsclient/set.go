@@ -87,23 +87,104 @@ func (c *client) setRequest(att *dlms.AttributeDescriptor, data interface{}) (er
 		}
 	}
 
-	req := dlms.CreateSetRequestNormal(unicastInvokeID, *att, nil, *dt)
-
-	pdu, err := c.encodeSendReceiveAndDecode(req)
+	out, err := dt.Encode()
 	if err != nil {
-		return
+		return dlms.NewError(dlms.ErrorInvalidParameter, fmt.Sprintf("error encoding %s data: %v", att.String(), err))
 	}
 
-	resp, ok := pdu.(dlms.SetResponseNormal)
-	if !ok {
-		return dlms.NewError(dlms.ErrorInvalidResponse, fmt.Sprintf("in %s unexpected PDU response type: %T", att.String(), pdu))
+	lenHeader := 13
+	if c.settings.Ciphering.Level != dlms.SecurityLevelNone {
+		lenHeader = 34
 	}
 
-	if resp.Result != dlms.TagAccSuccess {
-		return dlms.NewError(dlms.ErrorSetRejected, fmt.Sprintf("set %s rejected: %s", att.String(), resp.Result.String()))
+	if len(out) < (c.settings.MaxPduSendSize - lenHeader) {
+		req := dlms.CreateSetRequestNormal(unicastInvokeID, *att, nil, *dt)
+
+		pdu, err := c.encodeSendReceiveAndDecode(req)
+		if err != nil {
+			return err
+		}
+
+		resp, ok := pdu.(dlms.SetResponseNormal)
+		if !ok {
+			return dlms.NewError(dlms.ErrorInvalidResponse, fmt.Sprintf("in %s unexpected PDU response type: %T", att.String(), pdu))
+		}
+
+		if resp.Result != dlms.TagAccSuccess {
+			return dlms.NewError(dlms.ErrorSetRejected, fmt.Sprintf("set %s rejected: %s", att.String(), resp.Result.String()))
+		}
+	} else {
+		return c.setRequestWithDataBlock(att, out)
 	}
 
 	return
+}
+
+func (c *client) setRequestWithDataBlock(att *dlms.AttributeDescriptor, out []byte) error {
+	isLastBlock := false
+	isFirstBlock := true
+	blockNumber := uint32(1)
+
+	for {
+		lenHeader := 11
+		if isFirstBlock {
+			lenHeader = 21
+		}
+		if c.settings.Ciphering.Level != dlms.SecurityLevelNone {
+			lenHeader += 21
+		}
+
+		blockSize := c.settings.MaxPduSendSize - lenHeader
+		if blockSize > len(out) {
+			blockSize = len(out)
+			isLastBlock = true
+		}
+
+		db := dlms.CreateDataBlockSA(isLastBlock, blockNumber, out[:blockSize])
+
+		var req dlms.CosemPDU
+
+		if isFirstBlock {
+			req = dlms.CreateSetRequestWithFirstDataBlock(unicastInvokeID, *att, nil, *db)
+		} else {
+			req = dlms.CreateSetRequestWithDataBlock(unicastInvokeID, *db)
+		}
+
+		pdu, err := c.encodeSendReceiveAndDecode(req)
+		if err != nil {
+			return err
+		}
+
+		if isLastBlock {
+			resp, ok := pdu.(dlms.SetResponseLastDataBlock)
+			if !ok {
+				return dlms.NewError(dlms.ErrorInvalidResponse, fmt.Sprintf("in %s unexpected PDU response type: %T", att.String(), pdu))
+			}
+
+			if resp.BlockNum != blockNumber {
+				return dlms.NewError(dlms.ErrorInvalidResponse, fmt.Sprintf("in %s unexpected block number %d (expected %d)", att.String(), resp.BlockNum, blockNumber))
+			}
+
+			if resp.Result != dlms.TagAccSuccess {
+				return dlms.NewError(dlms.ErrorSetRejected, fmt.Sprintf("set %s rejected: %s", att.String(), resp.Result.String()))
+			}
+
+			return nil
+		}
+
+		resp, ok := pdu.(dlms.SetResponseDataBlock)
+		if !ok {
+			return dlms.NewError(dlms.ErrorInvalidResponse, fmt.Sprintf("in %s unexpected PDU response type: %T", att.String(), pdu))
+		}
+
+		if resp.BlockNum != blockNumber {
+			return dlms.NewError(dlms.ErrorInvalidResponse, fmt.Sprintf("in %s unexpected block number %d (expected %d)", att.String(), resp.BlockNum, blockNumber))
+		}
+
+		isFirstBlock = false
+		out = out[blockSize:]
+		blockNumber++
+	}
 }
 
 func eindirect(v reflect.Value) reflect.Value {

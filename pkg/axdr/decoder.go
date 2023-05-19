@@ -16,6 +16,7 @@ type Decoder struct {
 	tag dataTag
 }
 
+//nolint:gochecknoglobals
 var ReversedTimeZone = false
 
 var ErrLengthLess = errors.New("not enough byte length provided")

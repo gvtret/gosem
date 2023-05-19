@@ -255,7 +255,7 @@ func (dt DataBlockSA) Encode() (out []byte, err error) {
 	var buf bytes.Buffer
 
 	if dt.LastBlock {
-		buf.WriteByte(0xFF)
+		buf.WriteByte(0x1)
 	} else {
 		buf.WriteByte(0x0)
 	}
@@ -267,8 +267,13 @@ func (dt DataBlockSA) Encode() (out []byte, err error) {
 	}
 	buf.Write(blk)
 
-	// not sure if length is limited only 1 byte, or does it follow KLV as in axdr
-	buf.WriteByte(byte(len(dt.Raw)))
+	dl, e := axdr.EncodeLength(len(dt.Raw))
+	if e != nil {
+		err = e
+		return
+	}
+	buf.Write(dl)
+
 	buf.Write(dt.Raw)
 
 	out = buf.Bytes()
