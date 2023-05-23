@@ -48,7 +48,7 @@ func (dn DataNotification) Encode() (out []byte, err error) {
 }
 
 func DecodeDataNotification(ori *[]byte) (out DataNotification, err error) {
-	src := append([]byte(nil), (*ori)...)
+	src := *ori
 
 	_, tag, _ := axdr.DecodeUnsigned(&src)
 	if tag != TagDataNotification.Value() {

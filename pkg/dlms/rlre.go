@@ -13,7 +13,7 @@ type RLRE struct {
 }
 
 func DecodeRLRE(settings *Settings, ori *[]byte) (out RLRE, err error) {
-	src := append([]byte(nil), (*ori)...)
+	src := *ori
 
 	if len(src) < 2 {
 		err = ErrWrongLength(len(src), 3)

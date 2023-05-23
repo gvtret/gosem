@@ -12,460 +12,332 @@ import (
 )
 
 func TestEncodeLength(t *testing.T) {
-	t1, err := EncodeLength(125)
-	res := bytes.Compare(t1, []byte{125})
-	if res != 0 {
-		t.Errorf("t1 failed. val: %d, err:%v", t1, err)
-	}
+	encoded, err := EncodeLength(125)
+	assert.NoError(t, err)
+	assert.Equal(t, decodeHexString("7D"), encoded)
 
-	t2, err := EncodeLength(128)
-	res = bytes.Compare(t2, []byte{129, 128})
-	if res != 0 {
-		t.Errorf("t2 failed. val: %d, err:%v", t2, err)
-	}
+	encoded, err = EncodeLength(128)
+	assert.NoError(t, err)
+	assert.Equal(t, decodeHexString("8180"), encoded)
 
-	t3, err := EncodeLength(255)
-	res = bytes.Compare(t3, []byte{129, 255})
-	if res != 0 {
-		t.Errorf("t3 failed. val: %d, err:%v", t3, err)
-	}
+	encoded, err = EncodeLength(255)
+	assert.NoError(t, err)
+	assert.Equal(t, decodeHexString("81FF"), encoded)
 
-	t4, err := EncodeLength(256)
-	res = bytes.Compare(t4, []byte{130, 1, 0})
-	if res != 0 {
-		t.Errorf("t4 failed. val: %d, err:%v", t4, err)
-	}
+	encoded, err = EncodeLength(256)
+	assert.NoError(t, err)
+	assert.Equal(t, decodeHexString("820100"), encoded)
 
-	t5, err := EncodeLength(65535)
-	res = bytes.Compare(t5, []byte{130, 255, 255})
-	if res != 0 {
-		t.Errorf("t5 failed. val: %d, err:%v", t5, err)
-	}
+	encoded, err = EncodeLength(65535)
+	assert.NoError(t, err)
+	assert.Equal(t, decodeHexString("82FFFF"), encoded)
 
-	t6, err := EncodeLength(65536)
-	res = bytes.Compare(t6, []byte{131, 1, 0, 0})
-	if res != 0 {
-		t.Errorf("t6 failed. val: %d, err:%v", t6, err)
-	}
+	encoded, err = EncodeLength(65536)
+	assert.NoError(t, err)
+	assert.Equal(t, decodeHexString("83010000"), encoded)
 
-	t7, err := EncodeLength(uint(18446744073709551615))
-	res = bytes.Compare(t7, []byte{136, 255, 255, 255, 255, 255, 255, 255, 255})
-	if res != 0 {
-		t.Errorf("t7 failed. val: %d, err:%v", t7, err)
-	}
+	encoded, err = EncodeLength(uint(18446744073709551615))
+	assert.NoError(t, err)
+	assert.Equal(t, decodeHexString("88FFFFFFFFFFFFFFFF"), encoded)
 
-	t8, err := EncodeLength(uint64(18446744073709551615))
-	res = bytes.Compare(t8, []byte{136, 255, 255, 255, 255, 255, 255, 255, 255})
-	if res != 0 {
-		t.Errorf("t8 failed. val: %d, err:%v", t8, err)
-	}
+	encoded, err = EncodeLength(uint64(18446744073709551615))
+	assert.NoError(t, err)
+	assert.Equal(t, decodeHexString("88FFFFFFFFFFFFFFFF"), encoded)
 
-	t9, err := EncodeLength("123")
-	if err == nil {
-		t.Errorf("t9. String should have failed. val: %d, err:%v", t9, err)
-	}
+	_, err = EncodeLength("123")
+	assert.Error(t, err)
 
-	t10, err := EncodeLength(3.14)
-	if err == nil {
-		t.Errorf("t10. Float should have failed. val: %d, err:%v", t10, err)
-	}
+	_, err = EncodeLength(3.14)
+	assert.Error(t, err)
 
-	t11, err := EncodeLength(-500)
-	if err == nil {
-		t.Errorf("t11. Negative number should have failed. val: %d, err:%v", t11, err)
-	}
+	_, err = EncodeLength(-500)
+	assert.Error(t, err)
 
-	t12, err := EncodeLength(int64(-500000000))
-	if err == nil {
-		t.Errorf("t12. Negative int64 number should have failed. val: %d, err:%v", t12, err)
-	}
+	_, err = EncodeLength(int64(-500000000))
+	assert.Error(t, err)
 
-	t13, err := EncodeLength(0)
-	res = bytes.Compare(t13, []byte{0})
-	if res != 0 || err != nil {
-		t.Errorf("t13 failed. val: %d, err:%v", t13, err)
-	}
+	encoded, err = EncodeLength(0)
+	assert.NoError(t, err)
+	assert.Equal(t, decodeHexString("00"), encoded)
 }
 
 func TestEncodeBoolean(t *testing.T) {
-	ts, err := EncodeBoolean(true)
-	res := bytes.Compare(ts, []byte{255})
-	if res != 0 || err != nil {
-		t.Errorf("t1 failed. val: %d, err:%v", ts, err)
-	}
+	encoded, err := EncodeBoolean(true)
+	assert.NoError(t, err)
+	assert.Equal(t, decodeHexString("FF"), encoded)
 
-	ts, err = EncodeBoolean(false)
-	res = bytes.Compare(ts, []byte{0})
-	if res != 0 || err != nil {
-		t.Errorf("t2 failed. val: %d, err:%v", ts, err)
-	}
+	encoded, err = EncodeBoolean(false)
+	assert.NoError(t, err)
+	assert.Equal(t, decodeHexString("00"), encoded)
 }
 
 func TestEncodeBitString(t *testing.T) {
-	ts, err := EncodeBitString("11111000")
-	res := bytes.Compare(ts, []byte{248})
-	if res != 0 || err != nil {
-		t.Errorf("t1 failed. val: %d, err:%v", ts, err)
-	}
+	encoded, err := EncodeBitString("11111000")
+	assert.NoError(t, err)
+	assert.Equal(t, decodeHexString("F8"), encoded)
 
-	ts, err = EncodeBitString("111100000001")
-	res = bytes.Compare(ts, []byte{240, 16})
-	if res != 0 || err != nil {
-		t.Errorf("t2 failed. val: %d, err:%v", ts, err)
-	}
+	encoded, err = EncodeBitString("111100000001")
+	assert.NoError(t, err)
+	assert.Equal(t, decodeHexString("f010"), encoded)
 
-	ts, err = EncodeBitString("0000111111110000111111110000000101010101")
-	res = bytes.Compare(ts, []byte{15, 240, 255, 1, 85})
-	if res != 0 || err != nil {
-		t.Errorf("t3 failed. val: %d, err:%v", ts, err)
-	}
+	encoded, err = EncodeBitString("0000111111110000111111110000000101010101")
+	assert.NoError(t, err)
+	assert.Equal(t, decodeHexString("0ff0ff0155"), encoded)
 
-	ts, err = EncodeBitString("00001111 11110000 11111111 00000001 01010101 1")
-	res = bytes.Compare(ts, []byte{15, 240, 255, 1, 85, 128})
-	if res != 0 || err != nil {
-		t.Errorf("t4 failed. val: %d, err:%v", ts, err)
-	}
+	encoded, err = EncodeBitString("00001111 11110000 11111111 00000001 01010101 1")
+	assert.NoError(t, err)
+	assert.Equal(t, decodeHexString("0ff0ff015580"), encoded)
 }
 
 func TestEncodeDoubleLong(t *testing.T) {
-	ts, err := EncodeDoubleLong(0)
-	res := bytes.Compare(ts, []byte{0, 0, 0, 0})
-	if res != 0 || err != nil {
-		t.Errorf("t1 failed. val: %d, err:%v", ts, err)
-	}
+	encoded, err := EncodeDoubleLong(0)
+	assert.NoError(t, err)
+	assert.Equal(t, decodeHexString("00000000"), encoded)
 
-	ts, err = EncodeDoubleLong(255)
-	res = bytes.Compare(ts, []byte{0, 0, 0, 255})
-	if res != 0 || err != nil {
-		t.Errorf("t2 failed. val: %d, err:%v", ts, err)
-	}
+	encoded, err = EncodeDoubleLong(255)
+	assert.NoError(t, err)
+	assert.Equal(t, decodeHexString("000000FF"), encoded)
 
-	ts, err = EncodeDoubleLong(-25)
-	res = bytes.Compare(ts, []byte{255, 255, 255, 231})
-	if res != 0 || err != nil {
-		t.Errorf("t3 failed. val: %d, err:%v", ts, err)
-	}
+	encoded, err = EncodeDoubleLong(-25)
+	assert.NoError(t, err)
+	assert.Equal(t, decodeHexString("FFFFFFE7"), encoded)
 
-	ts, err = EncodeDoubleLong(65535)
-	res = bytes.Compare(ts, []byte{0, 0, 255, 255})
-	if res != 0 || err != nil {
-		t.Errorf("t4 failed. val: %d, err:%v", ts, err)
-	}
+	encoded, err = EncodeDoubleLong(65535)
+	assert.NoError(t, err)
+	assert.Equal(t, decodeHexString("0000FFFF"), encoded)
 
-	ts, err = EncodeDoubleLong(2147483647)
-	res = bytes.Compare(ts, []byte{127, 255, 255, 255})
-	if res != 0 || err != nil {
-		t.Errorf("t4 failed. val: %d, err:%v", ts, err)
-	}
+	encoded, err = EncodeDoubleLong(2147483647)
+	assert.NoError(t, err)
+	assert.Equal(t, decodeHexString("7FFFFFFF"), encoded)
 
-	ts, err = EncodeDoubleLong(-2147483647)
-	res = bytes.Compare(ts, []byte{128, 0, 0, 1})
-	if res != 0 || err != nil {
-		t.Errorf("t5 failed. val: %d, err:%v", ts, err)
-	}
+	encoded, err = EncodeDoubleLong(-2147483647)
+	assert.NoError(t, err)
+	assert.Equal(t, decodeHexString("80000001"), encoded)
 }
 
 func TestEncodeDoubleLongUnsigned(t *testing.T) {
-	ts, err := EncodeDoubleLongUnsigned(0)
-	res := bytes.Compare(ts, []byte{0, 0, 0, 0})
-	if res != 0 || err != nil {
-		t.Errorf("t1 failed. val: %d, err:%v", ts, err)
-	}
+	encoded, err := EncodeDoubleLongUnsigned(0)
+	assert.NoError(t, err)
+	assert.Equal(t, decodeHexString("00000000"), encoded)
 
-	ts, err = EncodeDoubleLongUnsigned(255)
-	res = bytes.Compare(ts, []byte{0, 0, 0, 255})
-	if res != 0 || err != nil {
-		t.Errorf("t2 failed. val: %d, err:%v", ts, err)
-	}
+	encoded, err = EncodeDoubleLongUnsigned(255)
+	assert.NoError(t, err)
+	assert.Equal(t, decodeHexString("000000FF"), encoded)
 
-	ts, err = EncodeDoubleLongUnsigned(65535)
-	res = bytes.Compare(ts, []byte{0, 0, 255, 255})
-	if res != 0 || err != nil {
-		t.Errorf("t3 failed. val: %d, err:%v", ts, err)
-	}
+	encoded, err = EncodeDoubleLongUnsigned(65535)
+	assert.NoError(t, err)
+	assert.Equal(t, decodeHexString("0000FFFF"), encoded)
 
-	ts, err = EncodeDoubleLongUnsigned(4294967295)
-	res = bytes.Compare(ts, []byte{255, 255, 255, 255})
-	if res != 0 || err != nil {
-		t.Errorf("t4 failed. val: %d, err:%v", ts, err)
-	}
+	encoded, err = EncodeDoubleLongUnsigned(4294967295)
+	assert.NoError(t, err)
+	assert.Equal(t, decodeHexString("FFFFFFFF"), encoded)
 }
 
 func TestEncodeOctetString(t *testing.T) {
-	ts, err := EncodeOctetString("07D20C04030A060BFF007800")
-	res := bytes.Compare(ts, []byte{7, 210, 12, 4, 3, 10, 6, 11, 255, 0, 120, 0})
-	if res != 0 || err != nil {
-		t.Errorf("t1 failed. val: %d, err:%v", ts, err)
-	}
+	encoded, err := EncodeOctetString("07D20C04030A060BFF007800")
+	assert.NoError(t, err)
+	assert.Equal(t, decodeHexString("07D20C04030A060BFF007800"), encoded)
 
-	ts, err = EncodeOctetString("1.0.0.3.0.255")
-	res = bytes.Compare(ts, []byte{1, 0, 0, 3, 0, 255})
-	if res != 0 || err != nil {
-		t.Errorf("t2 failed. val: %d, err:%v", ts, err)
-	}
+	encoded, err = EncodeOctetString("1.0.0.3.0.255")
+	assert.NoError(t, err)
+	assert.Equal(t, decodeHexString("0100000300FF"), encoded)
 }
 
 func TestEncodeVisibleString(t *testing.T) {
-	ts, err := EncodeVisibleString("ABCD")
-	res := bytes.Compare(ts, []byte{65, 66, 67, 68})
-	if res != 0 || err != nil {
-		t.Errorf("t1 failed. val: %d, err:%v", ts, err)
-	}
+	encoded, err := EncodeVisibleString("ABCD")
+	assert.NoError(t, err)
+	assert.Equal(t, decodeHexString("41424344"), encoded)
 
-	ts, err = EncodeVisibleString("a1 -")
-	res = bytes.Compare(ts, []byte{97, 49, 32, 45})
-	if res != 0 || err != nil {
-		t.Errorf("t2 failed. val: %d, err:%v", ts, err)
-	}
+	encoded, err = EncodeVisibleString("a1 -")
+	assert.NoError(t, err)
+	assert.Equal(t, decodeHexString("6131202d"), encoded)
 
-	ts, err = EncodeVisibleString("{}[]()!;")
-	res = bytes.Compare(ts, []byte{123, 125, 91, 93, 40, 41, 33, 59})
-	if res != 0 || err != nil {
-		t.Errorf("t3 failed. val: %d, err:%v", ts, err)
-	}
+	encoded, err = EncodeVisibleString("{}[]()!;")
+	assert.NoError(t, err)
+	assert.Equal(t, decodeHexString("7b7d5b5d2829213b"), encoded)
 
-	ts, err = EncodeVisibleString("ÆÁÉÍÓÚ")
-	if err == nil {
-		t.Errorf("t4 should've error on non-ascii value. val: %d, err:%v", ts, err)
-	}
+	_, err = EncodeVisibleString("ÆÁÉÍÓÚ")
+	assert.Error(t, err)
 }
 
 func TestEncodeUTF8String(t *testing.T) {
-	ts, err := EncodeUTF8String("ABCD")
-	res := bytes.Compare(ts, []byte{65, 66, 67, 68})
-	if res != 0 || err != nil {
-		t.Errorf("t1 failed. val: %d, err:%v", ts, err)
-	}
+	encoded, err := EncodeUTF8String("ABCD")
+	assert.NoError(t, err)
+	assert.Equal(t, decodeHexString("41424344"), encoded)
 
-	ts, err = EncodeUTF8String("aфᐃ𝕫")
-	res = bytes.Compare(ts, []byte{97, 209, 132, 225, 144, 131, 240, 157, 149, 171})
-	if res != 0 || err != nil {
-		t.Errorf("t2 failed. val: %d, err:%v", ts, err)
-	}
+	encoded, err = EncodeUTF8String("aфᐃ𝕫")
+	assert.NoError(t, err)
+	assert.Equal(t, decodeHexString("61d184e19083f09d95ab"), encoded)
 
-	ts, err = EncodeUTF8String("我愛你")
-	res = bytes.Compare(ts, []byte{230, 136, 145, 230, 132, 155, 228, 189, 160})
-	if res != 0 || err != nil {
-		t.Errorf("t3 failed. val: %d, err:%v", ts, err)
-	}
+	encoded, err = EncodeUTF8String("我愛你")
+	assert.NoError(t, err)
+	assert.Equal(t, decodeHexString("e68891e6849be4bda0"), encoded)
 }
 
 func TestEncodeBCDAndBCDs(t *testing.T) {
-	ts, err := EncodeBCD(int8(127))
-	res := bytes.Compare(ts, []byte{127})
-	if res != 0 || err != nil {
-		t.Errorf("t1 failed. val: %d, err:%v", ts, err)
-	}
+	encoded, err := EncodeBCD(int8(127))
+	assert.NoError(t, err)
+	assert.Equal(t, decodeHexString("7F"), encoded)
 
-	ts, err = EncodeBCD(int8(-1))
-	res = bytes.Compare(ts, []byte{255})
-	if res != 0 || err != nil {
-		t.Errorf("t2 failed. val: %d, err:%v", ts, err)
-	}
+	encoded, err = EncodeBCD(int8(-1))
+	assert.NoError(t, err)
+	assert.Equal(t, decodeHexString("FF"), encoded)
 
-	ts, err = EncodeBCDs("1234")
-	res = bytes.Compare(ts, []byte{18, 52})
-	if res != 0 || err != nil {
-		t.Errorf("t3 failed. val: %d, err:%v", ts, err)
-	}
+	encoded, err = EncodeBCDs("1234")
+	assert.NoError(t, err)
+	assert.Equal(t, decodeHexString("1234"), encoded)
 
-	ts, err = EncodeBCDs("12345")
-	res = bytes.Compare(ts, []byte{18, 52, 80})
-	if res != 0 || err != nil {
-		t.Errorf("t4 failed. val: %d, err:%v", ts, err)
-	}
+	encoded, err = EncodeBCDs("12345")
+	assert.NoError(t, err)
+	assert.Equal(t, decodeHexString("123450"), encoded)
 }
 
 func TestEncodeInteger(t *testing.T) {
-	ts, err := EncodeInteger(-128)
-	res := bytes.Compare(ts, []byte{128})
-	if res != 0 || err != nil {
-		t.Errorf("t1 failed. val: %d, err:%v", ts, err)
-	}
+	encoded, err := EncodeInteger(-128)
+	assert.NoError(t, err)
+	assert.Equal(t, decodeHexString("80"), encoded)
 
-	ts, err = EncodeInteger(0)
-	res = bytes.Compare(ts, []byte{0})
-	if res != 0 || err != nil {
-		t.Errorf("t2 failed. val: %d, err:%v", ts, err)
-	}
+	encoded, err = EncodeInteger(0)
+	assert.NoError(t, err)
+	assert.Equal(t, decodeHexString("00"), encoded)
 
-	ts, err = EncodeInteger(127)
-	res = bytes.Compare(ts, []byte{127})
-	if res != 0 || err != nil {
-		t.Errorf("t3 failed. val: %d, err:%v", ts, err)
-	}
+	encoded, err = EncodeInteger(127)
+	assert.NoError(t, err)
+	assert.Equal(t, decodeHexString("7F"), encoded)
 
-	ts, err = EncodeInteger(-1)
-	res = bytes.Compare(ts, []byte{255})
-	if res != 0 || err != nil {
-		t.Errorf("t4 failed. val: %d, err:%v", ts, err)
-	}
+	encoded, err = EncodeInteger(-1)
+	assert.NoError(t, err)
+	assert.Equal(t, decodeHexString("FF"), encoded)
 }
 
 func TestEncodeLong(t *testing.T) {
-	ts, err := EncodeLong(0)
-	res := bytes.Compare(ts, []byte{0, 0})
-	if res != 0 || err != nil {
-		t.Errorf("t1 failed. val: %d, err:%v", ts, err)
-	}
+	encoded, err := EncodeLong(0)
+	assert.NoError(t, err)
+	assert.Equal(t, decodeHexString("0000"), encoded)
 
-	ts, err = EncodeLong(256)
-	res = bytes.Compare(ts, []byte{1, 0})
-	if res != 0 || err != nil {
-		t.Errorf("t2 failed. val: %d, err:%v", ts, err)
-	}
+	encoded, err = EncodeLong(256)
+	assert.NoError(t, err)
+	assert.Equal(t, decodeHexString("0100"), encoded)
 
-	ts, err = EncodeLong(1<<15 - 1)
-	res = bytes.Compare(ts, []byte{127, 255})
-	if res != 0 || err != nil {
-		t.Errorf("t3 failed. val: %d, err:%v", ts, err)
-	}
+	encoded, err = EncodeLong(1<<15 - 1)
+	assert.NoError(t, err)
+	assert.Equal(t, decodeHexString("7FFF"), encoded)
 
-	ts, err = EncodeLong(-1 << 15)
-	res = bytes.Compare(ts, []byte{128, 0})
-	if res != 0 || err != nil {
-		t.Errorf("t4 failed. val: %d, err:%v", ts, err)
-	}
+	encoded, err = EncodeLong(-1 << 15)
+	assert.NoError(t, err)
+	assert.Equal(t, decodeHexString("8000"), encoded)
 }
 
 func TestEncodeUnsigned(t *testing.T) {
-	ts, err := EncodeUnsigned(0)
-	res := bytes.Compare(ts, []byte{0})
-	if res != 0 || err != nil {
-		t.Errorf("t1 failed. val: %d, err:%v", ts, err)
-	}
+	encoded, err := EncodeUnsigned(0)
+	assert.NoError(t, err)
+	assert.Equal(t, decodeHexString("00"), encoded)
 
-	ts, err = EncodeUnsigned(255)
-	res = bytes.Compare(ts, []byte{1<<8 - 1})
-	if res != 0 || err != nil {
-		t.Errorf("t2 failed. val: %d, err:%v", ts, err)
-	}
+	encoded, err = EncodeUnsigned(255)
+	assert.NoError(t, err)
+	assert.Equal(t, decodeHexString("FF"), encoded)
 }
 
 func TestEncodeLongUnsigned(t *testing.T) {
-	ts, err := EncodeLongUnsigned(0)
-	res := bytes.Compare(ts, []byte{0, 0})
-	if res != 0 || err != nil {
-		t.Errorf("t1 failed. val: %d, err:%v", ts, err)
-	}
+	encoded, err := EncodeLongUnsigned(0)
+	assert.NoError(t, err)
+	assert.Equal(t, decodeHexString("0000"), encoded)
 
-	ts, err = EncodeLongUnsigned(1<<16 - 1)
-	res = bytes.Compare(ts, []byte{255, 255})
-	if res != 0 || err != nil {
-		t.Errorf("t2 failed. val: %d, err:%v", ts, err)
-	}
+	encoded, err = EncodeLongUnsigned(1<<16 - 1)
+	assert.NoError(t, err)
+	assert.Equal(t, decodeHexString("FFFF"), encoded)
 }
 
 func TestEncodeLong64(t *testing.T) {
-	ts, err := EncodeLong64(0)
-	res := bytes.Compare(ts, []byte{0, 0, 0, 0, 0, 0, 0, 0})
-	if res != 0 || err != nil {
-		t.Errorf("t1 failed. val: %d, err:%v", ts, err)
-	}
+	encoded, err := EncodeLong64(0)
+	assert.NoError(t, err)
+	assert.Equal(t, decodeHexString("0000000000000000"), encoded)
 
-	ts, err = EncodeLong64(1<<63 - 1)
-	res = bytes.Compare(ts, []byte{127, 255, 255, 255, 255, 255, 255, 255})
-	if res != 0 || err != nil {
-		t.Errorf("t2 failed. val: %d, err:%v", ts, err)
-	}
+	encoded, err = EncodeLong64(1<<63 - 1)
+	assert.NoError(t, err)
+	assert.Equal(t, decodeHexString("7fffffffffffffff"), encoded)
 
-	ts, err = EncodeLong64(-1 << 63)
-	res = bytes.Compare(ts, []byte{128, 0, 0, 0, 0, 0, 0, 0})
-	if res != 0 || err != nil {
-		t.Errorf("t3 failed. val: %d, err:%v", ts, err)
-	}
+	encoded, err = EncodeLong64(-1 << 63)
+	assert.NoError(t, err)
+	assert.Equal(t, decodeHexString("8000000000000000"), encoded)
 
-	ts, err = EncodeLong64(-1)
-	res = bytes.Compare(ts, []byte{255, 255, 255, 255, 255, 255, 255, 255})
-	if res != 0 || err != nil {
-		t.Errorf("t4 failed. val: %d, err:%v", ts, err)
-	}
+	encoded, err = EncodeLong64(-1)
+	assert.NoError(t, err)
+	assert.Equal(t, decodeHexString("ffffffffffffffff"), encoded)
 }
 
 func TestEncodeLong64Unsigned(t *testing.T) {
-	ts, err := EncodeLong64Unsigned(0)
-	res := bytes.Compare(ts, []byte{0, 0, 0, 0, 0, 0, 0, 0})
-	if res != 0 || err != nil {
-		t.Errorf("t1 failed. val: %d, err:%v", ts, err)
-	}
+	encoded, err := EncodeLong64Unsigned(0)
+	assert.NoError(t, err)
+	assert.Equal(t, decodeHexString("0000000000000000"), encoded)
 
-	ts, err = EncodeLong64Unsigned(1<<64 - 1)
-	res = bytes.Compare(ts, []byte{255, 255, 255, 255, 255, 255, 255, 255})
-	if res != 0 || err != nil {
-		t.Errorf("t2 failed. val: %d, err:%v", ts, err)
-	}
+	encoded, err = EncodeLong64Unsigned(1<<64 - 1)
+	assert.NoError(t, err)
+	assert.Equal(t, decodeHexString("FFFFFFFFFFFFFFFF"), encoded)
 }
 
 func TestEncodeFloat32(t *testing.T) {
-	ts, err := EncodeFloat32(0)
-	res := bytes.Compare(ts, []byte{0, 0, 0, 0})
-	if res != 0 || err != nil {
-		t.Errorf("t1 failed. val: %d, err:%v", ts, err)
-	}
+	encoded, err := EncodeFloat32(0)
+	assert.NoError(t, err)
+	assert.Equal(t, decodeHexString("00000000"), encoded)
 
-	ts, err = EncodeFloat32(float32(3.14))
-	res = bytes.Compare(ts, []byte{64, 72, 245, 195})
-	if res != 0 || err != nil {
-		t.Errorf("t2 failed. val: %d, err:%v", ts, err)
-	}
+	encoded, err = EncodeFloat32(float32(3.14))
+	assert.NoError(t, err)
+	assert.Equal(t, decodeHexString("4048f5c3"), encoded)
 
-	ts, err = EncodeFloat32(float32(-3.14))
-	res = bytes.Compare(ts, []byte{192, 72, 245, 195})
-	if res != 0 || err != nil {
-		t.Errorf("t3 failed. val: %d, err:%v", ts, err)
-	}
+	encoded, err = EncodeFloat32(float32(-3.14))
+	assert.NoError(t, err)
+	assert.Equal(t, decodeHexString("c048f5c3"), encoded)
 
-	ts, err = EncodeFloat32(4294967295)
-	res = bytes.Compare(ts, []byte{79, 128, 0, 0})
-	if res != 0 || err != nil {
-		t.Errorf("t4 failed. val: %d, err:%v", ts, err)
-	}
+	encoded, err = EncodeFloat32(4294967295)
+	assert.NoError(t, err)
+	assert.Equal(t, decodeHexString("4f800000"), encoded)
 }
 
 func TestEncodeFloat64(t *testing.T) {
-	ts, err := EncodeFloat64(0)
+	encoded, err := EncodeFloat64(0)
 	assert.NoError(t, err)
-	assert.Equal(t, decodeHexString("0000000000000000"), ts)
+	assert.Equal(t, decodeHexString("0000000000000000"), encoded)
 
-	ts, err = EncodeFloat64(float64(3.14))
+	encoded, err = EncodeFloat64(float64(3.14))
 	assert.NoError(t, err)
-	assert.Equal(t, decodeHexString("40091EB851EB851F"), ts)
+	assert.Equal(t, decodeHexString("40091EB851EB851F"), encoded)
 
-	ts, err = EncodeFloat64(float64(-3.14))
+	encoded, err = EncodeFloat64(float64(-3.14))
 	assert.NoError(t, err)
-	assert.Equal(t, decodeHexString("C0091EB851EB851F"), ts)
+	assert.Equal(t, decodeHexString("C0091EB851EB851F"), encoded)
 
-	ts, err = EncodeFloat64(4294967295)
+	encoded, err = EncodeFloat64(4294967295)
 	assert.NoError(t, err)
-	assert.Equal(t, decodeHexString("41EFFFFFFFE00000"), ts)
+	assert.Equal(t, decodeHexString("41EFFFFFFFE00000"), encoded)
 
-	ts, err = EncodeFloat64(3.1415926535)
+	encoded, err = EncodeFloat64(3.1415926535)
 	assert.NoError(t, err)
-	assert.Equal(t, decodeHexString("400921FB54411744"), ts)
+	assert.Equal(t, decodeHexString("400921FB54411744"), encoded)
 }
 
 func TestEncodeDate(t *testing.T) {
 	dt := time.Date(2009, time.November, 10, 0, 0, 0, 0, time.UTC)
-	ts, err := EncodeDate(dt)
+	encoded, err := EncodeDate(dt)
 	assert.NoError(t, err)
-	assert.Equal(t, decodeHexString("07D90B0A02"), ts)
+	assert.Equal(t, decodeHexString("07D90B0A02"), encoded)
 
 	dt = time.Date(1500, time.January, 1, 0, 0, 0, 0, time.UTC)
-	ts, err = EncodeDate(dt)
+	encoded, err = EncodeDate(dt)
 	assert.NoError(t, err)
-	assert.Equal(t, decodeHexString("05DC010101"), ts)
+	assert.Equal(t, decodeHexString("05DC010101"), encoded)
 }
 
 func TestEncodeTime(t *testing.T) {
 	dt := time.Date(2020, time.January, 1, 10, 0, 0, 0, time.UTC)
-	ts, err := EncodeTime(dt)
+	encoded, err := EncodeTime(dt)
 	assert.NoError(t, err)
-	assert.Equal(t, decodeHexString("0A000000"), ts)
+	assert.Equal(t, decodeHexString("0A000000"), encoded)
 
 	dt = time.Date(2020, time.January, 1, 23, 59, 59, 990000000, time.UTC)
-	ts, err = EncodeTime(dt)
+	encoded, err = EncodeTime(dt)
 	assert.NoError(t, err)
-	assert.Equal(t, decodeHexString("173B3B63"), ts)
+	assert.Equal(t, decodeHexString("173B3B63"), encoded)
 }
 
 func TestEncodeDateTime(t *testing.T) {
@@ -494,75 +366,45 @@ func TestEncodeDateTime(t *testing.T) {
 
 func TestDlmsData(t *testing.T) {
 	tDD := DlmsData{Tag: TagBoolean, Value: true}
-	encodedBool, err := tDD.Encode()
-	if err != nil {
-		t.Errorf("DlmsData EncodeBoolean get error. %d", err)
-	}
-	res := bytes.Compare(encodedBool, []byte{byte(TagBoolean), 255})
-	if res != 0 {
-		t.Errorf("DlmsData EncodeBoolean get raw failed. val: %d", encodedBool)
-	}
-	res = bytes.Compare(tDD.RawValue(), []byte{255})
-	if res != 0 {
-		t.Errorf("DlmsData EncodeBoolean get rawValue failed. val: %d", tDD.RawValue())
-	}
-	tDD.Tag = TagBitString
-	tDD.Value = "0000111111110000111111110000000101010101"
-	tDD.Encode()
-	res = bytes.Compare(tDD.Raw(), []byte{byte(TagBitString), 40, 15, 240, 255, 1, 85})
-	if res != 0 {
-		t.Errorf("t3 failed. val: %d", tDD.Raw())
-	}
+	encoded, err := tDD.Encode()
+	assert.NoError(t, err)
+	assert.Equal(t, decodeHexString("03FF"), encoded)
+
+	tDD = DlmsData{Tag: TagBitString, Value: "0000111111110000111111110000000101010101"}
+	encoded, err = tDD.Encode()
+	assert.NoError(t, err)
+	assert.Equal(t, decodeHexString("04280FF0FF0155"), encoded)
 }
 
 func TestDlmsData_NilValue(t *testing.T) {
 	tDD := DlmsData{Tag: TagBoolean, Value: nil}
-
 	_, err := tDD.Encode()
-	if err == nil {
-		t.Errorf("Should've panic on nil value")
-	}
+	assert.Error(t, err)
 }
 
 func TestDlmsData_WrongBoolValue(t *testing.T) {
 	tDD := DlmsData{Tag: TagBoolean, Value: 1234}
-
 	_, err := tDD.Encode()
-	if err == nil {
-		t.Errorf("Should've panic on wrong Value to Tag")
-	}
+	assert.Error(t, err)
 }
 
 func TestDlmsData_WrongBitStringValue(t *testing.T) {
 	tDD := DlmsData{Tag: TagBitString, Value: "ABCDEFG"}
-
 	_, err := tDD.Encode()
-	if err == nil {
-		t.Errorf("Should've panic on value is not strings of binary")
-	}
+	assert.Error(t, err)
 }
 
 func TestDlmsData_DateTime(t *testing.T) {
 	tDD := DlmsData{Tag: TagDateTime, Value: "9999-12-30 23:59:59"}
 	encoded, err := tDD.Encode()
-	if err != nil {
-		t.Errorf("DlmsData Encode DateTime get error. %d", err)
-	}
-	res := bytes.Compare(encoded, []byte{byte(TagDateTime), 39, 15, 12, 30, 4, 23, 59, 59, 0, 0, 0, 0})
-	if res != 0 {
-		t.Errorf("DlmsData Encode DateTime get raw failed. val: %d", encoded)
-	}
+	assert.NoError(t, err)
+	assert.Equal(t, decodeHexString("19270f0c1e04173b3b00000000"), encoded)
 
 	dt := time.Date(20000, time.December, 30, 23, 59, 59, 0, time.UTC)
 	tDD.Value = dt
 	encoded, err = tDD.Encode()
-	if err != nil {
-		t.Errorf("DlmsData Encode DateTime get error. %d", err)
-	}
-	res = bytes.Compare(encoded, []byte{byte(TagDateTime), 78, 32, 12, 30, 6, 23, 59, 59, 0, 0, 0, 0})
-	if res != 0 {
-		t.Errorf("DlmsData Encode DateTime get raw failed. val: %d", encoded)
-	}
+	assert.NoError(t, err)
+	assert.Equal(t, decodeHexString("194e200c1e06173b3b00000000"), encoded)
 }
 
 func TestArray(t *testing.T) {
@@ -575,19 +417,6 @@ func TestArray(t *testing.T) {
 	res := bytes.Compare(ts, []byte{byte(TagBoolean), 255, byte(TagBitString), 3, 224, byte(TagDateTime), 7, 228, 3, 11, 3, 18, 0, 0, 0, 0, 0, 0})
 	if res != 0 || err != nil {
 		t.Errorf("t1 failed. val: %d, err:%v", ts, err)
-	}
-
-	res = bytes.Compare(d1.Raw(), []byte{byte(TagBoolean), 255})
-	if res != 0 {
-		t.Errorf("t1.1 failed. val: %d", d1.Raw())
-	}
-	res = bytes.Compare(d2.Raw(), []byte{byte(TagBitString), 3, 224})
-	if res != 0 {
-		t.Errorf("t1.2 failed. val: %d", d2.Raw())
-	}
-	res = bytes.Compare(d3.Raw(), []byte{byte(TagDateTime), 7, 228, 3, 11, 3, 18, 0, 0, 0, 0, 0, 0})
-	if res != 0 {
-		t.Errorf("t1.3 failed. val: %d", d3.Raw())
 	}
 
 	tables := []struct {
@@ -621,19 +450,6 @@ func TestDlmsData_Array(t *testing.T) {
 	res := bytes.Compare(encoded, []byte{byte(TagArray), 3, byte(TagBoolean), 255, byte(TagBitString), 3, 224, byte(TagDateTime), 7, 228, 3, 11, 3, 18, 0, 0, 0, 0, 0, 0})
 	if res != 0 {
 		t.Errorf("t1 failed. val: %d", encoded)
-	}
-
-	res = bytes.Compare(d1.Raw(), []byte{byte(TagBoolean), 255})
-	if res != 0 {
-		t.Errorf("t1.1 failed. val: %d", d1.Raw())
-	}
-	res = bytes.Compare(d2.Raw(), []byte{byte(TagBitString), 3, 224})
-	if res != 0 {
-		t.Errorf("t1.2 failed. val: %d", d2.Raw())
-	}
-	res = bytes.Compare(d3.Raw(), []byte{byte(TagDateTime), 7, 228, 3, 11, 3, 18, 0, 0, 0, 0, 0, 0})
-	if res != 0 {
-		t.Errorf("t1.3 failed. val: %d", d3.Raw())
 	}
 
 	tDD = DlmsData{Tag: TagArray, Value: []*DlmsData{{Tag: TagBoolean, Value: true}, {Tag: TagBoolean, Value: false}}}

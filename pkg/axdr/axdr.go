@@ -7,7 +7,6 @@ It is standardized by IEC 61334-6 standard [4] and used in DLMS APDUs.
 package axdr
 
 import (
-	"bytes"
 	"fmt"
 	"strings"
 	"time"
@@ -45,11 +44,8 @@ const (
 )
 
 type DlmsData struct {
-	Tag       dataTag
-	Value     interface{}
-	rawLength []byte
-	rawValue  []byte
-	raw       bytes.Buffer
+	Tag   dataTag
+	Value interface{}
 }
 
 func CreateAxdrArray(data []*DlmsData) *DlmsData {
@@ -162,10 +158,11 @@ func (d *DlmsData) Encode() (out []byte, err error) {
 
 	errDataType := fmt.Errorf("cannot encode value %v with tag %v", d.Value, d.Tag)
 	var dataLength []byte
+	var rawValue []byte
 
 	switch d.Tag {
 	case TagNull:
-		d.rawValue = []byte{0}
+		rawValue = []byte{0}
 
 	case TagArray:
 		data, ok := d.Value.([]*DlmsData)
@@ -173,8 +170,7 @@ func (d *DlmsData) Encode() (out []byte, err error) {
 			err = errDataType
 			return
 		}
-		rawValue, _ := EncodeArray(data)
-		d.rawValue = rawValue
+		rawValue, _ = EncodeArray(data)
 
 		dl, errLength := EncodeLength(len(data))
 		if errLength != nil {
@@ -190,8 +186,7 @@ func (d *DlmsData) Encode() (out []byte, err error) {
 			err = errDataType
 			return
 		}
-		rawValue, _ := EncodeStructure(data)
-		d.rawValue = rawValue
+		rawValue, _ = EncodeStructure(data)
 
 		dl, errLength := EncodeLength(len(data))
 		if errLength != nil {
@@ -206,8 +201,7 @@ func (d *DlmsData) Encode() (out []byte, err error) {
 			err = errDataType
 			return
 		}
-		rawValue, _ := EncodeBoolean(data)
-		d.rawValue = rawValue
+		rawValue, _ = EncodeBoolean(data)
 
 	case TagBitString:
 		data, ok := d.Value.(string)
@@ -221,7 +215,7 @@ func (d *DlmsData) Encode() (out []byte, err error) {
 			err = errEncoding
 			return
 		}
-		d.rawValue = rv
+		rawValue = rv
 
 		// length of bitstring is count by bits, not bytes
 		// length of "1110" is 4, not 1
@@ -238,8 +232,7 @@ func (d *DlmsData) Encode() (out []byte, err error) {
 			err = errDataType
 			return
 		}
-		rawValue, _ := EncodeDoubleLong(data)
-		d.rawValue = rawValue
+		rawValue, _ = EncodeDoubleLong(data)
 
 	case TagDoubleLongUnsigned:
 		data, ok := d.Value.(uint32)
@@ -247,8 +240,7 @@ func (d *DlmsData) Encode() (out []byte, err error) {
 			err = errDataType
 			return
 		}
-		rawValue, _ := EncodeDoubleLongUnsigned(data)
-		d.rawValue = rawValue
+		rawValue, _ = EncodeDoubleLongUnsigned(data)
 
 	case TagFloatingPoint:
 		data, ok := d.Value.(float32)
@@ -256,8 +248,7 @@ func (d *DlmsData) Encode() (out []byte, err error) {
 			err = errDataType
 			return
 		}
-		rawValue, _ := EncodeFloat32(data)
-		d.rawValue = rawValue
+		rawValue, _ = EncodeFloat32(data)
 
 	case TagOctetString:
 		switch value := d.Value.(type) {
@@ -267,20 +258,20 @@ func (d *DlmsData) Encode() (out []byte, err error) {
 				err = errEncoding
 				return
 			}
-			d.rawValue = rv
+			rawValue = rv
 		case string:
 			rv, errEncoding := EncodeOctetString(value)
 			if errEncoding != nil {
 				err = errEncoding
 				return
 			}
-			d.rawValue = rv
+			rawValue = rv
 		default:
 			err = errDataType
 			return
 		}
 
-		dl, errLength := EncodeLength(len(d.rawValue))
+		dl, errLength := EncodeLength(len(rawValue))
 		if errLength != nil {
 			err = errLength
 			return
@@ -299,9 +290,9 @@ func (d *DlmsData) Encode() (out []byte, err error) {
 			err = errEncoding
 			return
 		}
-		d.rawValue = rv
+		rawValue = rv
 
-		dl, errLength := EncodeLength(len(d.rawValue))
+		dl, errLength := EncodeLength(len(rawValue))
 		if errLength != nil {
 			err = errLength
 			return
@@ -320,9 +311,9 @@ func (d *DlmsData) Encode() (out []byte, err error) {
 			err = errEncoding
 			return
 		}
-		d.rawValue = rv
+		rawValue = rv
 
-		dl, errLength := EncodeLength(len(d.rawValue))
+		dl, errLength := EncodeLength(len(rawValue))
 		if errLength != nil {
 			err = errLength
 			return
@@ -335,8 +326,7 @@ func (d *DlmsData) Encode() (out []byte, err error) {
 			err = errDataType
 			return
 		}
-		rawValue, _ := EncodeBCD(data)
-		d.rawValue = rawValue
+		rawValue, _ = EncodeBCD(data)
 
 	case TagInteger:
 		data, ok := d.Value.(int8)
@@ -344,8 +334,7 @@ func (d *DlmsData) Encode() (out []byte, err error) {
 			err = errDataType
 			return
 		}
-		rawValue, _ := EncodeInteger(data)
-		d.rawValue = rawValue
+		rawValue, _ = EncodeInteger(data)
 
 	case TagLong:
 		data, ok := d.Value.(int16)
@@ -353,8 +342,7 @@ func (d *DlmsData) Encode() (out []byte, err error) {
 			err = errDataType
 			return
 		}
-		rawValue, _ := EncodeLong(data)
-		d.rawValue = rawValue
+		rawValue, _ = EncodeLong(data)
 
 	case TagUnsigned:
 		data, ok := d.Value.(uint8)
@@ -362,8 +350,7 @@ func (d *DlmsData) Encode() (out []byte, err error) {
 			err = errDataType
 			return
 		}
-		rawValue, _ := EncodeUnsigned(data)
-		d.rawValue = rawValue
+		rawValue, _ = EncodeUnsigned(data)
 
 	case TagLongUnsigned:
 		data, ok := d.Value.(uint16)
@@ -371,8 +358,7 @@ func (d *DlmsData) Encode() (out []byte, err error) {
 			err = errDataType
 			return
 		}
-		rawValue, _ := EncodeLongUnsigned(data)
-		d.rawValue = rawValue
+		rawValue, _ = EncodeLongUnsigned(data)
 
 	case TagCompactArray:
 		err = fmt.Errorf("not yet implemented")
@@ -384,8 +370,7 @@ func (d *DlmsData) Encode() (out []byte, err error) {
 			err = errDataType
 			return
 		}
-		rawValue, _ := EncodeLong64(data)
-		d.rawValue = rawValue
+		rawValue, _ = EncodeLong64(data)
 
 	case TagLong64Unsigned:
 		data, ok := d.Value.(uint64)
@@ -393,8 +378,7 @@ func (d *DlmsData) Encode() (out []byte, err error) {
 			err = errDataType
 			return
 		}
-		rawValue, _ := EncodeLong64Unsigned(data)
-		d.rawValue = rawValue
+		rawValue, _ = EncodeLong64Unsigned(data)
 
 	case TagEnum:
 		data, ok := d.Value.(uint8)
@@ -402,8 +386,7 @@ func (d *DlmsData) Encode() (out []byte, err error) {
 			err = errDataType
 			return
 		}
-		rawValue, _ := EncodeEnum(data)
-		d.rawValue = rawValue
+		rawValue, _ = EncodeEnum(data)
 
 	case TagFloat32:
 		data, ok := d.Value.(float32)
@@ -411,8 +394,7 @@ func (d *DlmsData) Encode() (out []byte, err error) {
 			err = errDataType
 			return
 		}
-		rawValue, _ := EncodeFloat32(data)
-		d.rawValue = rawValue
+		rawValue, _ = EncodeFloat32(data)
 
 	case TagFloat64:
 		data, ok := d.Value.(float64)
@@ -420,8 +402,7 @@ func (d *DlmsData) Encode() (out []byte, err error) {
 			err = errDataType
 			return
 		}
-		rawValue, _ := EncodeFloat64(data)
-		d.rawValue = rawValue
+		rawValue, _ = EncodeFloat64(data)
 
 	case TagDateTime:
 		var data time.Time
@@ -441,7 +422,7 @@ func (d *DlmsData) Encode() (out []byte, err error) {
 			err = errEncoding
 			return
 		}
-		d.rawValue = rv
+		rawValue = rv
 
 	case TagDate:
 		var data time.Time
@@ -460,7 +441,7 @@ func (d *DlmsData) Encode() (out []byte, err error) {
 			err = errEncoding
 			return
 		}
-		d.rawValue = rv
+		rawValue = rv
 
 	case TagTime:
 		var data time.Time
@@ -479,36 +460,18 @@ func (d *DlmsData) Encode() (out []byte, err error) {
 			err = errEncoding
 			return
 		}
-		d.rawValue = rv
+		rawValue = rv
 
 	case TagDontCare:
-		d.rawValue = []byte{0}
+		rawValue = []byte{0}
 	}
 
-	d.raw.Reset()
-	d.raw.WriteByte(byte(d.Tag))
+	out = make([]byte, 1, 1+len(dataLength)+len(rawValue))
+	out[0] = byte(d.Tag)
 	if len(dataLength) > 0 {
-		d.rawLength = dataLength
-		d.raw.Write(dataLength)
+		out = append(out, dataLength...)
 	}
-	d.raw.Write(d.rawValue)
-	return d.raw.Bytes(), nil
-}
+	out = append(out, rawValue...)
 
-// Return bytes of raw data if Encode() has been called before
-// raw data is combination of Tag, Length(if any), and Value
-func (d *DlmsData) Raw() []byte {
-	return d.raw.Bytes()
-}
-
-// Return bytes of raw value if Encode() has been called before
-// raw value does not include Tag and Length
-func (d *DlmsData) RawValue() []byte {
-	return d.rawValue
-}
-
-// Return bytes of raw length if Encode() has been called before
-// raw length does not include Tag and Value
-func (d *DlmsData) RawLength() []byte {
-	return d.rawLength
+	return out, nil
 }

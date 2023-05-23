@@ -60,27 +60,17 @@ func getDataTag(in uint8) (t dataTag, err error) {
 	return
 }
 
-// Create new decode from either supplied dataTag or byte slice pointer.
-// If input is byte slice, it will remove first byte from source
-func NewDataDecoder(in interface{}) *Decoder {
-	switch src := in.(type) {
-	case dataTag:
-		return &Decoder{tag: src}
-
-	case *[]byte:
-		if len(*src) < 1 {
-			return &Decoder{tag: TagNull}
-		}
-		tag, err := getDataTag((*src)[0])
-		if err != nil {
-			return &Decoder{tag: TagNull}
-		}
-		(*src) = (*src)[1:]
-		return &Decoder{tag: tag}
-
-	default:
-		panic("Input must be either dataTag or byte slice pointer")
+// Create new decode from either supplied byte slice pointer. It will remove first byte from source
+func NewDataDecoder(ori *[]byte) *Decoder {
+	if len(*ori) < 1 {
+		return &Decoder{tag: TagNull}
 	}
+	tag, err := getDataTag((*ori)[0])
+	if err != nil {
+		return &Decoder{tag: TagNull}
+	}
+	(*ori) = (*ori)[1:]
+	return &Decoder{tag: tag}
 }
 
 // Decode expect byte second after tag byte.
@@ -114,7 +104,7 @@ func (dec *Decoder) Decode(ori *[]byte) (r DlmsData, err error) {
 		TagDontCare:           false,
 	}
 
-	src := append([]byte(nil), (*ori)...)
+	src := *ori
 
 	r.Tag = dec.tag
 	haveLength := lengthAfterTag[dec.tag]
@@ -125,7 +115,6 @@ func (dec *Decoder) Decode(ori *[]byte) (r DlmsData, err error) {
 		if err != nil {
 			return
 		}
-		r.rawLength = lengthByte
 	}
 
 	var rawValue []byte
@@ -137,7 +126,7 @@ func (dec *Decoder) Decode(ori *[]byte) (r DlmsData, err error) {
 	case TagArray:
 		output := make([]*DlmsData, lengthInt)
 		// make carbon copy of src to calc rawValue later
-		temp := append([]byte(nil), src...)
+		temp := src
 		for i := 0; i < int(lengthInt); i++ {
 			thisDecoder := NewDataDecoder(&temp)
 			thisDlmsData, thisError := thisDecoder.Decode(&temp)
@@ -154,7 +143,7 @@ func (dec *Decoder) Decode(ori *[]byte) (r DlmsData, err error) {
 		// same same as array
 		output := make([]*DlmsData, lengthInt)
 		// make carbon copy of src to calc rawValue later
-		temp := append([]byte(nil), src...)
+		temp := src
 		for i := 0; i < int(lengthInt); i++ {
 			thisDecoder := NewDataDecoder(&temp)
 			thisDlmsData, thisError := thisDecoder.Decode(&temp)
@@ -162,7 +151,6 @@ func (dec *Decoder) Decode(ori *[]byte) (r DlmsData, err error) {
 				err = thisError
 				return
 			}
-			// fmt.Printf("%v: %v; rawLength: %v; rawValue: %v; raw: %v;\n", thisDecoder, thisDlmsData, thisDlmsData.rawLength, thisDlmsData.rawValue, thisDlmsData.raw)
 			output[i] = &thisDlmsData
 		}
 		rawValue = src[:len(src)-len(temp)]
@@ -220,20 +208,16 @@ func (dec *Decoder) Decode(ori *[]byte) (r DlmsData, err error) {
 		return
 	}
 
-	r.rawValue = rawValue
 	r.Value = value
-	r.raw.WriteByte(byte(dec.tag))
+
+	length := len(rawValue)
 	if haveLength {
-		r.raw.Write(lengthByte)
-	} else {
-		r.rawLength = []byte{byte(len(rawValue))}
+		length += len(lengthByte)
 	}
-	r.raw.Write(rawValue)
 
 	// remove bytes from original on success
-	(*ori) = (*ori)[len(r.raw.Bytes())-1:]
+	(*ori) = (*ori)[length:]
 
-	// fmt.Printf("Tag: %v; Value: %v; rawLength: %v; rawValue: %v; raw: %v;\n", r.Tag, r.Value, r.rawLength, r.rawValue, r.raw)
 	return
 }
 

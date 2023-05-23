@@ -102,7 +102,7 @@ func (gr GetRequestNormal) Encode() (out []byte, err error) {
 }
 
 func DecodeGetRequestNormal(ori *[]byte) (out GetRequestNormal, err error) {
-	src := append([]byte(nil), (*ori)...)
+	src := *ori
 
 	if src[0] != TagGetRequest.Value() {
 		err = ErrWrongTag(0, src[0], byte(TagGetRequest))
@@ -164,7 +164,7 @@ func (gr GetRequestNext) Encode() (out []byte, err error) {
 }
 
 func DecodeGetRequestNext(ori *[]byte) (out GetRequestNext, err error) {
-	src := append([]byte(nil), (*ori)...)
+	src := *ori
 
 	if src[0] != TagGetRequest.Value() {
 		err = ErrWrongTag(0, src[0], byte(TagGetRequest))
@@ -226,7 +226,7 @@ func (gr GetRequestWithList) Encode() (out []byte, err error) {
 }
 
 func DecodeGetRequestWithList(ori *[]byte) (out GetRequestWithList, err error) {
-	src := append([]byte(nil), (*ori)...)
+	src := *ori
 
 	if src[0] != TagGetRequest.Value() {
 		err = ErrWrongTag(0, src[0], byte(TagGetRequest))

@@ -46,7 +46,7 @@ func (ad AttributeDescriptorWithSelection) Encode() (out []byte, err error) {
 }
 
 func DecodeAttributeDescriptorWithSelection(ori *[]byte) (out AttributeDescriptorWithSelection, err error) {
-	src := append([]byte(nil), (*ori)...)
+	src := *ori
 
 	if len(src) < 11 {
 		err = fmt.Errorf("byte slice length must be at least 11 bytes")

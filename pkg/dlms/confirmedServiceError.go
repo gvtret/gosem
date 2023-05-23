@@ -70,7 +70,7 @@ func (cse ConfirmedServiceError) Encode() (out []byte, err error) {
 }
 
 func DecodeConfirmedServiceError(ori *[]byte) (out ConfirmedServiceError, err error) {
-	src := append([]byte(nil), (*ori)...)
+	src := *ori
 
 	if len(src) < 4 {
 		err = ErrWrongLength(len(src), 4)

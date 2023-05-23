@@ -116,7 +116,7 @@ func (ar ActionRequestNormal) Encode() (out []byte, err error) {
 }
 
 func DecodeActionRequestNormal(ori *[]byte) (out ActionRequestNormal, err error) {
-	src := append([]byte(nil), (*ori)...)
+	src := *ori
 
 	if src[0] != TagActionRequest.Value() {
 		err = ErrWrongTag(0, src[0], byte(TagActionRequest))
@@ -178,7 +178,7 @@ func (ar ActionRequestNextPBlock) Encode() (out []byte, err error) {
 }
 
 func DecodeActionRequestNextPBlock(ori *[]byte) (out ActionRequestNextPBlock, err error) {
-	src := append([]byte(nil), (*ori)...)
+	src := *ori
 
 	if src[0] != TagActionRequest.Value() {
 		err = ErrWrongTag(0, src[0], byte(TagActionRequest))
@@ -256,7 +256,7 @@ func (ar ActionRequestWithList) Encode() (out []byte, err error) {
 }
 
 func DecodeActionRequestWithList(ori *[]byte) (out ActionRequestWithList, err error) {
-	src := append([]byte(nil), (*ori)...)
+	src := *ori
 
 	if src[0] != TagActionRequest.Value() {
 		err = ErrWrongTag(0, src[0], byte(TagActionRequest))
@@ -333,7 +333,7 @@ func (ar ActionRequestWithFirstPBlock) Encode() (out []byte, err error) {
 }
 
 func DecodeActionRequestWithFirstPBlock(ori *[]byte) (out ActionRequestWithFirstPBlock, err error) {
-	src := append([]byte(nil), (*ori)...)
+	src := *ori
 
 	if src[0] != TagActionRequest.Value() {
 		err = ErrWrongTag(0, src[0], byte(TagActionRequest))
@@ -402,7 +402,7 @@ func (ar ActionRequestWithListAndFirstPBlock) Encode() (out []byte, err error) {
 }
 
 func DecodeActionRequestWithListAndFirstPBlock(ori *[]byte) (out ActionRequestWithListAndFirstPBlock, err error) {
-	src := append([]byte(nil), (*ori)...)
+	src := *ori
 
 	if src[0] != TagActionRequest.Value() {
 		err = ErrWrongTag(0, src[0], byte(TagActionRequest))
@@ -461,7 +461,7 @@ func (ar ActionRequestWithPBlock) Encode() (out []byte, err error) {
 }
 
 func DecodeActionRequestWithPBlock(ori *[]byte) (out ActionRequestWithPBlock, err error) {
-	src := append([]byte(nil), (*ori)...)
+	src := *ori
 
 	if src[0] != TagActionRequest.Value() {
 		err = ErrWrongTag(0, src[0], byte(TagActionRequest))

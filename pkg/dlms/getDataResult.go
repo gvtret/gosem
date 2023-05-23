@@ -74,7 +74,7 @@ func (dt GetDataResult) ValueAsAccess() (out AccessResultTag, err error) {
 }
 
 func DecodeGetDataResult(ori *[]byte) (out GetDataResult, err error) {
-	src := append([]byte(nil), (*ori)...)
+	src := *ori
 
 	if src[0] == 0x1 {
 		out.IsData = false
@@ -196,7 +196,7 @@ func (dt DataBlockG) ResultAsAccess() (out AccessResultTag, err error) {
 }
 
 func DecodeDataBlockG(ori *[]byte) (out DataBlockG, err error) {
-	src := append([]byte(nil), (*ori)...)
+	src := *ori
 
 	if src[0] == 0x0 {
 		out.LastBlock = false
@@ -281,7 +281,7 @@ func (dt DataBlockSA) Encode() (out []byte, err error) {
 }
 
 func DecodeDataBlockSA(ori *[]byte) (out DataBlockSA, err error) {
-	src := append([]byte(nil), (*ori)...)
+	src := *ori
 
 	if src[0] == 0x0 {
 		out.LastBlock = false
@@ -333,7 +333,7 @@ func (dt ActResponse) Encode() (out []byte, err error) {
 }
 
 func DecodeActResponse(ori *[]byte) (out ActResponse, err error) {
-	src := append([]byte(nil), (*ori)...)
+	src := *ori
 
 	out.Result, err = GetActionTag(src[0])
 	if err != nil {

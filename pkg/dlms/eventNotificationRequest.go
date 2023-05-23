@@ -54,7 +54,7 @@ func (ev EventNotificationRequest) Encode() (out []byte, err error) {
 }
 
 func DecodeEventNotificationRequest(ori *[]byte) (out EventNotificationRequest, err error) {
-	src := append([]byte(nil), (*ori)...)
+	src := *ori
 
 	_, tag, _ := axdr.DecodeUnsigned(&src)
 	if tag != TagEventNotificationRequest.Value() {

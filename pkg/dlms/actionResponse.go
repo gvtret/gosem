@@ -92,7 +92,7 @@ func (ar ActionResponseNormal) Encode() (out []byte, err error) {
 }
 
 func DecodeActionResponseNormal(ori *[]byte) (out ActionResponseNormal, err error) {
-	src := append([]byte(nil), (*ori)...)
+	src := *ori
 
 	if src[0] != TagActionResponse.Value() {
 		err = ErrWrongTag(0, src[0], byte(TagActionResponse))
@@ -140,7 +140,7 @@ func (ar ActionResponseWithPBlock) Encode() (out []byte, err error) {
 }
 
 func DecodeActionResponseWithPBlock(ori *[]byte) (out ActionResponseWithPBlock, err error) {
-	src := append([]byte(nil), (*ori)...)
+	src := *ori
 
 	if src[0] != TagActionResponse.Value() {
 		err = ErrWrongTag(0, src[0], byte(TagActionResponse))
@@ -196,7 +196,7 @@ func (ar ActionResponseWithList) Encode() (out []byte, err error) {
 }
 
 func DecodeActionResponseWithList(ori *[]byte) (out ActionResponseWithList, err error) {
-	src := append([]byte(nil), (*ori)...)
+	src := *ori
 
 	if src[0] != TagActionResponse.Value() {
 		err = ErrWrongTag(0, src[0], byte(TagActionResponse))
@@ -248,7 +248,7 @@ func (ar ActionResponseNextPBlock) Encode() (out []byte, err error) {
 }
 
 func DecodeActionResponseNextPBlock(ori *[]byte) (out ActionResponseNextPBlock, err error) {
-	src := append([]byte(nil), (*ori)...)
+	src := *ori
 
 	if src[0] != TagActionResponse.Value() {
 		err = ErrWrongTag(0, src[0], byte(TagActionResponse))

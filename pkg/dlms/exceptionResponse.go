@@ -54,7 +54,7 @@ func (er ExceptionResponse) Encode() (out []byte, err error) {
 }
 
 func DecodeExceptionResponse(ori *[]byte) (out ExceptionResponse, err error) {
-	src := append([]byte(nil), (*ori)...)
+	src := *ori
 
 	if len(src) < 3 {
 		err = ErrWrongLength(len(src), 3)

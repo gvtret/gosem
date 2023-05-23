@@ -36,7 +36,7 @@ func (ad AttributeDescriptor) String() string {
 }
 
 func DecodeAttributeDescriptor(ori *[]byte) (out AttributeDescriptor, err error) {
-	src := append([]byte(nil), (*ori)...)
+	src := *ori
 
 	if len(src) < 9 {
 		err = fmt.Errorf("byte slice length must be at least 9 bytes")

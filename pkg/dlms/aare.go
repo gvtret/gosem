@@ -43,7 +43,7 @@ type AARE struct {
 }
 
 func DecodeAARE(settings *Settings, ori *[]byte) (out AARE, err error) {
-	src := append([]byte(nil), (*ori)...)
+	src := *ori
 
 	if len(src) < 2 {
 		err = ErrWrongLength(len(src), 3)

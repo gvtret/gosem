@@ -65,7 +65,7 @@ func (ir InitiateResponse) Encode() (out []byte, err error) {
 }
 
 func DecodeInitiateResponse(ori *[]byte) (out InitiateResponse, err error) {
-	src := append([]byte(nil), (*ori)...)
+	src := *ori
 
 	if len(src) < 14 {
 		err = ErrWrongLength(len(src), 14)
