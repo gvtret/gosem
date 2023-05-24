@@ -180,6 +180,7 @@ func TestClient_GetRequestWithStructOfElements(t *testing.T) {
 		Value1 uint  `obis:"1,1-1:94.34.100.255,2"`
 		Value2 *uint `obis:"1,1-1:94.34.104.255,2"`
 		Value3 *uint `obis:"70,0-0:96.3.10.255,3"`
+		Value4 *uint `obis:"3,0.0.96.10.7.255,2"`
 	}
 
 	c, tm, rdc := associate(t)
@@ -187,11 +188,13 @@ func TestClient_GetRequestWithStructOfElements(t *testing.T) {
 	sendReceive(tm, rdc, "C001C1000101015E2264FF0200", "C401C1001104")
 	sendReceive(tm, rdc, "C001C1000101015E2268FF0200", "C401C1001101")
 	sendReceive(tm, rdc, "C001C10046000060030AFF0300", "C401C10109")
+	sendReceive(tm, rdc, "C001C100030000600A07FF0200", "C401C10009062043594B3132")
 	err := c.GetRequestWithStructOfElements(&data)
 	assert.NoError(t, err)
 	assert.Equal(t, uint(4), data.Value1)
 	assert.Equal(t, uint(1), *data.Value2)
 	assert.Nil(t, data.Value3)
+	assert.Nil(t, data.Value4)
 
 	tm.AssertExpectations(t)
 }

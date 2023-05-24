@@ -186,7 +186,7 @@ func (c *client) getRequestWithStructOfElements(data interface{}) (err error) {
 			if err != nil {
 				// If a get is rejected in a field which is a pointer, then we will continue without any error
 				var dlmsError *dlms.Error
-				if errors.As(err, &dlmsError) && dlmsError.Code() == dlms.ErrorGetRejected && field.Kind() == reflect.Ptr {
+				if errors.As(err, &dlmsError) && (dlmsError.Code() == dlms.ErrorGetRejected || dlmsError.Code() == dlms.ErrorInvalidResponse) && field.Kind() == reflect.Ptr {
 					field.Set(reflect.Zero(field.Type()))
 				} else {
 					return err
