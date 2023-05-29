@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/Circutor/gosem/pkg/axdr"
+	"gitlab.com/circutor-library/gosem/pkg/axdr"
 )
 
 func TestNewGetResponseNormal(t *testing.T) {

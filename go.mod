@@ -1,4 +1,4 @@
-module github.com/Circutor/gosem
+module gitlab.com/circutor-library/gosem
 
 go 1.19
 

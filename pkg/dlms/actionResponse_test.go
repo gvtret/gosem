@@ -5,8 +5,8 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/Circutor/gosem/pkg/axdr"
 	"github.com/stretchr/testify/assert"
+	"gitlab.com/circutor-library/gosem/pkg/axdr"
 )
 
 func TestNew_ActionResponseNormal(t *testing.T) {

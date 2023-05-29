@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"fmt"
 
-	"github.com/Circutor/gosem/pkg/axdr"
+	"gitlab.com/circutor-library/gosem/pkg/axdr"
 )
 
 type setResponseTag uint8

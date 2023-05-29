@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/Circutor/gosem/pkg/axdr"
-	"github.com/Circutor/gosem/pkg/dlms"
+	"gitlab.com/circutor-library/gosem/pkg/axdr"
+	"gitlab.com/circutor-library/gosem/pkg/dlms"
 )
 
 func (c *client) SetRequest(att *dlms.AttributeDescriptor, data interface{}) (err error) {

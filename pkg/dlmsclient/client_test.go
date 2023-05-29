@@ -6,11 +6,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Circutor/gosem/pkg/dlms"
-	"github.com/Circutor/gosem/pkg/dlms/mocks"
-	"github.com/Circutor/gosem/pkg/dlmsclient"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"gitlab.com/circutor-library/gosem/pkg/dlms"
+	"gitlab.com/circutor-library/gosem/pkg/dlms/mocks"
+	"gitlab.com/circutor-library/gosem/pkg/dlmsclient"
 )
 
 func TestClient_Connect(t *testing.T) {

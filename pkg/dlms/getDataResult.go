@@ -5,7 +5,7 @@ import (
 	"encoding/hex"
 	"fmt"
 
-	"github.com/Circutor/gosem/pkg/axdr"
+	"gitlab.com/circutor-library/gosem/pkg/axdr"
 )
 
 type GetDataResult struct {
