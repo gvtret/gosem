@@ -147,6 +147,10 @@ func CreateAxdrTime(data time.Time) *DlmsData {
 	return &DlmsData{Tag: TagTime, Value: data}
 }
 
+func CreateAxdrNull() *DlmsData {
+	return &DlmsData{Tag: TagNull, Value: []byte{0}}
+}
+
 // Encodes Value of DlmsData object according to the Tag
 // It will panic if Value is nil, data type does not match
 // the Tag or if failed happen in encoding length/value level.

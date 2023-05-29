@@ -67,10 +67,10 @@ func DecodeDataNotification(ori *[]byte) (out DataNotification, err error) {
 		return
 	}
 
-	switch {
-	case dataTimeLen == 0:
+	switch dataTimeLen {
+	case 0:
 		out.DateTime = nil
-	case dataTimeLen == 12:
+	case 12:
 		_, time, e := axdr.DecodeDateTime(&src)
 		if e != nil {
 			err = e
