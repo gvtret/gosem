@@ -5,7 +5,7 @@ package mocks
 import (
 	log "log"
 
-	dlms "github.com/Circutor/gosem/pkg/dlms"
+	dlms "gitlab.com/circutor-library/gosem/pkg/dlms"
 
 	mock "github.com/stretchr/testify/mock"
 )

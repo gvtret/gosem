@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/Circutor/gosem/pkg/axdr"
-	"github.com/Circutor/gosem/pkg/dlms"
 	"github.com/stretchr/testify/assert"
+	"gitlab.com/circutor-library/gosem/pkg/axdr"
+	"gitlab.com/circutor-library/gosem/pkg/dlms"
 )
 
 func TestClient_SetRequest(t *testing.T) {

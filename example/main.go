@@ -4,10 +4,10 @@ import (
 	"log"
 	"time"
 
-	"github.com/Circutor/gosem/pkg/dlms"
-	"github.com/Circutor/gosem/pkg/dlmsclient"
-	"github.com/Circutor/gosem/pkg/tcp"
-	"github.com/Circutor/gosem/pkg/wrapper"
+	"gitlab.com/circutor-library/gosem/pkg/dlms"
+	"gitlab.com/circutor-library/gosem/pkg/dlmsclient"
+	"gitlab.com/circutor-library/gosem/pkg/tcp"
+	"gitlab.com/circutor-library/gosem/pkg/wrapper"
 )
 
 type Instantaneous struct {

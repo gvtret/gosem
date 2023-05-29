@@ -4,8 +4,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Circutor/gosem/pkg/axdr"
 	"github.com/stretchr/testify/assert"
+	"gitlab.com/circutor-library/gosem/pkg/axdr"
 )
 
 func TestDataNotification_New(t *testing.T) {

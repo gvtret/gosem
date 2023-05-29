@@ -3,8 +3,8 @@ package dlmsclient
 import (
 	"fmt"
 
-	"github.com/Circutor/gosem/pkg/axdr"
-	"github.com/Circutor/gosem/pkg/dlms"
+	"gitlab.com/circutor-library/gosem/pkg/axdr"
+	"gitlab.com/circutor-library/gosem/pkg/dlms"
 )
 
 func (c *client) ActionRequest(mth *dlms.MethodDescriptor, data interface{}) (err error) {

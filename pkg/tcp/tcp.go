@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Circutor/gosem/pkg/dlms"
+	"gitlab.com/circutor-library/gosem/pkg/dlms"
 )
 
 const (

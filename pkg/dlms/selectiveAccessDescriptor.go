@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"time"
 
-	"github.com/Circutor/gosem/pkg/axdr"
+	"gitlab.com/circutor-library/gosem/pkg/axdr"
 )
 
 type accessSelector uint8
