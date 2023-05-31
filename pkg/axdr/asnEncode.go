@@ -1,3 +1,5 @@
+// Copyright (c) 2023 Circutor S.A. All rights reserved.
+
 package axdr
 
 import (
@@ -42,6 +44,9 @@ const (
 	closeBracket      = '}'
 	nonEncodableError = "data is non-encodable: "
 	filter            = `^([^\{]+)\{(.*?)\}$`
+	dateTimeLayout    = "2006/01/02 15:04:05"
+	dateLayout        = "2006/01/02"
+	timeLayout        = "15:04:05"
 )
 
 func AsnEncode(value string) (data *DlmsData, err error) {
@@ -156,19 +161,19 @@ func AsnEncode(value string) (data *DlmsData, err error) {
 		}
 		data = CreateAxdrFloat64(tmp)
 	case strDateTime:
-		tmp, err := time.Parse("2006/01/02 15:04:05", valueSplit[2])
+		tmp, err := time.Parse(dateTimeLayout, valueSplit[2])
 		if err != nil {
 			return nil, fmt.Errorf(nonEncodableError+"%w", err)
 		}
-		data = CreateAxdrDateTime(tmp)
+		data = CreateAxdrOctetString(tmp)
 	case strDate:
-		tmp, err := time.Parse("2006/01/02", valueSplit[2])
+		tmp, err := time.Parse(dateLayout, valueSplit[2])
 		if err != nil {
 			return nil, fmt.Errorf(nonEncodableError+"%w", err)
 		}
 		data = CreateAxdrDate(tmp)
 	case strTime:
-		tmp, err := time.Parse("15:04:05", valueSplit[2])
+		tmp, err := time.Parse(timeLayout, valueSplit[2])
 		if err != nil {
 			return nil, fmt.Errorf(nonEncodableError+"%w", err)
 		}
