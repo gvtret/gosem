@@ -1,3 +1,5 @@
+// Copyright (c) 2023 Circutor S.A. All rights reserved.
+
 package axdr
 
 import (
@@ -153,7 +155,7 @@ func TestAsnEncode(t *testing.T) {
 		{
 			name:    "date_time",
 			v:       "date_time{2016/04/01 10:00:00}",
-			want:    CreateAxdrDateTime(time1),
+			want:    CreateAxdrOctetString(time1),
 			wantErr: false,
 		},
 		{
@@ -171,7 +173,7 @@ func TestAsnEncode(t *testing.T) {
 		{
 			name:    "complex structure",
 			v:       "structure{structure{long_unsigned{8}octet_string{00 00 01 00 00 ff}integer{2}long_unsigned{0}}date_time{2016/04/01 10:00:00}date_time{2016/04/01 10:10:00}array{}}",
-			want:    CreateAxdrStructure([]*DlmsData{CreateAxdrStructure([]*DlmsData{CreateAxdrLongUnsigned(8), CreateAxdrOctetString("00 00 01 00 00 ff"), CreateAxdrInteger(2), CreateAxdrLongUnsigned(0)}), CreateAxdrDateTime(time1), CreateAxdrDateTime(time2), CreateAxdrArray([]*DlmsData{})}),
+			want:    CreateAxdrStructure([]*DlmsData{CreateAxdrStructure([]*DlmsData{CreateAxdrLongUnsigned(8), CreateAxdrOctetString("00 00 01 00 00 ff"), CreateAxdrInteger(2), CreateAxdrLongUnsigned(0)}), CreateAxdrOctetString(time1), CreateAxdrOctetString(time2), CreateAxdrArray([]*DlmsData{})}),
 			wantErr: false,
 		},
 		{
@@ -179,7 +181,6 @@ func TestAsnEncode(t *testing.T) {
 			v:       "array{long_unsigned{-4}long_unsigned{4}}",
 			wantErr: true,
 		},
-
 		{
 			name:    "wrong structure",
 			v:       "structure{long_unsigned{8}octet_string{00 00 01 00 00 ff}integer{eee}long_unsigned{0}}",
