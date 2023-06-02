@@ -3,6 +3,7 @@
 package axdr
 
 import (
+	"encoding/hex"
 	"fmt"
 	"strconv"
 	"time"
@@ -51,14 +52,18 @@ func AsnDecode(value *DlmsData) (data string, err error) {
 	case TagFloatingPoint:
 		data = fmt.Sprintf(strFloatingPoint+"{%g}", (value.Value.(float32)))
 	case TagOctetString:
-		typeValue := value.Value
-		switch typeValue.(type) {
-		case time.Time:
-			data = fmt.Sprintf(strDateTime+"{%s}", value.Value.(time.Time).Format(dateTimeLayout))
-		case string:
+		isTime := false
+		src, err := hex.DecodeString(value.Value.(string))
+		if err == nil && len(src) == 12 {
+			_, t, err := DecodeDateTime(&src)
+			if err == nil && !t.IsZero() {
+				data = fmt.Sprintf(strDateTime+"{%s}", t.Format(dateTimeLayout))
+				isTime = true
+			}
+		}
+
+		if !isTime {
 			data = fmt.Sprintf(strOctetString+"{%s}", value.Value.(string))
-		default:
-			return "", fmt.Errorf(nonEncodableError+"%W", err)
 		}
 	case TagVisibleString:
 		data = fmt.Sprintf(strVisibleString+"{%s}", value.Value.(string))
@@ -82,6 +87,8 @@ func AsnDecode(value *DlmsData) (data string, err error) {
 		data = fmt.Sprintf(strFloat32+"{%g}", value.Value.(float32))
 	case TagFloat64:
 		data = fmt.Sprintf(strFloat64+"{%g}", value.Value.(float64))
+	case TagDateTime:
+		data = fmt.Sprintf(strDateTime+"{%s}", value.Value.(time.Time).Format(dateTimeLayout))
 	case TagDate:
 		data = fmt.Sprintf(strDate+"{%s}", value.Value.(time.Time).Format(dateLayout))
 	case TagTime:

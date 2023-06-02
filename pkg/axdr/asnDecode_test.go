@@ -86,6 +86,12 @@ func TestAsnDecode(t *testing.T) {
 			wantErr: false,
 		},
 		{
+			name:    "octet_string_time",
+			v:       CreateAxdrOctetString("07d0020501000d24ff800001"),
+			want:    "date_time{2000/02/05 00:13:36}",
+			wantErr: false,
+		},
+		{
 			name:    "visible_string",
 			v:       CreateAxdrVisibleString("123"),
 			want:    "visible_string{123}",
@@ -153,7 +159,7 @@ func TestAsnDecode(t *testing.T) {
 		},
 		{
 			name:    "date_time",
-			v:       CreateAxdrOctetString(time1),
+			v:       CreateAxdrDateTime(time1),
 			want:    "date_time{2016/04/01 10:00:00}",
 			wantErr: false,
 		},
@@ -182,11 +188,6 @@ func TestAsnDecode(t *testing.T) {
 		{
 			name:    "wrong structure",
 			v:       CreateAxdrStructure(([]*DlmsData{CreateAxdrLongUnsigned(2), nil})),
-			wantErr: true,
-		},
-		{
-			name:    "wrong string",
-			v:       CreateAxdrOctetString(1234),
 			wantErr: true,
 		},
 	}
