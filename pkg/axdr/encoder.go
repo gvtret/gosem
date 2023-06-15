@@ -117,7 +117,7 @@ func EncodeStructure(data []*DlmsData) ([]byte, error) {
 
 func EncodeBoolean(data bool) ([]byte, error) {
 	if data {
-		return []byte{0xFF}, nil
+		return []byte{0x01}, nil
 	}
 	return []byte{0x00}, nil
 }

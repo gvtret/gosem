@@ -147,7 +147,7 @@ func (dt DataBlockG) Encode() (out []byte, err error) {
 	var buf bytes.Buffer
 
 	if dt.LastBlock {
-		buf.WriteByte(0xFF)
+		buf.WriteByte(0x1)
 	} else {
 		buf.WriteByte(0x0)
 	}

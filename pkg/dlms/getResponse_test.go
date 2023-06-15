@@ -5,6 +5,7 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"gitlab.com/circutor-library/gosem/pkg/axdr"
 )
 
@@ -26,30 +27,18 @@ func TestNewGetResponseNormal(t *testing.T) {
 
 func TestNewGetResponseWithDataBlock(t *testing.T) {
 	dbg := *CreateDataBlockGAsData(true, 1, "07D20C04030A060BFF007800")
-
 	a := *CreateGetResponseWithDataBlock(81, dbg)
-	t1, e := a.Encode()
-	if e != nil {
-		t.Errorf("t1 Encode Failed. err: %v", e)
-	}
-	result := []byte{196, 2, 81, 255, 0, 0, 0, 1, 0, 12, 7, 210, 12, 4, 3, 10, 6, 11, 255, 0, 120, 0}
-	res := bytes.Compare(t1, result)
-	if res != 0 {
-		t.Errorf("t1 Failed. get: %d, should:%v", t1, result)
-	}
+	encoded, err := a.Encode()
+	assert.NoError(t, err)
+	expected := decodeHexString("C402510100000001000C07D20C04030A060BFF007800")
+	assert.Equal(t, expected, encoded)
 
-	// ---
 	dbg = *CreateDataBlockGAsResult(true, 1, TagAccSuccess)
 	b := *CreateGetResponseWithDataBlock(81, dbg)
-	t2, e := b.Encode()
-	if e != nil {
-		t.Errorf("t2 Encode Failed. err: %v", e)
-	}
-	result = []byte{196, 2, 81, 255, 0, 0, 0, 1, 1, 0}
-	res = bytes.Compare(t2, result)
-	if res != 0 {
-		t.Errorf("t2 Failed. get: %d, should:%v", t2, result)
-	}
+	encoded, err = b.Encode()
+	assert.NoError(t, err)
+	expected = decodeHexString("C4025101000000010100")
+	assert.Equal(t, expected, encoded)
 }
 
 func TestNewGetResponseWithList(t *testing.T) {

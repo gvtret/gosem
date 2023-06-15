@@ -162,6 +162,7 @@ func (c *client) getRequest(att *dlms.AttributeDescriptor, acc *dlms.SelectiveAc
 	return
 }
 
+//nolint:nestif
 func (c *client) getRequestWithStructOfElements(data interface{}) (err error) {
 	rv := reflect.ValueOf(data)
 	if rv.Kind() != reflect.Ptr || rv.IsNil() {
@@ -203,6 +204,7 @@ func (c *client) getRequestWithStructOfElements(data interface{}) (err error) {
 	return nil
 }
 
+//nolint:nestif
 func (c *client) checkRequestWithStructOfElements(data interface{}) (err error) {
 	rv := reflect.ValueOf(data)
 	if rv.Kind() != reflect.Ptr || rv.IsNil() {

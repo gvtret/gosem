@@ -88,92 +88,49 @@ func TestGetDataResult(t *testing.T) {
 
 func TestDataBlockGAsData(t *testing.T) {
 	a := *CreateDataBlockGAsData(true, 1, "07D20C04030A060BFF007800")
-
-	t1, e := a.Encode()
-	if e != nil {
-		t.Errorf("t1 Encode Failed. err: %v", e)
-	}
-	result := []byte{255, 0, 0, 0, 1, 0, 12, 7, 210, 12, 4, 3, 10, 6, 11, 255, 0, 120, 0}
-
-	res := bytes.Compare(t1, result)
-	if res != 0 {
-		t.Errorf("t1 Failed. get: %d, should:%v", t1, result)
-	}
+	encoded, err := a.Encode()
+	assert.NoError(t, err)
+	expected := decodeHexString("0100000001000C07D20C04030A060BFF007800")
+	assert.Equal(t, expected, encoded)
 
 	b := *CreateDataBlockGAsData(true, 1, []byte{1, 0, 0, 3, 0, 255})
-	t2, e := b.Encode()
-	if e != nil {
-		t.Errorf("t2 Encode Failed. err: %v", e)
-	}
-	result = []byte{255, 0, 0, 0, 1, 0, 6, 1, 0, 0, 3, 0, 255}
+	encoded, err = b.Encode()
+	assert.NoError(t, err)
+	expected = decodeHexString("010000000100060100000300FF")
+	assert.Equal(t, expected, encoded)
 
-	res = bytes.Compare(t2, result)
-	if res != 0 {
-		t.Errorf("t2 Failed. get: %d, should:%v", t2, result)
-	}
-
-	defer func() {
-		if r := recover(); r == nil {
-			t.Errorf("t3 should've panic on wrong Value")
-		}
-	}()
-	c := *CreateDataBlockGAsData(true, 1, TagAccSuccess)
-	c.Encode()
+	assert.Panics(t, func() {
+		c := *CreateDataBlockGAsData(true, 1, TagAccSuccess)
+		c.Encode()
+	})
 }
 
 func TestDataBlockGAsResult(t *testing.T) {
 	a := *CreateDataBlockGAsResult(true, 1, TagAccSuccess)
-
-	t1, e := a.Encode()
-	if e != nil {
-		t.Errorf("t1 Encode Failed. err: %v", e)
-	}
-	result := []byte{255, 0, 0, 0, 1, 1, 0}
-
-	res := bytes.Compare(t1, result)
-	if res != 0 {
-		t.Errorf("t1 Failed. get: %d, should:%v", t1, result)
-	}
+	encoded, err := a.Encode()
+	assert.NoError(t, err)
+	expected := decodeHexString("01000000010100")
+	assert.Equal(t, expected, encoded)
 }
 
 func TestDataBlockG(t *testing.T) {
 	a := *CreateDataBlockG(true, 1, "07D20C04030A060BFF007800")
-
-	t1, e := a.Encode()
-	if e != nil {
-		t.Errorf("t1 Encode Failed. err: %v", e)
-	}
-	result := []byte{255, 0, 0, 0, 1, 0, 12, 7, 210, 12, 4, 3, 10, 6, 11, 255, 0, 120, 0}
-
-	res := bytes.Compare(t1, result)
-	if res != 0 {
-		t.Errorf("t1 Failed. get: %d, should:%v", t1, result)
-	}
+	encoded, err := a.Encode()
+	assert.NoError(t, err)
+	expected := decodeHexString("0100000001000C07D20C04030A060BFF007800")
+	assert.Equal(t, expected, encoded)
 
 	b := *CreateDataBlockG(true, 1, []byte{1, 0, 0, 3, 0, 255})
-	t2, e := b.Encode()
-	if e != nil {
-		t.Errorf("t2 Encode Failed. err: %v", e)
-	}
-	result = []byte{255, 0, 0, 0, 1, 0, 6, 1, 0, 0, 3, 0, 255}
-
-	res = bytes.Compare(t2, result)
-	if res != 0 {
-		t.Errorf("t2 Failed. get: %d, should:%v", t2, result)
-	}
+	encoded, err = b.Encode()
+	assert.NoError(t, err)
+	expected = decodeHexString("010000000100060100000300FF")
+	assert.Equal(t, expected, encoded)
 
 	c := *CreateDataBlockG(true, 1, TagAccSuccess)
-
-	t3, e := c.Encode()
-	if e != nil {
-		t.Errorf("t3 Encode Failed. err: %v", e)
-	}
-	result = []byte{255, 0, 0, 0, 1, 1, 0}
-
-	res = bytes.Compare(t3, result)
-	if res != 0 {
-		t.Errorf("t3 Failed. get: %d, should:%v", t3, result)
-	}
+	encoded, err = c.Encode()
+	assert.NoError(t, err)
+	expected = decodeHexString("01000000010100")
+	assert.Equal(t, expected, encoded)
 }
 
 func TestDataBlockSA(t *testing.T) {
