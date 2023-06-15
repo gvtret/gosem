@@ -64,7 +64,7 @@ func TestEncodeLength(t *testing.T) {
 func TestEncodeBoolean(t *testing.T) {
 	encoded, err := EncodeBoolean(true)
 	assert.NoError(t, err)
-	assert.Equal(t, decodeHexString("FF"), encoded)
+	assert.Equal(t, decodeHexString("01"), encoded)
 
 	encoded, err = EncodeBoolean(false)
 	assert.NoError(t, err)
@@ -368,7 +368,7 @@ func TestDlmsData(t *testing.T) {
 	tDD := DlmsData{Tag: TagBoolean, Value: true}
 	encoded, err := tDD.Encode()
 	assert.NoError(t, err)
-	assert.Equal(t, decodeHexString("03FF"), encoded)
+	assert.Equal(t, decodeHexString("0301"), encoded)
 
 	tDD = DlmsData{Tag: TagBitString, Value: "0000111111110000111111110000000101010101"}
 	encoded, err = tDD.Encode()
@@ -414,7 +414,7 @@ func TestArray(t *testing.T) {
 
 	ls := []*DlmsData{&d1, &d2, &d3}
 	ts, err := EncodeArray(ls)
-	res := bytes.Compare(ts, []byte{byte(TagBoolean), 255, byte(TagBitString), 3, 224, byte(TagDateTime), 7, 228, 3, 11, 3, 18, 0, 0, 0, 0, 0, 0})
+	res := bytes.Compare(ts, []byte{byte(TagBoolean), 1, byte(TagBitString), 3, 224, byte(TagDateTime), 7, 228, 3, 11, 3, 18, 0, 0, 0, 0, 0, 0})
 	if res != 0 || err != nil {
 		t.Errorf("t1 failed. val: %d, err:%v", ts, err)
 	}
@@ -425,16 +425,14 @@ func TestArray(t *testing.T) {
 		z DlmsData
 		r []byte
 	}{
-		{d1, d2, d3, []byte{byte(TagBoolean), 255, byte(TagBitString), 3, 224, byte(TagDateTime), 7, 228, 3, 11, 3, 18, 0, 0, 0, 0, 0, 0}},
-		{d2, d1, d3, []byte{byte(TagBitString), 3, 224, byte(TagBoolean), 255, byte(TagDateTime), 7, 228, 3, 11, 3, 18, 0, 0, 0, 0, 0, 0}},
-		{d3, d2, d1, []byte{byte(TagDateTime), 7, 228, 3, 11, 3, 18, 0, 0, 0, 0, 0, 0, byte(TagBitString), 3, 224, byte(TagBoolean), 255}},
+		{d1, d2, d3, []byte{byte(TagBoolean), 1, byte(TagBitString), 3, 224, byte(TagDateTime), 7, 228, 3, 11, 3, 18, 0, 0, 0, 0, 0, 0}},
+		{d2, d1, d3, []byte{byte(TagBitString), 3, 224, byte(TagBoolean), 1, byte(TagDateTime), 7, 228, 3, 11, 3, 18, 0, 0, 0, 0, 0, 0}},
+		{d3, d2, d1, []byte{byte(TagDateTime), 7, 228, 3, 11, 3, 18, 0, 0, 0, 0, 0, 0, byte(TagBitString), 3, 224, byte(TagBoolean), 1}},
 	}
-	for idx, table := range tables {
+	for _, table := range tables {
 		ts, err = EncodeArray([]*DlmsData{&table.x, &table.y, &table.z})
-		res = bytes.Compare(ts, table.r)
-		if res != 0 || err != nil {
-			t.Errorf("combination %v failed. get: %d, should:%v", idx, ts, table.r)
-		}
+		assert.NoError(t, err)
+		assert.Equal(t, table.r, ts)
 	}
 }
 
@@ -444,33 +442,18 @@ func TestDlmsData_Array(t *testing.T) {
 	d3 := DlmsData{Tag: TagDateTime, Value: "2020-03-11 18:00:00"}
 	tDD := DlmsData{Tag: TagArray, Value: []*DlmsData{&d1, &d2, &d3}}
 	encoded, err := tDD.Encode()
-	if err != nil {
-		t.Errorf("DlmsData Encode Array get error. %d", err)
-	}
-	res := bytes.Compare(encoded, []byte{byte(TagArray), 3, byte(TagBoolean), 255, byte(TagBitString), 3, 224, byte(TagDateTime), 7, 228, 3, 11, 3, 18, 0, 0, 0, 0, 0, 0})
-	if res != 0 {
-		t.Errorf("t1 failed. val: %d", encoded)
-	}
+	assert.NoError(t, err)
+	assert.Equal(t, decodeHexString("010303010403E01907E4030B0312000000000000"), encoded)
 
 	tDD = DlmsData{Tag: TagArray, Value: []*DlmsData{{Tag: TagBoolean, Value: true}, {Tag: TagBoolean, Value: false}}}
 	encoded, err = tDD.Encode()
-	if err != nil {
-		t.Errorf("DlmsData Encode Array get error. %d", err)
-	}
-	res = bytes.Compare(encoded, []byte{byte(TagArray), 2, byte(TagBoolean), 255, byte(TagBoolean), 0})
-	if res != 0 {
-		t.Errorf("t2 failed. val: %d", encoded)
-	}
+	assert.NoError(t, err)
+	assert.Equal(t, decodeHexString("010203010300"), encoded)
 
 	tDD = DlmsData{Tag: TagArray, Value: []*DlmsData{}}
 	encoded, err = tDD.Encode()
-	if err != nil {
-		t.Errorf("DlmsData Encode Array get error. %d", err)
-	}
-	res = bytes.Compare(encoded, []byte{byte(TagArray), 0})
-	if res != 0 {
-		t.Errorf("t3 failed. val: %d", encoded)
-	}
+	assert.NoError(t, err)
+	assert.Equal(t, decodeHexString("0100"), encoded)
 }
 
 // ---------- decoding tests

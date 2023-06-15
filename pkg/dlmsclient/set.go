@@ -16,6 +16,7 @@ func (c *client) SetRequest(att *dlms.AttributeDescriptor, data interface{}) (er
 	return c.setRequest(att, data)
 }
 
+//nolint:nestif
 func (c *client) SetRequestWithStructOfElements(data interface{}, continueOnSetRejected bool) error {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()

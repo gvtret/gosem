@@ -17,7 +17,7 @@ func TestNew_EventNotificationRequest(t *testing.T) {
 	encoded, err := enr.Encode()
 	assert.NoError(t, err)
 
-	expected := decodeHexString("C2010C05DC0101010000000000000000010100000300FF0203FF")
+	expected := decodeHexString("C2010C05DC0101010000000000000000010100000300FF020301")
 	assert.Equal(t, expected, encoded)
 
 	// With nil time
@@ -25,7 +25,7 @@ func TestNew_EventNotificationRequest(t *testing.T) {
 	encoded, err = enr.Encode()
 	assert.NoError(t, err)
 
-	expected = decodeHexString("C20000010100000300FF0203FF")
+	expected = decodeHexString("C20000010100000300FF020301")
 	assert.Equal(t, expected, encoded)
 }
 
