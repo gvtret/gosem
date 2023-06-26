@@ -19,6 +19,14 @@ func (c *client) GetRequest(att *dlms.AttributeDescriptor, data interface{}) (er
 	return c.getRequestWithUnmarshal(att, nil, data)
 }
 
+func (c *client) GetRequestWithSelectiveAccess(att *dlms.AttributeDescriptor, selectiveAccess axdr.DlmsData, data interface{}) (err error) {
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
+
+	acc := &dlms.SelectiveAccessDescriptor{AccessSelector: dlms.AccessSelectorRange, AccessParameter: selectiveAccess}
+	return c.getRequestWithUnmarshal(att, acc, data)
+}
+
 func (c *client) GetRequestWithSelectiveAccessByDate(att *dlms.AttributeDescriptor, start time.Time, end time.Time, data interface{}) (err error) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
