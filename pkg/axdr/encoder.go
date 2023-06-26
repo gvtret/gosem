@@ -186,6 +186,8 @@ func EncodeOctetString(data string) ([]byte, error) {
 		return bv, nil
 	}
 
+	data = strings.ReplaceAll(data, " ", "")
+
 	return hex.DecodeString(data)
 }
 

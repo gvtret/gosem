@@ -141,6 +141,10 @@ func TestEncodeOctetString(t *testing.T) {
 	encoded, err = EncodeOctetString("1.0.0.3.0.255")
 	assert.NoError(t, err)
 	assert.Equal(t, decodeHexString("0100000300FF"), encoded)
+
+	encoded, err = EncodeOctetString("07 D2 0C    04")
+	assert.NoError(t, err)
+	assert.Equal(t, decodeHexString("07D20C04"), encoded)
 }
 
 func TestEncodeVisibleString(t *testing.T) {

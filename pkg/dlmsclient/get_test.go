@@ -7,6 +7,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"gitlab.com/circutor-library/gosem/pkg/axdr"
 	"gitlab.com/circutor-library/gosem/pkg/dlms"
 	"gitlab.com/circutor-library/gosem/pkg/dlms/mocks"
 	"gitlab.com/circutor-library/gosem/pkg/dlmsclient"
@@ -141,6 +142,26 @@ func TestClient_GetRequestWithDataBlockFail(t *testing.T) {
 }
 
 func TestClient_GetRequestRequestWithSelectiveAccess(t *testing.T) {
+	c, tm, rdc := associate(t)
+
+	var data []uint32
+
+	sendReceive(tm, rdc, "C001C100070100630100FF0201010204020412000809060000010000FF0F02120000090C07E40101030A000000000000090C07E40101030B0000000000000100", "C401C100010206000000010600000002")
+	timeStart := time.Date(2020, time.January, 1, 10, 0, 0, 0, time.UTC)
+	timeEnd := time.Date(2020, time.January, 1, 11, 0, 0, 0, time.UTC)
+	atrDescriptor := dlms.CreateAttributeDescriptor(7, "1-0:99.1.0.255", 2)
+	firstStruct := *axdr.CreateAxdrStructure([]*axdr.DlmsData{axdr.CreateAxdrLongUnsigned(8), axdr.CreateAxdrOctetString("0000010000ff"), axdr.CreateAxdrInteger(2), axdr.CreateAxdrLongUnsigned(0)})
+
+	selectiveAccess := *axdr.CreateAxdrStructure([]*axdr.DlmsData{&firstStruct, axdr.CreateAxdrOctetString(timeStart), axdr.CreateAxdrOctetString(timeEnd), axdr.CreateAxdrArray([]*axdr.DlmsData{})})
+
+	err := c.GetRequestWithSelectiveAccess(atrDescriptor, selectiveAccess, &data)
+	assert.NoError(t, err)
+	assert.Len(t, data, 2)
+
+	tm.AssertExpectations(t)
+}
+
+func TestClient_GetRequestRequestWithSelectiveAccessByDate(t *testing.T) {
 	c, tm, rdc := associate(t)
 
 	var data []uint32

@@ -3,6 +3,8 @@ package dlms
 import (
 	"log"
 	"time"
+
+	"gitlab.com/circutor-library/gosem/pkg/axdr"
 )
 
 type Notification struct {
@@ -26,6 +28,7 @@ type Client interface {
 	IsAssociated() bool
 	SetNotificationChannel(id string, nc chan Notification)
 	GetRequest(att *AttributeDescriptor, data interface{}) (err error)
+	GetRequestWithSelectiveAccess(att *AttributeDescriptor, selectiveAccess axdr.DlmsData, data interface{}) (err error)
 	GetRequestWithSelectiveAccessByDate(att *AttributeDescriptor, start time.Time, end time.Time, data interface{}) (err error)
 	GetRequestWithSelectiveAccessByDateAndValues(att *AttributeDescriptor, start time.Time, end time.Time, values []AttributeDescriptor, data interface{}) (err error)
 	GetRequestWithStructOfElements(data interface{}) (err error)
