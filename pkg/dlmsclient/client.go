@@ -122,10 +122,6 @@ func (c *client) Associate() error {
 		return dlms.NewError(dlms.ErrorInvalidState, "not connected")
 	}
 
-	if c.isAssociated {
-		return dlms.NewError(dlms.ErrorInvalidState, "already associated")
-	}
-
 	src, err := dlms.EncodeAARQ(&c.settings)
 	if err != nil {
 		return dlms.NewError(dlms.ErrorInvalidParameter, fmt.Sprintf("error encoding AARQ: %v", err))
@@ -169,10 +165,6 @@ func (c *client) CloseAssociation() error {
 
 	if !c.transport.IsConnected() {
 		return dlms.NewError(dlms.ErrorInvalidState, "not connected")
-	}
-
-	if !c.isAssociated {
-		return dlms.NewError(dlms.ErrorInvalidState, "not associated")
 	}
 
 	src, err := dlms.EncodeRLRQ(&c.settings)
