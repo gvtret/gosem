@@ -132,6 +132,56 @@ func TestClient_InvalidPasswordLGZ(t *testing.T) {
 	tm.AssertExpectations(t)
 }
 
+func TestClient_AssociationRejected(t *testing.T) {
+	tm := mocks.NewTransportMock(t)
+
+	rdc := make(dlms.DataChannel, 10)
+	tm.On("SetReception", mock.Anything).Run(func(args mock.Arguments) {
+		rdc = args.Get(0).(dlms.DataChannel)
+	}).Once()
+
+	settings, _ := dlms.NewSettingsWithLowAuthentication([]byte("00000002"))
+	c := dlmsclient.New(settings, tm, 5*time.Second, 0)
+
+	tm.On("Connect").Return(nil).Once()
+	c.Connect()
+
+	tm.On("IsConnected").Return(true).Once()
+	sendReceive(tm, rdc, "6036A1090607608574050801018A0207808B0760857405080201AC0A80083030303030303032BE10040E01000000065F1F040000181F0100", "611FA109060760857405080101A203020101A305A103020101BE0604040E010604")
+
+	err := c.Associate()
+	var clientError *dlms.Error
+	assert.ErrorAs(t, err, &clientError)
+	assert.Equal(t, dlms.ErrorAuthenticationFailed, clientError.Code())
+
+	tm.AssertExpectations(t)
+}
+
+func TestClient_AssociationWithExceptionResponse(t *testing.T) {
+	tm := mocks.NewTransportMock(t)
+
+	rdc := make(dlms.DataChannel, 10)
+	tm.On("SetReception", mock.Anything).Run(func(args mock.Arguments) {
+		rdc = args.Get(0).(dlms.DataChannel)
+	}).Once()
+
+	settings, _ := dlms.NewSettingsWithLowAuthentication([]byte("00000002"))
+	c := dlmsclient.New(settings, tm, 5*time.Second, 0)
+
+	tm.On("Connect").Return(nil).Once()
+	c.Connect()
+
+	tm.On("IsConnected").Return(true).Once()
+	sendReceive(tm, rdc, "6036A1090607608574050801018A0207808B0760857405080201AC0A80083030303030303032BE10040E01000000065F1F040000181F0100", "D80101")
+
+	err := c.Associate()
+	var clientError *dlms.Error
+	assert.ErrorAs(t, err, &clientError)
+	assert.Equal(t, dlms.ErrorAuthenticationFailed, clientError.Code())
+
+	tm.AssertExpectations(t)
+}
+
 func TestClient_CloseAssociation(t *testing.T) {
 	c, tm, rdc := associate(t)
 

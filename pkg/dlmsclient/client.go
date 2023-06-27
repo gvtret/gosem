@@ -134,6 +134,11 @@ func (c *client) Associate() error {
 
 	aare, err := dlms.DecodeAARE(&c.settings, &out)
 	if err != nil {
+		er, eerr := dlms.DecodeExceptionResponse(&out)
+		if eerr == nil {
+			return dlms.NewError(dlms.ErrorAuthenticationFailed, fmt.Sprintf("association failed (exception): %d - %d", er.StateError, er.ServiceError))
+		}
+
 		return dlms.NewError(dlms.ErrorInvalidResponse, fmt.Sprintf("error decoding AARE: %v", err))
 	}
 
