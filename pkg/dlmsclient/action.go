@@ -23,11 +23,20 @@ func (c *client) ActionRequest(mth *dlms.MethodDescriptor, data interface{}) (er
 		}
 	}
 
-	req := dlms.CreateActionRequestNormal(unicastInvokeID, *mth, dt)
+	invokeID := unicastInvokeID
+	if c.settings.UseBroadcast {
+		invokeID = broadcastInvokeID
+	}
+
+	req := dlms.CreateActionRequestNormal(invokeID, *mth, dt)
 
 	pdu, err := c.encodeSendReceiveAndDecode(req)
 	if err != nil {
 		return
+	}
+
+	if pdu == nil && c.settings.UseBroadcast {
+		return nil
 	}
 
 	resp, ok := pdu.(dlms.ActionResponseNormal)
