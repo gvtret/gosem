@@ -55,6 +55,7 @@ type Settings struct {
 	MaxPduRecvSize   int
 	MaxPduSendSize   int
 	ConformanceBlock int
+	UseBroadcast     bool
 }
 
 func NewSettingsWithoutAuthentication() (Settings, error) {

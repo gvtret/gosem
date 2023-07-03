@@ -10,7 +10,8 @@ import (
 )
 
 const (
-	unicastInvokeID = 0xC1
+	unicastInvokeID   uint8 = 0xC1
+	broadcastInvokeID uint8 = 0x87
 )
 
 type client struct {
@@ -237,9 +238,19 @@ func (c *client) sendReceive(src []byte) ([]byte, error) {
 	c.subscribe()
 	defer c.unsubscribe()
 
+	if c.settings.UseBroadcast {
+		if twb, ok := c.transport.(dlms.TransportWithBroadcast); ok {
+			return nil, twb.SendBroadcast(src)
+		}
+	}
+
 	err := c.transport.Send(src)
 	if err != nil {
 		return nil, dlms.NewError(dlms.ErrorCommunicationFailed, fmt.Sprintf("error sending AARQ: %v", err))
+	}
+
+	if c.settings.UseBroadcast {
+		return nil, nil
 	}
 
 	// Wait for the device response
@@ -294,6 +305,14 @@ func (c *client) encodeSendReceiveAndDecode(req dlms.CosemPDU) (dlms.CosemPDU, e
 		return nil, err
 	}
 
+	if c.timeoutTimer != nil {
+		c.timeoutTimer.Reset(c.associationTimeout)
+	}
+
+	if out == nil && c.settings.UseBroadcast {
+		return nil, nil
+	}
+
 	if c.settings.Ciphering.Level != dlms.SecurityLevelNone {
 		out, err = c.decipherData(out)
 		if err != nil {
@@ -305,10 +324,6 @@ func (c *client) encodeSendReceiveAndDecode(req dlms.CosemPDU) (dlms.CosemPDU, e
 	if err != nil {
 		err = dlms.NewError(dlms.ErrorInvalidResponse, fmt.Sprintf("error decoding PDU: %v", err))
 		return nil, err
-	}
-
-	if c.timeoutTimer != nil {
-		c.timeoutTimer.Reset(c.associationTimeout)
 	}
 
 	return pdu, nil

@@ -17,3 +17,8 @@ type Transport interface {
 	Send(src []byte) error
 	SetLogger(logger *log.Logger)
 }
+
+// TransportWithBroadcast are optional methods for transport layers with broadcast capabilities
+type TransportWithBroadcast interface {
+	SendBroadcast(src []byte) error
+}

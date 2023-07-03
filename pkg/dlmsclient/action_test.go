@@ -74,3 +74,20 @@ func TestClient_ActionRequestFail(t *testing.T) {
 
 	tm.AssertExpectations(t)
 }
+
+func TestClient_ActionBroadcast(t *testing.T) {
+	c, tm, _ := associate(t)
+
+	settings := c.GetSettings()
+	settings.UseBroadcast = true
+	c.SetSettings(settings)
+
+	var data int8
+
+	tm.On("Send", decodeHexString("C301870046000060030AFF01010F00")).Return(nil).Once()
+
+	err := c.ActionRequest(dlms.CreateMethodDescriptor(70, "0-0:96.3.10.255", 1), data)
+	assert.NoError(t, err)
+
+	tm.AssertExpectations(t)
+}
