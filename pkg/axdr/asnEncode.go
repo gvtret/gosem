@@ -53,6 +53,10 @@ func AsnEncode(value string) (data *DlmsData, err error) {
 	re := regexp.MustCompile(filter)
 	valueSplit := re.FindStringSubmatch(value)
 
+	if len(valueSplit) != 3 {
+		return nil, fmt.Errorf(nonEncodableError+"%s", value)
+	}
+
 	switch valueSplit[1] {
 	case strNull:
 		data = CreateAxdrNull()

@@ -276,6 +276,21 @@ func TestAsnEncode(t *testing.T) {
 			v:       "no_exist{}",
 			wantErr: true,
 		},
+		{
+			name:    "empty",
+			v:       "",
+			wantErr: true,
+		},
+		{
+			name:    "wrong",
+			v:       "bli blo",
+			wantErr: true,
+		},
+		{
+			name:    "wrong structure",
+			v:       "structure{long_unsigned{}}",
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		tt := tt
