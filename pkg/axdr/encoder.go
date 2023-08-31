@@ -358,7 +358,7 @@ func EncodeDateTime(data time.Time) ([]byte, error) {
 	output := make([]byte, 12)
 	_, offset := data.Zone()
 
-	if !ReversedTimeZone {
+	if TimeZoneDeviation == TimeZoneStandard {
 		offset = -offset
 	}
 
@@ -376,7 +376,11 @@ func EncodeDateTime(data time.Time) ([]byte, error) {
 	output[6] = byte(data.Minute())
 	output[7] = byte(data.Second())
 	output[8] = byte(data.Nanosecond() / 10000000)
-	binary.BigEndian.PutUint16(output[9:11], uint16(offset/60))
+	if TimeZoneDeviation == TimeZoneIgnored {
+		binary.BigEndian.PutUint16(output[9:11], uint16(0x8000))
+	} else {
+		binary.BigEndian.PutUint16(output[9:11], uint16(offset/60))
+	}
 	output[11] = 0x00
 
 	if data.IsDST() {
