@@ -348,20 +348,25 @@ func TestEncodeDateTime(t *testing.T) {
 	local, _ := time.LoadLocation("Europe/Madrid")
 
 	tests := []struct {
-		name     string
-		expected string
-		val      time.Time
+		name              string
+		timeZoneDeviation TimeZone
+		expected          string
+		val               time.Time
 	}{
-		{"Future time", "4E200C1E06173B3B63000000", time.Date(20000, time.December, 30, 23, 59, 59, 990000000, time.UTC)},
-		{"Past time", "05DC01010100000000000000", time.Date(1500, time.January, 1, 0, 0, 0, 0, time.UTC)},
-		{"Local time", "07E403100100000000FFC400", time.Date(2020, time.March, 16, 0, 0, 0, 0, local)},
-		{"Summer local time", "07E40701030A000000FF8880", time.Date(2020, time.July, 1, 10, 0, 0, 0, local)},
-		{"Sunday", "07E7010F0700000000000000", time.Date(2023, time.January, 15, 0, 0, 0, 0, time.UTC)},
+		{"Future time", TimeZoneStandard, "4E200C1E06173B3B63000000", time.Date(20000, time.December, 30, 23, 59, 59, 990000000, time.UTC)},
+		{"Past time", TimeZoneStandard, "05DC01010100000000000000", time.Date(1500, time.January, 1, 0, 0, 0, 0, time.UTC)},
+		{"Local time", TimeZoneStandard, "07E403100100000000FFC400", time.Date(2020, time.March, 16, 0, 0, 0, 0, local)},
+		{"Summer local time", TimeZoneStandard, "07E40701030A000000FF8880", time.Date(2020, time.July, 1, 10, 0, 0, 0, local)},
+		{"Local time reversed", TimeZoneReversed, "07E403100100000000003C00", time.Date(2020, time.March, 16, 0, 0, 0, 0, local)},
+		{"Local time ignored", TimeZoneIgnored, "07E403100100000000800000", time.Date(2020, time.March, 16, 0, 0, 0, 0, local)},
+		{"Sunday", TimeZoneStandard, "07E7010F0700000000000000", time.Date(2023, time.January, 15, 0, 0, 0, 0, time.UTC)},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			TimeZoneDeviation = tt.timeZoneDeviation
 			encoded, err := EncodeDateTime(tt.val)
+			TimeZoneDeviation = TimeZoneStandard
 			assert.NoError(t, err)
 			assert.Equal(t, decodeHexString(tt.expected), encoded)
 		})
@@ -1039,35 +1044,40 @@ func TestDecodeTime(t *testing.T) {
 
 func TestDecodeDateTime(t *testing.T) {
 	tests := []struct {
-		name string
-		src  string
-		bt   string
-		val  time.Time
+		name              string
+		src               string
+		timeZoneDeviation TimeZone
+		val               time.Time
 	}{
-		{"Current time", "07D00C1E06173B3BFF000000010203", "07D00C1E06173B3BFF000000", time.Date(2000, time.December, 30, 23, 59, 59, 0, time.UTC)},
-		{"Past time", "05DC010101000000FF000000010203", "05DC010101000000FF000000", time.Date(1500, time.January, 1, 0, 0, 0, 0, time.UTC)},
-		{"Local time", "07E40310FF000000FF800000010203", "07E40310FF000000FF800000", time.Date(2020, time.March, 16, 0, 0, 0, 0, time.Local)},
-		{"UTC positive", "07D00106050F0030FF003C01010203", "07D00106050F0030FF003C01", time.Date(2000, time.January, 6, 15, 0, 48, 0, time.FixedZone("UTC-1", -3600))},
-		{"UTC negative", "07D00106050F0030FFFF8801010203", "07D00106050F0030FFFF8801", time.Date(2000, time.January, 6, 15, 0, 48, 0, time.FixedZone("UTC+2", 7200))},
-		{"Empty date", "000000000000000000000000010203", "000000000000000000000000", time.Time{}},
-		{"Invalid date", "00B43A190210380AFF0078FF010203", "00B43A190210380AFF0078FF", time.Time{}},
+		{"Current time", "07D00C1E06173B3BFF000000", TimeZoneStandard, time.Date(2000, time.December, 30, 23, 59, 59, 0, time.UTC)},
+		{"Past time", "05DC010101000000FF000000", TimeZoneStandard, time.Date(1500, time.January, 1, 0, 0, 0, 0, time.UTC)},
+		{"Local time", "07E40310FF000000FF800000", TimeZoneStandard, time.Date(2020, time.March, 16, 0, 0, 0, 0, time.Local)},
+		{"UTC positive", "07D00106050F0030FF003C01", TimeZoneStandard, time.Date(2000, time.January, 6, 15, 0, 48, 0, time.FixedZone("UTC-1", -3600))},
+		{"UTC negative", "07D00106050F0030FFFF8801", TimeZoneStandard, time.Date(2000, time.January, 6, 15, 0, 48, 0, time.FixedZone("UTC+2", 7200))},
+		{"UTC positive with reversed", "07D00106050F0030FF003C01", TimeZoneReversed, time.Date(2000, time.January, 6, 15, 0, 48, 0, time.FixedZone("UTC+1", 3600))},
+		{"UTC negative with reversed", "07D00106050F0030FFFF8801", TimeZoneReversed, time.Date(2000, time.January, 6, 15, 0, 48, 0, time.FixedZone("UTC-2", -7200))},
+		{"UTC positive with ignored", "07D00106050F0030FF003C01", TimeZoneIgnored, time.Date(2000, time.January, 6, 15, 0, 48, 0, time.Local)},
+		{"UTC negative with ignored", "07D00106050F0030FFFF8801", TimeZoneIgnored, time.Date(2000, time.January, 6, 15, 0, 48, 0, time.Local)},
+		{"Empty date", "000000000000000000000000", TimeZoneStandard, time.Time{}},
+		{"Invalid date", "00B43A190210380AFF0078FF", TimeZoneStandard, time.Time{}},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			src := decodeHexString(tt.src)
 
+			TimeZoneDeviation = tt.timeZoneDeviation
+
 			bt, val, err := DecodeDateTime(&src)
 			assert.NoError(t, err)
 
+			TimeZoneDeviation = TimeZoneStandard
+
 			// Compare byte value
-			assert.Equal(t, decodeHexString(tt.bt), bt)
+			assert.Equal(t, decodeHexString(tt.src), bt)
 
 			// Compare time value
 			assert.Equal(t, tt.val, val)
-
-			// Compare remainder bytes of src
-			assert.Equal(t, []byte{1, 2, 3}, src)
 		})
 	}
 }

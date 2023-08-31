@@ -16,8 +16,16 @@ type Decoder struct {
 	tag dataTag
 }
 
+type TimeZone int
+
+const (
+	TimeZoneStandard = 0
+	TimeZoneReversed = 1
+	TimeZoneIgnored  = 2
+)
+
 //nolint:gochecknoglobals
-var ReversedTimeZone = false
+var TimeZoneDeviation TimeZone = TimeZoneStandard
 
 var ErrLengthLess = errors.New("not enough byte length provided")
 
@@ -569,12 +577,12 @@ func DecodeDateTime(src *[]byte) (outByte []byte, outVal time.Time, err error) {
 
 	deviation := binary.BigEndian.Uint16(outByte[9:11])
 	location := time.UTC
-	if deviation == 0x8000 {
+	if deviation == 0x8000 || TimeZoneDeviation == TimeZoneIgnored {
 		location = time.Local
 	} else if deviation != 0 {
 		d := int(int16(deviation))
 
-		if !ReversedTimeZone {
+		if TimeZoneDeviation == TimeZoneStandard {
 			d = -d
 		}
 
