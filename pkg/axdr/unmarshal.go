@@ -95,9 +95,22 @@ func unifyStruct(data *DlmsData, rv reflect.Value) error {
 	}
 
 	for i := 0; i < n; i++ {
-		sliceval := reflect.Indirect(rv.Field(i))
-		if err := unify(slice[i], sliceval); err != nil {
-			return fmt.Errorf("struct error in field %s: %w", rv.Type().Field(i).Name, err)
+		field := rv.Field(i)
+
+		if field.Kind() == reflect.Ptr {
+			if slice[i].Tag != TagNull && field.IsNil() {
+				field.Set(reflect.New(field.Type().Elem()))
+			}
+
+			if slice[i].Tag == TagNull && !field.IsNil() {
+				field.Set(reflect.Zero(field.Type()))
+			}
+		}
+
+		if slice[i].Tag != TagNull {
+			if err := unify(slice[i], reflect.Indirect(field)); err != nil {
+				return fmt.Errorf("struct error in field %s: %w", rv.Type().Field(i).Name, err)
+			}
 		}
 	}
 

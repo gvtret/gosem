@@ -35,6 +35,32 @@ func TestUnmarshalData(t *testing.T) {
 	assert.Equal(t, uint(0x02), result[1].Value3)
 }
 
+func TestUnmarshalDataWithNull(t *testing.T) {
+	type TestData struct {
+		Value1 *uint16
+		Value2 int
+		Value3 *uint8
+	}
+
+	src := decodeHexString("020300050ABBCCDD1101")
+
+	dec := NewDataDecoder(&src)
+	data, err := dec.Decode(&src)
+	assert.NoError(t, err)
+
+	var result TestData
+
+	value1 := uint16(23)
+	result.Value1 = &value1
+
+	err = UnmarshalData(data, &result)
+	assert.NoError(t, err)
+	assert.Empty(t, result.Value1)
+	assert.Equal(t, int(0xABBCCDD), result.Value2)
+	assert.NotEmpty(t, result.Value3)
+	assert.Equal(t, uint8(1), *result.Value3)
+}
+
 func TestUnmarshalPartial(t *testing.T) {
 	src := decodeHexString("01020204090C07D00106050F0030FF003C01121234050ABBCCDD11010204090C07D00106050F0030FF003C0112567805000000001102")
 	var result [][]DlmsData

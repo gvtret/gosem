@@ -1,9 +1,10 @@
 package axdr
 
 import (
-	"reflect"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestMarshalData(t *testing.T) {
@@ -151,13 +152,14 @@ func TestMarshalData(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := MarshalData(tt.v)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("MarshalData() error = %v, wantErr %v", err, tt.wantErr)
-				return
+
+			if tt.wantErr {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
 			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("MarshalData() = %v, want %v", got, tt.want)
-			}
+
+			assert.Equal(t, tt.want, got)
 		})
 	}
 }
