@@ -99,9 +99,7 @@ func DecodeAARE(settings *Settings, ori *[]byte) (out AARE, err error) {
 			}
 		case BERTypeContext | BERTypeConstructed | PduTypeUserInformation:
 			// User information - 0xBE
-			if out.AssociationResult == AssociationResultAccepted && out.SourceDiagnostic == SourceDiagnosticNone {
-				out.InitiateResponse, out.ConfirmedServiceError, err = parseUserInformation(settings, tagLength, src)
-			}
+			out.InitiateResponse, out.ConfirmedServiceError, err = parseUserInformation(settings, tagLength, src)
 		}
 
 		if err != nil {
@@ -184,9 +182,9 @@ func parseUserInformation(settings *Settings, tagLength int, src []byte) (ir *In
 	}
 	src = src[4:]
 
-	if src[0] == TagGloInitiateResponse.Value() && settings != nil {
+	if (src[0] == TagGloInitiateResponse.Value() || src[0] == TagGloConfirmedServiceError.Value()) && settings != nil {
 		cfg := Cipher{
-			Tag:         TagGloInitiateResponse,
+			Tag:         CosemTag(src[0]),
 			Security:    settings.Ciphering.Security,
 			SystemTitle: settings.Ciphering.SourceSystemTitle,
 			Key:         settings.Ciphering.UnicastKey,
@@ -195,7 +193,14 @@ func parseUserInformation(settings *Settings, tagLength int, src []byte) (ir *In
 
 		src, err = DecipherData(cfg, src)
 		if err != nil {
-			return
+			// As a tricky result, if decipher fails, we return a ConfirmedServiceError with application-reference (0) and deciphering-error (6)
+			cse := ConfirmedServiceError{
+				ConfirmedServiceError: TagErrInitiateError,
+				ServiceError:          TagErrApplicationReference,
+				Value:                 TagApplicationReferenceDecipheringError,
+			}
+
+			return nil, &cse, nil
 		}
 	}
 

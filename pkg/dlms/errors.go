@@ -12,6 +12,7 @@ const (
 	ErrorInvalidResponse
 	ErrorAuthenticationFailed
 	ErrorInvalidPassword
+	ErrorInvalidKeys
 	ErrorGetRejected
 	ErrorSetRejected
 	ErrorActionRejected

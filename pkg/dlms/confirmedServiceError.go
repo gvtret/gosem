@@ -40,6 +40,16 @@ func (s serviceErrorTag) Value() uint8 {
 	return uint8(s)
 }
 
+const (
+	TagApplicationReferenceOther                         uint8 = 0
+	TagApplicationReferenceTimeElapsed                   uint8 = 1
+	TagApplicationReferenceApplicationUnreachable        uint8 = 2
+	TagApplicationReferenceApplicationReferenceInvalid   uint8 = 3
+	TagApplicationReferenceApplicationContextUnsupported uint8 = 4
+	TagApplicationReferenceProviderCommunicationError    uint8 = 5
+	TagApplicationReferenceDecipheringError              uint8 = 6
+)
+
 type ConfirmedServiceError struct {
 	ConfirmedServiceError confirmedServiceErrorTag
 	ServiceError          serviceErrorTag

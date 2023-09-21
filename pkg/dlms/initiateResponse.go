@@ -13,10 +13,7 @@ const (
 	VAANameSN = 0xFA00
 )
 
-var (
-	ErrWrongVersion = errors.New("wrong DLMS version")
-	ErrWrongVAAName = errors.New("wrong VAA name")
-)
+var ErrWrongVersion = errors.New("wrong DLMS version")
 
 type InitiateResponse struct {
 	NegotiatedQualityOfService *uint8
@@ -97,12 +94,6 @@ func DecodeInitiateResponse(ori *[]byte) (out InitiateResponse, err error) {
 
 	out.NegotiatedConformance = binary.BigEndian.Uint32(src[4:8])
 	out.ServerMaxReceivePduSize = binary.BigEndian.Uint16(src[8:10])
-
-	vaaName := binary.BigEndian.Uint16(src[10:12])
-	if vaaName != VAANameLN && vaaName != VAANameSN {
-		err = ErrWrongVAAName
-		return
-	}
 
 	src = src[12:]
 
