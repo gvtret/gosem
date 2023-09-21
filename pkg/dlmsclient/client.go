@@ -153,9 +153,14 @@ func (c *client) Associate() error {
 			return dlms.NewError(dlms.ErrorInvalidPassword, fmt.Sprintf("association failed (invalid password): %d - %d", aare.AssociationResult, aare.SourceDiagnostic))
 		}
 
+		if aare.ConfirmedServiceError != nil && aare.ConfirmedServiceError.ServiceError == dlms.TagErrApplicationReference && aare.ConfirmedServiceError.Value == dlms.TagApplicationReferenceDecipheringError {
+			return dlms.NewError(dlms.ErrorInvalidKeys, fmt.Sprintf("association failed (invalid keys): %d - %d (%s)", aare.AssociationResult, aare.SourceDiagnostic, aare.ConfirmedServiceError.String()))
+		}
+
 		if aare.ConfirmedServiceError != nil {
 			return dlms.NewError(dlms.ErrorAuthenticationFailed, fmt.Sprintf("association failed: %d - %d (%s)", aare.AssociationResult, aare.SourceDiagnostic, aare.ConfirmedServiceError.String()))
 		}
+
 		return dlms.NewError(dlms.ErrorAuthenticationFailed, fmt.Sprintf("association failed: %d - %d", aare.AssociationResult, aare.SourceDiagnostic))
 	}
 

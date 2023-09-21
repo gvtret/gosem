@@ -207,6 +207,44 @@ func TestClient_AssociationWithConfirmedServiceError(t *testing.T) {
 	tm.AssertExpectations(t)
 }
 
+func TestClient_AssociationWithWrongKeys(t *testing.T) {
+	tm := mocks.NewTransportMock(t)
+
+	rdc := make(dlms.DataChannel, 10)
+	tm.On("SetReception", mock.Anything).Run(func(args mock.Arguments) {
+		rdc = args.Get(0).(dlms.DataChannel)
+	}).Once()
+
+	ciphering, _ := dlms.NewCiphering(
+		dlms.SecurityLevelDedicatedKey,
+		dlms.SecurityEncryption|dlms.SecurityAuthentication,
+		decodeHexString("4349520000000001"),
+		decodeHexString("00112233445566778899AABBCCDDEEFF"),
+		0x00000059,
+		decodeHexString("00112233445566778899AABBCCDDEEFF"),
+	)
+	ciphering.DedicatedKey = decodeHexString("5E168412318BA71848C99B2B2AB33294")
+
+	settings, _ := dlms.NewSettingsWithLowAuthenticationAndCiphering([]byte("JuS66BCZ"), ciphering)
+	settings.MaxPduRecvSize = 512
+
+	c := dlmsclient.New(settings, tm, 5*time.Second, 0)
+
+	tm.On("Connect").Return(nil).Once()
+	c.Connect()
+
+	tm.On("IsConnected").Return(true)
+	sendReceive(tm, rdc, "6066A109060760857405080103A60A040843495200000000018A0207808B0760857405080201AC0A80084A7553363642435ABE3404322130300000005992D807DBCF8533E9AD675AE0948241FB8E6CF9AFA7006BAA134A473C9151B3362F56DC12F89E85DA97E176",
+		"613EA109060760857405080103A203020101A305A103020101A40A04084B464D3434383831BE1904172E153000000109C4F6454CC72834A286BDD44312F06617")
+
+	err := c.Associate()
+	var clientError *dlms.Error
+	assert.ErrorAs(t, err, &clientError)
+	assert.Equal(t, dlms.ErrorInvalidKeys, clientError.Code())
+
+	tm.AssertExpectations(t)
+}
+
 func TestClient_CloseAssociation(t *testing.T) {
 	c, tm, rdc := associate(t)
 
