@@ -37,15 +37,17 @@ const (
 )
 
 type Ciphering struct {
-	Level             SecurityLevel
-	Security          Security
-	SystemTitle       []byte
-	SourceSystemTitle []byte
-	UnicastKey        []byte
-	AuthenticationKey []byte
-	UnicastKeyIC      uint32
-	DedicatedKey      []byte
-	DedicatedKeyIC    uint32
+	Level               SecurityLevel
+	Security            Security
+	SystemTitle         []byte
+	SourceSystemTitle   []byte
+	UnicastKey          []byte
+	UnicastKeyIC        uint32
+	UnicastExpectedIC   uint32
+	AuthenticationKey   []byte
+	DedicatedKey        []byte
+	DedicatedKeyIC      uint32
+	DedicatedExpectedIC uint32
 }
 
 type Settings struct {
@@ -115,15 +117,17 @@ func NewCiphering(level SecurityLevel, security Security, systemTitle []byte, un
 	}
 
 	c := Ciphering{
-		Level:             level,
-		Security:          security,
-		SystemTitle:       systemTitle,
-		SourceSystemTitle: nil,
-		UnicastKey:        unicastKey,
-		AuthenticationKey: authenticationKey,
-		UnicastKeyIC:      unicastKeyIC,
-		DedicatedKey:      dk,
-		DedicatedKeyIC:    1,
+		Level:               level,
+		Security:            security,
+		SystemTitle:         systemTitle,
+		SourceSystemTitle:   nil,
+		UnicastKey:          unicastKey,
+		UnicastKeyIC:        unicastKeyIC,
+		UnicastExpectedIC:   0,
+		AuthenticationKey:   authenticationKey,
+		DedicatedKey:        dk,
+		DedicatedKeyIC:      1,
+		DedicatedExpectedIC: 0,
 	}
 
 	return c, nil

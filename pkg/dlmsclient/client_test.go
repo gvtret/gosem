@@ -240,7 +240,46 @@ func TestClient_AssociationWithWrongKeys(t *testing.T) {
 	err := c.Associate()
 	var clientError *dlms.Error
 	assert.ErrorAs(t, err, &clientError)
-	assert.Equal(t, dlms.ErrorInvalidKeys, clientError.Code())
+	assert.Equal(t, dlms.ErrorWrongKeys, clientError.Code())
+
+	tm.AssertExpectations(t)
+}
+
+func TestClient_AssociationWithFailureInIC(t *testing.T) {
+	tm := mocks.NewTransportMock(t)
+
+	rdc := make(dlms.DataChannel, 10)
+	tm.On("SetReception", mock.Anything).Run(func(args mock.Arguments) {
+		rdc = args.Get(0).(dlms.DataChannel)
+	}).Once()
+
+	ciphering, _ := dlms.NewCiphering(
+		dlms.SecurityLevelDedicatedKey,
+		dlms.SecurityEncryption|dlms.SecurityAuthentication,
+		decodeHexString("4349520000000001"),
+		decodeHexString("00112233445566778899AABBCCDDEEFF"),
+		0x00000059,
+		decodeHexString("00112233445566778899AABBCCDDEEFF"),
+	)
+	ciphering.DedicatedKey = decodeHexString("5E168412318BA71848C99B2B2AB33294")
+	ciphering.UnicastExpectedIC = 0x1000005A
+
+	settings, _ := dlms.NewSettingsWithLowAuthenticationAndCiphering([]byte("JuS66BCZ"), ciphering)
+	settings.MaxPduRecvSize = 512
+
+	c := dlmsclient.New(settings, tm, 5*time.Second, 0)
+
+	tm.On("Connect").Return(nil).Once()
+	c.Connect()
+
+	tm.On("IsConnected").Return(true)
+	sendReceive(tm, rdc, "6066A109060760857405080103A60A040843495200000000018A0207808B0760857405080201AC0A80084A7553363642435ABE3404322130300000005992D807DBCF8533E9AD675AE0948241FB8E6CF9AFA7006BAA134A473C9151B3362F56DC12F89E85DA97E176",
+		"6148A109060760857405080103A203020100A305A103020100A40A04084C475A2022604828BE230421281F300000005AE916783AF33B5317AD0E453A799A65F26AE97660CF8B14FEB7B0")
+
+	err := c.Associate()
+	var clientError *dlms.Error
+	assert.ErrorAs(t, err, &clientError)
+	assert.Equal(t, dlms.ErrorFailureInvocationCounter, clientError.Code())
 
 	tm.AssertExpectations(t)
 }
@@ -432,11 +471,18 @@ func TestClient_CompleteSecureCommunication(t *testing.T) {
 	err := c.GetRequest(dlms.CreateAttributeDescriptor(8, "0-0:1.0.0.255", 2), nil)
 	assert.NoError(t, err)
 
+	// Get fails due failure invocation counter (two replies with the same invocation counter)
+	sendReceive(tm, rdc, "D01E3000000002CDA00847BC0032D323FB29C26A51683A141E2CE1C14FDEB851", "D4233000000001AA07A549F82E6B8EEA919659D91689BF995BE6F93C95A7208718A3B84EE4")
+	err = c.GetRequest(dlms.CreateAttributeDescriptor(8, "0-0:1.0.0.255", 2), nil)
+	var clientError *dlms.Error
+	assert.ErrorAs(t, err, &clientError)
+	assert.Equal(t, dlms.ErrorFailureInvocationCounter, clientError.Code())
+
 	sendReceive(tm, rdc, "6239800100BE3404322130300000005A8E9B83D641B89FAAF36DA504132C34F87E4BA66175A7DCED015460239699C72C18C06DB29C54673B83BAC0", "6328800100BE230421281F300000005BCD34827974EDCF8B1DAB306F62C58AB42052DB67361377507825")
 	assert.NoError(t, c.CloseAssociation())
 
 	assert.Equal(t, uint32(0x0000005B), c.GetSettings().Ciphering.UnicastKeyIC)
-	assert.Equal(t, uint32(0x00000002), c.GetSettings().Ciphering.DedicatedKeyIC)
+	assert.Equal(t, uint32(0x00000003), c.GetSettings().Ciphering.DedicatedKeyIC)
 
 	tm.AssertExpectations(t)
 }
