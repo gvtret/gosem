@@ -55,7 +55,7 @@ func CipherData(cfg Cipher, data []byte) ([]byte, error) {
 	return gcm.Seal(dst, iv, data, ad), nil
 }
 
-func DecipherData(cfg Cipher, data []byte) ([]byte, error) {
+func DecipherData(cfg *Cipher, data []byte) ([]byte, error) {
 	// Check COSEM tag
 	if data[0] != byte(cfg.Tag) {
 		return nil, ErrWrongTag(0, data[0], byte(cfg.Tag))
@@ -97,6 +97,9 @@ func DecipherData(cfg Cipher, data []byte) ([]byte, error) {
 	copy(iv, cfg.SystemTitle)
 	copy(iv[8:], data[:4])
 	data = data[4:]
+
+	// Save frame counter
+	cfg.FrameCounter = binary.BigEndian.Uint32(iv[8:])
 
 	// Associated data
 	ad := make([]byte, 17)

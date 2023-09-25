@@ -64,6 +64,8 @@ func TestDecodeAAREWithSecurity(t *testing.T) {
 	assert.Equal(t, ApplicationContextLNCiphering, aare.ApplicationContext)
 	assert.Equal(t, AssociationResultAccepted, aare.AssociationResult)
 	assert.Equal(t, SourceDiagnosticNone, aare.SourceDiagnostic)
+	assert.NotNil(t, aare.ReceivedIC)
+	assert.Equal(t, uint32(0x00000031), *aare.ReceivedIC)
 
 	sourceSystemTitle := decodeHexString("4C475A2022604828")
 	assert.Equal(t, sourceSystemTitle, aare.SourceSystemTitle)
@@ -80,6 +82,8 @@ func TestDecodeAAREWithSecurity(t *testing.T) {
 	assert.Equal(t, TagErrInitiateError, aare.ConfirmedServiceError.ConfirmedServiceError)
 	assert.Equal(t, TagErrApplicationReference, aare.ConfirmedServiceError.ServiceError)
 	assert.Equal(t, uint8(6), aare.ConfirmedServiceError.Value)
+	assert.NotNil(t, aare.ReceivedIC)
+	assert.Equal(t, uint32(0x00000109), *aare.ReceivedIC)
 
 	// Reply with a confirmed service error (dechiper fails)
 	src = decodeHexString("613EA109060760857405080103A203020101A305A103020101A40A04084B464D3434383831BE1904172E153000000027AB078E5DA8EECF61040812F75CB5B5EA")
@@ -93,6 +97,7 @@ func TestDecodeAAREWithSecurity(t *testing.T) {
 	assert.Equal(t, TagErrInitiateError, aare.ConfirmedServiceError.ConfirmedServiceError)
 	assert.Equal(t, TagErrApplicationReference, aare.ConfirmedServiceError.ServiceError)
 	assert.Equal(t, uint8(6), aare.ConfirmedServiceError.Value)
+	assert.Nil(t, aare.ReceivedIC)
 
 	// Reply with a confirmed service error (without chipering)
 	src = decodeHexString("611FA109060760857405080103A203020101A305A103020101BE0604040E010006")
@@ -106,4 +111,5 @@ func TestDecodeAAREWithSecurity(t *testing.T) {
 	assert.Equal(t, TagErrInitiateError, aare.ConfirmedServiceError.ConfirmedServiceError)
 	assert.Equal(t, TagErrApplicationReference, aare.ConfirmedServiceError.ServiceError)
 	assert.Equal(t, uint8(6), aare.ConfirmedServiceError.Value)
+	assert.Nil(t, aare.ReceivedIC)
 }

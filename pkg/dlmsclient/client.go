@@ -154,7 +154,7 @@ func (c *client) Associate() error {
 		}
 
 		if aare.ConfirmedServiceError != nil && aare.ConfirmedServiceError.ServiceError == dlms.TagErrApplicationReference && aare.ConfirmedServiceError.Value == dlms.TagApplicationReferenceDecipheringError {
-			return dlms.NewError(dlms.ErrorInvalidKeys, fmt.Sprintf("association failed (invalid keys): %d - %d (%s)", aare.AssociationResult, aare.SourceDiagnostic, aare.ConfirmedServiceError.String()))
+			return dlms.NewError(dlms.ErrorWrongKeys, fmt.Sprintf("association failed (invalid keys): %d - %d (%s)", aare.AssociationResult, aare.SourceDiagnostic, aare.ConfirmedServiceError.String()))
 		}
 
 		if aare.ConfirmedServiceError != nil {
@@ -162,6 +162,13 @@ func (c *client) Associate() error {
 		}
 
 		return dlms.NewError(dlms.ErrorAuthenticationFailed, fmt.Sprintf("association failed: %d - %d", aare.AssociationResult, aare.SourceDiagnostic))
+	}
+
+	if aare.ReceivedIC != nil {
+		if *aare.ReceivedIC < c.settings.Ciphering.UnicastExpectedIC {
+			return dlms.NewError(dlms.ErrorFailureInvocationCounter, fmt.Sprintf("wrong expected invocation counter: %d is lower than %d", *aare.ReceivedIC, c.settings.Ciphering.UnicastExpectedIC))
+		}
+		c.settings.Ciphering.UnicastExpectedIC = *aare.ReceivedIC + 1
 	}
 
 	if aare.InitiateResponse != nil {
@@ -404,7 +411,24 @@ func (c *client) decipherData(src []byte) ([]byte, error) {
 		cipher.Key = c.settings.Ciphering.DedicatedKey
 	}
 
-	return dlms.DecipherData(cipher, src)
+	out, err := dlms.DecipherData(&cipher, src)
+	if err != nil {
+		return nil, err
+	}
+
+	if c.settings.Ciphering.Level == dlms.SecurityLevelGlobalKey {
+		if cipher.FrameCounter < c.settings.Ciphering.UnicastExpectedIC {
+			return nil, dlms.NewError(dlms.ErrorFailureInvocationCounter, fmt.Sprintf("wrong expected invocation counter: %d is lower than %d", cipher.FrameCounter, c.settings.Ciphering.UnicastExpectedIC))
+		}
+		c.settings.Ciphering.UnicastExpectedIC = cipher.FrameCounter + 1
+	} else {
+		if cipher.FrameCounter < c.settings.Ciphering.DedicatedExpectedIC {
+			return nil, dlms.NewError(dlms.ErrorFailureInvocationCounter, fmt.Sprintf("wrong expected invocation counter: %d is lower than %d", cipher.FrameCounter, c.settings.Ciphering.DedicatedExpectedIC))
+		}
+		c.settings.Ciphering.DedicatedExpectedIC = cipher.FrameCounter + 1
+	}
+
+	return out, nil
 }
 
 func (c *client) closeAssociation() {
