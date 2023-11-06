@@ -12,7 +12,7 @@ type RLRE struct {
 	ReleaseResponseReason *ReleaseResponseReason
 }
 
-func DecodeRLRE(settings *Settings, ori *[]byte) (out RLRE, err error) {
+func DecodeRLRE(ori *[]byte) (out RLRE, err error) {
 	src := *ori
 
 	if len(src) < 2 {

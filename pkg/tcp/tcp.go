@@ -95,7 +95,7 @@ func (t *tcp) IsConnected() bool {
 	return t.isConnected
 }
 
-func (t *tcp) SetAddress(client int, server int) {
+func (t *tcp) SetAddress(_ int, _ int) {
 }
 
 func (t *tcp) SetReception(dc dlms.DataChannel) {
