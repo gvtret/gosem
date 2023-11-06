@@ -2,7 +2,6 @@ linters:
   enable:
     - asciicheck
     - bodyclose
-    - depguard
     - dogsled
     - durationcheck
     - errorlint
@@ -34,6 +33,7 @@ linters:
     - unparam
     - whitespace
   disable:
+    - depguard
     - gomnd
     - gci
     - testpackage

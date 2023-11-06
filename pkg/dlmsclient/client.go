@@ -200,7 +200,7 @@ func (c *client) CloseAssociation() error {
 		return err
 	}
 
-	_, err = dlms.DecodeRLRE(&c.settings, &out)
+	_, err = dlms.DecodeRLRE(&out)
 	if err != nil {
 		return dlms.NewError(dlms.ErrorInvalidResponse, fmt.Sprintf("error decoding RLRE: %v", err))
 	}
