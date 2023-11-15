@@ -26,6 +26,7 @@ const (
 
 //nolint:gochecknoglobals
 var TimeZoneDeviation TimeZone = TimeZoneStandard
+var errUnknownTag = errors.New("unknown DLMS tag")
 
 var ErrLengthLess = errors.New("not enough byte length provided")
 
@@ -191,7 +192,7 @@ func (dec *Decoder) Decode(ori *[]byte) (r DlmsData, err error) {
 	case TagLongUnsigned:
 		rawValue, value, err = DecodeLongUnsigned(&src)
 	case TagCompactArray:
-		err = fmt.Errorf("not yet implemented")
+		rawValue, value, err = DecodeCompactArray(src)
 	case TagLong64:
 		rawValue, value, err = DecodeLong64(&src)
 	case TagLong64Unsigned:
@@ -225,6 +226,34 @@ func (dec *Decoder) Decode(ori *[]byte) (r DlmsData, err error) {
 
 	// remove bytes from original on success
 	(*ori) = (*ori)[length:]
+
+	return
+}
+
+func getCompactArrayDecoders(src *[]byte) (outVal []Decoder, err error) {
+	initType := (*src)[0]
+	if initType != byte(TagStructure) {
+		thisDecoder := NewDataDecoder(src)
+		if thisDecoder.tag == TagNull {
+			return nil, errUnknownTag
+		}
+
+		outVal = []Decoder{*thisDecoder}
+		return
+	}
+
+	numberOfStructParams := (*src)[1]
+	outVal = make([]Decoder, numberOfStructParams)
+
+	(*src) = (*src)[2:]
+	for i := 0; i < int(numberOfStructParams); i++ {
+		thisDecoder := NewDataDecoder(src)
+		if thisDecoder.tag == TagNull {
+			return nil, errUnknownTag
+		}
+
+		outVal[i] = *thisDecoder
+	}
 
 	return
 }
@@ -424,6 +453,57 @@ func DecodeLongUnsigned(src *[]byte) (outByte []byte, outVal uint16, err error) 
 	outVal |= uint16(outByte[1])
 	(*src) = (*src)[2:]
 	return
+}
+
+func DecodeCompactArray(src []byte) (outByte []byte, outVal interface{}, err error) {
+	// make carbon copy of src to calc rawValue later
+	temp := src
+
+	decoders, errDecoders := getCompactArrayDecoders(&temp)
+	if errDecoders != nil {
+		err = errDecoders
+
+		return
+	}
+
+	// After the element types, the next data is the total length of the parameters in bytes.
+	_, lengthInt, err := DecodeLength(&temp)
+	if err != nil {
+		return
+	}
+
+	lengthOfHeaders := len(src) - len(temp)
+	fullContainer := make([]*DlmsData, 0)
+	parsedBytes := uint64(0)
+
+	for parsedBytes < lengthInt {
+		var singleStruct DlmsData
+		numOfDecoders := len(decoders)
+
+		if numOfDecoders > 1 {
+			singleStructContent := make([]*DlmsData, numOfDecoders)
+			for j := 0; j < numOfDecoders; j++ {
+				thisDlmsData, thisError := decoders[j].Decode(&temp)
+				if thisError != nil {
+					err = thisError
+					return
+				}
+				singleStructContent[j] = &thisDlmsData
+			}
+			singleStruct.Tag = TagStructure
+			singleStruct.Value = singleStructContent
+		} else {
+			singleStruct, err = decoders[0].Decode(&temp)
+			if err != nil {
+				return
+			}
+		}
+
+		fullContainer = append(fullContainer, &singleStruct)
+		parsedBytes = uint64(len(src) - len(temp) - lengthOfHeaders)
+	}
+
+	return src[:len(src)-len(temp)], fullContainer, err
 }
 
 func DecodeLong64(src *[]byte) (outByte []byte, outVal int64, err error) {

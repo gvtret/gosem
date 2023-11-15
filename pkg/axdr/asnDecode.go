@@ -75,6 +75,18 @@ func AsnDecode(value *DlmsData) (data string, err error) {
 		data = fmt.Sprintf(strLong+"{%d}", value.Value.(int16))
 	case TagUnsigned:
 		data = fmt.Sprintf(strUnsigned+"{%d}", value.Value.(uint8))
+	case TagCompactArray:
+		data = strCompactArray + "{"
+		strStructure := value.Value.([]*DlmsData)
+		for _, str := range strStructure {
+			tmp, err := AsnDecode(str)
+			if err != nil {
+				return "", fmt.Errorf(nonEncodableError+"%w", err)
+			}
+
+			data += tmp
+		}
+		data += "}"
 	case TagLongUnsigned:
 		data = fmt.Sprintf(strLongUnsigned+"{%d}", value.Value.(uint16))
 	case TagLong64:

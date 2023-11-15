@@ -1107,3 +1107,65 @@ func TestDecoder1(t *testing.T) {
 	assert.Equal(t, d4.Value, t3[3].Value)
 	assert.Equal(t, d5.Value, t3[4].Value)
 }
+
+func TestDecoderSimpleCompactArray(t *testing.T) {
+	d1 := DlmsData{Tag: TagDoubleLongUnsigned, Value: uint32(305419896)}
+	d2 := DlmsData{Tag: TagDoubleLongUnsigned, Value: uint32(572662306)}
+	d3 := DlmsData{Tag: TagDoubleLongUnsigned, Value: uint32(50529027)}
+	d4 := DlmsData{Tag: TagDoubleLongUnsigned, Value: uint32(1126253345)}
+	d5 := DlmsData{Tag: TagDoubleLongUnsigned, Value: uint32(1431651105)}
+
+	src, _ := hex.DecodeString("1306141234567822222222030303034321432155554321")
+
+	dec := NewDataDecoder(&src)
+	t1, err := dec.Decode(&src)
+	assert.NoError(t, err)
+	assert.Equal(t, TagCompactArray, t1.Tag)
+
+	t2 := t1.Value.([]*DlmsData)
+	require.Len(t, t2, 5)
+
+	assert.Equal(t, d1.Value, t2[0].Value)
+	assert.Equal(t, d2.Value, t2[1].Value)
+	assert.Equal(t, d3.Value, t2[2].Value)
+	assert.Equal(t, d4.Value, t2[3].Value)
+	assert.Equal(t, d5.Value, t2[4].Value)
+}
+
+func TestDecoderComplexCompactArray(t *testing.T) {
+	d1 := DlmsData{Tag: TagVisibleString, Value: "hello"}
+	d2 := DlmsData{Tag: TagInteger, Value: int8(101)}
+	d3 := DlmsData{Tag: TagLong, Value: int16(1234)}
+	d4 := DlmsData{Tag: TagLong64, Value: int64(1311768467284833366)}
+	d5 := DlmsData{Tag: TagVisibleString, Value: "joan"}
+	d6 := DlmsData{Tag: TagInteger, Value: int8(7)}
+	d7 := DlmsData{Tag: TagLong, Value: int16(451)}
+	d8 := DlmsData{Tag: TagLong64, Value: int64(1234605616436508552)}
+
+	src, _ := hex.DecodeString("1302040A0F1014210568656C6C6F6504D21234567890123456046A6F616E0701C31122334455667788")
+
+	dec := NewDataDecoder(&src)
+	t1, err := dec.Decode(&src)
+	assert.NoError(t, err)
+	assert.Equal(t, TagCompactArray, t1.Tag)
+
+	t2 := t1.Value.([]*DlmsData)[0]
+	assert.Equal(t, TagStructure, t2.Tag)
+
+	t3 := t2.Value.([]*DlmsData)
+	require.Len(t, t3, 4)
+	assert.Equal(t, d1.Value, t3[0].Value)
+	assert.Equal(t, d2.Value, t3[1].Value)
+	assert.Equal(t, d3.Value, t3[2].Value)
+	assert.Equal(t, d4.Value, t3[3].Value)
+
+	t4 := t1.Value.([]*DlmsData)[1]
+	assert.Equal(t, TagStructure, t4.Tag)
+
+	t5 := t4.Value.([]*DlmsData)
+	require.Len(t, t5, 4)
+	assert.Equal(t, d5.Value, t5[0].Value)
+	assert.Equal(t, d6.Value, t5[1].Value)
+	assert.Equal(t, d7.Value, t5[2].Value)
+	assert.Equal(t, d8.Value, t5[3].Value)
+}
