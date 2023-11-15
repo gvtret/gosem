@@ -115,6 +115,10 @@ func CreateAxdrLongUnsigned(data uint16) *DlmsData {
 	return &DlmsData{Tag: TagLongUnsigned, Value: data}
 }
 
+func CreateAxdrCompactArray(data []*DlmsData) *DlmsData {
+	return &DlmsData{Tag: TagCompactArray, Value: data}
+}
+
 func CreateAxdrLong64(data int64) *DlmsData {
 	return &DlmsData{Tag: TagLong64, Value: data}
 }

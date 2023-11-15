@@ -129,6 +129,12 @@ func TestAsnDecode(t *testing.T) {
 			wantErr: false,
 		},
 		{
+			name:    "compact_array_simple",
+			v:       CreateAxdrCompactArray([]*DlmsData{CreateAxdrLongUnsigned(2), CreateAxdrLongUnsigned(4), CreateAxdrLongUnsigned(6), CreateAxdrLongUnsigned(8)}),
+			want:    "compact_array{long_unsigned{2}long_unsigned{4}long_unsigned{6}long_unsigned{8}}",
+			wantErr: false,
+		},
+		{
 			name:    "long64",
 			v:       CreateAxdrLong64(-1234567890123456789),
 			want:    "long64{-1234567890123456789}",
