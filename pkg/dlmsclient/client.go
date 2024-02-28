@@ -1,8 +1,10 @@
 package dlmsclient
 
 import (
+	"encoding/hex"
 	"fmt"
 	"log"
+	"strings"
 	"sync"
 	"time"
 
@@ -27,6 +29,7 @@ type client struct {
 	notificationChan   chan dlms.Notification
 	mutex              sync.Mutex
 	subsMutex          sync.Mutex
+	logger             *log.Logger
 }
 
 func New(settings dlms.Settings, transport dlms.Transport, replyTimeout time.Duration, associationTimeout time.Duration) dlms.Client {
@@ -43,6 +46,7 @@ func New(settings dlms.Settings, transport dlms.Transport, replyTimeout time.Dur
 		notificationChan:   nil,
 		mutex:              sync.Mutex{},
 		subsMutex:          sync.Mutex{},
+		logger:             nil,
 	}
 
 	transport.SetReception(c.tc)
@@ -112,6 +116,7 @@ func (c *client) SetSettings(settings dlms.Settings) {
 }
 
 func (c *client) SetLogger(logger *log.Logger) {
+	c.logger = logger
 	c.transport.SetLogger(logger)
 }
 
@@ -307,6 +312,10 @@ func (c *client) encodeSendReceiveAndDecode(req dlms.CosemPDU) (dlms.CosemPDU, e
 	}
 
 	if c.settings.Ciphering.Level != dlms.SecurityLevelNone {
+		if c.logger != nil {
+			c.logger.Printf("TC: %s", encodeHexString(src))
+		}
+
 		src, err = c.cipherData(src)
 		if err != nil {
 			return nil, err
@@ -335,6 +344,10 @@ func (c *client) encodeSendReceiveAndDecode(req dlms.CosemPDU) (dlms.CosemPDU, e
 		if err != nil {
 			return nil, err
 		}
+
+		if c.logger != nil {
+			c.logger.Printf("RC: %s", encodeHexString(out))
+		}
 	}
 
 	pdu, err := dlms.DecodeCosem(&out)
@@ -344,6 +357,10 @@ func (c *client) encodeSendReceiveAndDecode(req dlms.CosemPDU) (dlms.CosemPDU, e
 	}
 
 	return pdu, nil
+}
+
+func encodeHexString(b []byte) string {
+	return strings.ToUpper(hex.EncodeToString(b))
 }
 
 func (c *client) cipherData(src []byte) ([]byte, error) {
