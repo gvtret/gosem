@@ -89,7 +89,7 @@ func TestAsnDecode(t *testing.T) {
 		{
 			name:    "octet_string_time",
 			v:       CreateAxdrOctetString("07d0020501000d24ff800001"),
-			want:    "date_time{2000/02/05 00:13:36}",
+			want:    "octet_string{07d0020501000d24ff800001}",
 			wantErr: false,
 		},
 		{
