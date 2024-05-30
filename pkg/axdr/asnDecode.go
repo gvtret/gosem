@@ -3,7 +3,6 @@
 package axdr
 
 import (
-	"encoding/hex"
 	"fmt"
 	"strconv"
 	"time"
@@ -52,19 +51,7 @@ func AsnDecode(value *DlmsData) (data string, err error) {
 	case TagFloatingPoint:
 		data = fmt.Sprintf(strFloatingPoint+"{%g}", (value.Value.(float32)))
 	case TagOctetString:
-		isTime := false
-		src, err := hex.DecodeString(value.Value.(string))
-		if err == nil && len(src) == 12 {
-			_, t, err := DecodeDateTime(&src)
-			if err == nil && !t.IsZero() {
-				data = fmt.Sprintf(strDateTime+"{%s}", t.Format(dateTimeLayout))
-				isTime = true
-			}
-		}
-
-		if !isTime {
-			data = fmt.Sprintf(strOctetString+"{%s}", value.Value.(string))
-		}
+		data = fmt.Sprintf(strOctetString+"{%s}", value.Value.(string))
 	case TagVisibleString:
 		data = fmt.Sprintf(strVisibleString+"{%s}", value.Value.(string))
 	case TagBCD:

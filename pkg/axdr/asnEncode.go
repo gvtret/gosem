@@ -165,11 +165,8 @@ func AsnEncode(value string) (data *DlmsData, err error) {
 		}
 		data = CreateAxdrFloat64(tmp)
 	case strDateTime:
-		tmp, err := time.Parse(dateTimeLayout, valueSplit[2])
-		if err != nil {
-			return nil, fmt.Errorf(nonEncodableError+"%w", err)
-		}
-		data = CreateAxdrOctetString(tmp)
+		data = CreateAxdrOctetString(valueSplit[2])
+		// data = CreateAxdrDateTime(tmp)
 	case strDate:
 		tmp, err := time.Parse(dateLayout, valueSplit[2])
 		if err != nil {

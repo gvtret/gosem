@@ -10,10 +10,8 @@ import (
 )
 
 func TestAsnEncode(t *testing.T) {
-	time1 := time.Date(2016, time.April, 1, 10, 0, 0, 0, time.UTC)
 	dateTime1 := time.Date(2006, time.January, 2, 0, 0, 0, 0, time.UTC)
 	timeTime := time.Date(0, time.January, 1, 15, 4, 5, 0, time.UTC)
-	time2 := time.Date(2016, time.April, 1, 10, 10, 0, 0, time.UTC)
 
 	tests := []struct {
 		name    string
@@ -155,8 +153,8 @@ func TestAsnEncode(t *testing.T) {
 		},
 		{
 			name:    "date_time",
-			v:       "date_time{2016/04/01 10:00:00}",
-			want:    CreateAxdrOctetString(time1),
+			v:       "date_time{07 E8 01 11 03 0A 00 00 FF 80 00 00}",
+			want:    CreateAxdrOctetString("07 E8 01 11 03 0A 00 00 FF 80 00 00"),
 			wantErr: false,
 		},
 		{
@@ -173,8 +171,8 @@ func TestAsnEncode(t *testing.T) {
 		},
 		{
 			name:    "complex structure",
-			v:       "structure{structure{long_unsigned{8}octet_string{00 00 01 00 00 ff}integer{2}long_unsigned{0}}date_time{2016/04/01 10:00:00}date_time{2016/04/01 10:10:00}array{}}",
-			want:    CreateAxdrStructure([]*DlmsData{CreateAxdrStructure([]*DlmsData{CreateAxdrLongUnsigned(8), CreateAxdrOctetString("00 00 01 00 00 ff"), CreateAxdrInteger(2), CreateAxdrLongUnsigned(0)}), CreateAxdrOctetString(time1), CreateAxdrOctetString(time2), CreateAxdrArray([]*DlmsData{})}),
+			v:       "structure{structure{long_unsigned{8}octet_string{00 00 01 00 00 ff}integer{2}long_unsigned{0}}date_time{07 E8 01 11 03 0A 00 00 FF 80 00 00}date_time{07 E8 01 12 04 0A 00 00 FF 80 00 00}array{}}",
+			want:    CreateAxdrStructure([]*DlmsData{CreateAxdrStructure([]*DlmsData{CreateAxdrLongUnsigned(8), CreateAxdrOctetString("00 00 01 00 00 ff"), CreateAxdrInteger(2), CreateAxdrLongUnsigned(0)}), CreateAxdrOctetString("07 E8 01 11 03 0A 00 00 FF 80 00 00"), CreateAxdrOctetString("07 E8 01 12 04 0A 00 00 FF 80 00 00"), CreateAxdrArray([]*DlmsData{})}),
 			wantErr: false,
 		},
 		{
@@ -255,11 +253,6 @@ func TestAsnEncode(t *testing.T) {
 		{
 			name:    "float_64",
 			v:       "float_64{hello}}",
-			wantErr: true,
-		},
-		{
-			name:    "date_time",
-			v:       "date_time{2016/13/01 10:00:00}",
 			wantErr: true,
 		},
 		{
