@@ -58,7 +58,10 @@ func (w *wrapper) Connect() error {
 
 func (w *wrapper) manager() {
 	for {
-		data := <-w.tc
+		data, ok := <-w.tc
+		if !ok {
+			return
+		}
 
 		for {
 			if len(data) == 0 {
