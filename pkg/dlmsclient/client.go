@@ -228,7 +228,10 @@ func (c *client) IsAssociated() bool {
 
 func (c *client) manager() {
 	for {
-		data := <-c.tc
+		data, ok := <-c.tc
+		if !ok {
+			return
+		}
 
 		dn, err := dlms.DecodeDataNotification(&data)
 		if err == nil {

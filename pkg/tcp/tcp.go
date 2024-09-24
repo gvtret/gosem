@@ -8,6 +8,7 @@ import (
 	"net"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"gitlab.com/circutor-library/gosem/pkg/dlms"
@@ -25,6 +26,7 @@ type tcp struct {
 	conn        net.Conn
 	isConnected bool
 	logger      *log.Logger
+	mutex       sync.Mutex
 }
 
 func New(port int, host string, timeout time.Duration) dlms.Transport {
@@ -35,13 +37,17 @@ func New(port int, host string, timeout time.Duration) dlms.Transport {
 		dc:          nil,
 		isConnected: false,
 		logger:      nil,
+		mutex:       sync.Mutex{},
 	}
 
 	return t
 }
 
 func (t *tcp) Close() {
-	t.Disconnect()
+	t.mutex.Lock()
+	defer t.mutex.Unlock()
+
+	t.disconnect()
 	if t.dc != nil {
 		close(t.dc)
 		t.dc = nil
@@ -49,6 +55,9 @@ func (t *tcp) Close() {
 }
 
 func (t *tcp) Connect() error {
+	t.mutex.Lock()
+	defer t.mutex.Unlock()
+
 	if !t.isConnected {
 		address := net.JoinHostPort(t.host, strconv.Itoa(t.port))
 
@@ -65,16 +74,91 @@ func (t *tcp) Connect() error {
 			t.logger.Printf("Connected to %s", address)
 		}
 
-		go t.manager()
-
 		t.conn = conn
 		t.isConnected = true
+
+		go t.manager()
 	}
 
 	return nil
 }
 
 func (t *tcp) Disconnect() error {
+	t.mutex.Lock()
+	defer t.mutex.Unlock()
+
+	return t.disconnect()
+}
+
+func (t *tcp) IsConnected() bool {
+	t.mutex.Lock()
+	defer t.mutex.Unlock()
+
+	return t.isConnected
+}
+
+func (t *tcp) SetAddress(_ int, _ int) {
+}
+
+func (t *tcp) SetReception(dc dlms.DataChannel) {
+	t.mutex.Lock()
+	defer t.mutex.Unlock()
+
+	t.dc = dc
+}
+
+func (t *tcp) Send(src []byte) error {
+	t.mutex.Lock()
+	defer t.mutex.Unlock()
+
+	if !t.isConnected {
+		return fmt.Errorf("not connected")
+	}
+
+	t.conn.SetWriteDeadline(time.Now().Add(t.timeout))
+
+	_, err := t.conn.Write(src)
+	if err != nil {
+		t.disconnect()
+		return fmt.Errorf("write failed: %w", err)
+	}
+
+	if t.logger != nil {
+		t.logger.Printf("TX (%s): %s", t.host, encodeHexString(src))
+	}
+
+	return nil
+}
+
+func (t *tcp) SetLogger(logger *log.Logger) {
+	t.mutex.Lock()
+	defer t.mutex.Unlock()
+
+	t.logger = logger
+}
+
+func (t *tcp) manager() {
+	for {
+		if !t.isConnected {
+			return
+		}
+
+		data, err := t.read()
+		if err != nil {
+			t.mutex.Lock()
+			t.disconnect()
+			t.mutex.Unlock()
+
+			return
+		}
+
+		if len(data) > 0 && t.dc != nil {
+			t.dc <- data
+		}
+	}
+}
+
+func (t *tcp) disconnect() error {
 	if t.isConnected {
 		t.isConnected = false
 
@@ -91,64 +175,15 @@ func (t *tcp) Disconnect() error {
 	return nil
 }
 
-func (t *tcp) IsConnected() bool {
-	return t.isConnected
-}
-
-func (t *tcp) SetAddress(_ int, _ int) {
-}
-
-func (t *tcp) SetReception(dc dlms.DataChannel) {
-	t.dc = dc
-}
-
-func (t *tcp) Send(src []byte) error {
-	if !t.isConnected {
-		return fmt.Errorf("not connected")
-	}
-
-	t.conn.SetWriteDeadline(time.Now().Add(t.timeout))
-
-	_, err := t.conn.Write(src)
-	if err != nil {
-		t.Disconnect()
-		return fmt.Errorf("write failed: %w", err)
-	}
-
-	if t.logger != nil {
-		t.logger.Printf("TX (%s): %s", t.host, encodeHexString(src))
-	}
-
-	return nil
-}
-
-func (t *tcp) SetLogger(logger *log.Logger) {
-	t.logger = logger
-}
-
-func (t *tcp) manager() {
-	for {
-		if !t.isConnected {
-			return
-		}
-
-		data, err := t.read()
-		if err != nil {
-			t.Disconnect()
-
-			return
-		}
-
-		if len(data) > 0 && t.dc != nil {
-			t.dc <- data
-		}
-	}
-}
-
 func (t *tcp) read() ([]byte, error) {
 	rxBuffer := make([]byte, maxLength)
 
-	rxLen, err := t.conn.Read(rxBuffer)
+	conn := t.conn
+	if conn == nil {
+		return nil, fmt.Errorf("connection is nil")
+	}
+
+	rxLen, err := conn.Read(rxBuffer)
 	if err != nil {
 		var netErr net.Error
 		if !errors.As(err, &netErr) || !netErr.Timeout() {
