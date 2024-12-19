@@ -3,6 +3,7 @@
 package axdr
 
 import (
+	"encoding/hex"
 	"fmt"
 	"regexp"
 	"strconv"
@@ -179,6 +180,19 @@ func AsnEncode(value string) (data *DlmsData, err error) {
 			return nil, fmt.Errorf(nonEncodableError+"%w", err)
 		}
 		data = CreateAxdrTime(tmp)
+	case strRaw:
+		src, err := hex.DecodeString(valueSplit[2])
+		if err != nil {
+			return nil, fmt.Errorf(nonEncodableError+"%w", err)
+		}
+
+		dec := NewDataDecoder(&src)
+		t1, err := dec.Decode(&src)
+		if err != nil {
+			return nil, fmt.Errorf(nonEncodableError+"%w", err)
+		}
+
+		data = &t1
 	default:
 		return nil, fmt.Errorf("unsupported type: %s", valueSplit[2])
 	}
