@@ -14,6 +14,9 @@ const (
 	maxInfoFieldLength = 512
 	minInfoFieldLength = 32
 
+	maxDataLength  = 2048 - 3
+	maxFrameLength = 10 + maxDataLength
+
 	sequenceNumberLimit = 7
 
 	startAndEndFlag                = 0x7E
@@ -54,13 +57,13 @@ type hdlc struct {
 	mutex                  sync.Mutex
 }
 
-func New(transport dlms.Transport, address int, client int, server int) dlms.Transport {
+func New(transport dlms.Transport, replyTimeout time.Duration, address int, client int, server int) dlms.Transport {
 	h := &hdlc{
 		maxInfoFieldLengthSend: maxInfoFieldLength,
 		upperAddress:           server,
 		lowerAddress:           address,
 		clientAddress:          client,
-		replyTimeout:           2 * time.Second,
+		replyTimeout:           replyTimeout,
 		rrr:                    0,
 		sss:                    0,
 		fcsTable:               generateFCSTable(),
@@ -172,6 +175,10 @@ func (h *hdlc) Send(src []byte) error {
 		return fmt.Errorf("empty data")
 	}
 
+	if len(src) > maxDataLength {
+		return fmt.Errorf("data too long, have %d, max %d", len(src), maxDataLength)
+	}
+
 	if !h.transport.IsConnected() {
 		return fmt.Errorf("not connected")
 	}
@@ -213,7 +220,7 @@ func (h *hdlc) SetLogger(logger *log.Logger) {
 }
 
 func (h *hdlc) manager() {
-	frame := make([]byte, 0)
+	frame := make([]byte, 0, maxFrameLength)
 
 	for {
 		data, ok := <-h.tc
@@ -223,34 +230,29 @@ func (h *hdlc) manager() {
 
 		frame = append(frame, data...)
 
-		for {
-			if len(frame) == 0 {
+		for len(frame) > 0 {
+			rf := h.searchFrame(&frame)
+			if rf == nil {
 				break
 			}
 
-			rf := h.searchFrame(&frame)
-
-			if rf != nil {
-				h.fc <- rf
-			}
+			h.fc <- rf
 		}
 	}
 }
 
 func (h *hdlc) searchFrame(frame *[]byte) *ReceivedFrame {
 	// Search for the start flag
-	isStartIndexFound := false
 	for i, b := range *frame {
 		if b == startAndEndFlag {
 			*frame = (*frame)[i:]
-			isStartIndexFound = true
 			break
 		}
 	}
 
 	// If no start flag is found, return nil and flush the buffer
-	if !isStartIndexFound {
-		*frame = nil
+	if len(*frame) == 0 || (*frame)[0] != startAndEndFlag {
+		*frame = make([]byte, 0, maxFrameLength)
 		return nil
 	}
 
@@ -279,7 +281,7 @@ func (h *hdlc) searchFrame(frame *[]byte) *ReceivedFrame {
 	receivedFrame, err := h.parseFrame(src)
 	if err != nil {
 		if h.logger != nil {
-			h.logger.Printf("Invalid received data: %e", err)
+			h.logger.Printf("Invalid received data: %v", err)
 		}
 
 		return nil
@@ -297,7 +299,7 @@ func (h *hdlc) parseFrame(src []byte) (*ReceivedFrame, error) {
 		return nil, fmt.Errorf("invalid frame format, have %02X", src[1])
 	}
 
-	isSegmented := (src[1] & 0x08) == 0x80
+	isSegmented := (src[1] & 0x08) == 0x08
 
 	clientAddress := int(src[3]) >> 1
 	if clientAddress != h.clientAddress {
@@ -375,7 +377,7 @@ func (h *hdlc) chksum(data []byte) uint16 {
 }
 
 func (h *hdlc) createFrame(control uint8, segmented bool, data []byte) []byte {
-	frame := make([]byte, 0, 8+len(data))
+	frame := make([]byte, 0, 12+len(data))
 
 	// Starting flag
 	frame = append(frame, startAndEndFlag)
@@ -483,15 +485,16 @@ func (h *hdlc) handleConnectReply(rf *ReceivedFrame) error {
 			case 0x02:
 				maxInfoFieldLengthSend = int(binary.BigEndian.Uint16(data[2:]))
 			default:
-				return fmt.Errorf("invalid UA data, have %d", length)
+				return fmt.Errorf("unexpected length in UA data: %d, expected 1 or 2", length)
 			}
 
-			if maxInfoFieldLengthSend > maxInfoFieldLength {
-				maxInfoFieldLengthSend = maxInfoFieldLength
-			}
 			if maxInfoFieldLengthSend < minInfoFieldLength {
 				maxInfoFieldLengthSend = minInfoFieldLength
+			} else if maxInfoFieldLengthSend > maxInfoFieldLength {
+				maxInfoFieldLengthSend = maxInfoFieldLength
 			}
+
+			h.maxInfoFieldLengthSend = maxInfoFieldLengthSend
 		}
 
 		data = data[length+2:]

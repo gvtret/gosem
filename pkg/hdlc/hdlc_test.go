@@ -3,6 +3,7 @@ package hdlc_test
 import (
 	"encoding/hex"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -19,7 +20,7 @@ func TestHDLC_Connect(t *testing.T) {
 		rdc = args.Get(0).(dlms.DataChannel)
 	}).Once()
 
-	w := hdlc.New(transportMock, 16, 73, 1)
+	w := hdlc.New(transportMock, 100*time.Millisecond, 16, 73, 1)
 
 	transportMock.On("Connect").Return(nil).Once()
 	sendReceive(transportMock, rdc, "7EA00802219393DBD87E", "7EA01F93022173BCAC8180120501F80601F00704000000010804000000013D9B7E")
@@ -43,7 +44,7 @@ func TestHDLC_ConnectFail(t *testing.T) {
 	transportMock := mocks.NewTransportMock(t)
 
 	transportMock.On("SetReception", mock.Anything).Once()
-	w := hdlc.New(transportMock, 16, 73, 1)
+	w := hdlc.New(transportMock, 100*time.Millisecond, 16, 73, 1)
 
 	transportMock.On("Connect").Return(assert.AnError).Once()
 	assert.Error(t, w.Connect())
@@ -67,7 +68,7 @@ func TestHDLC_SendAndReceive(t *testing.T) {
 		rdc = args.Get(0).(dlms.DataChannel)
 	}).Once()
 
-	w := hdlc.New(transportMock, 16, 2, 1)
+	w := hdlc.New(transportMock, 100*time.Millisecond, 16, 2, 1)
 	w.SetReception(hdc)
 
 	transportMock.On("Connect").Return(nil).Once()
