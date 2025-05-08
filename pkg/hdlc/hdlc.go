@@ -20,13 +20,9 @@ const (
 
 	controlSNRM = 0x93
 	controlUA   = 0x73
-
-	addressingTwoBytes  = 0x02
-	addressingFourBytes = 0x04
 )
 
 type ReceivedFrame struct {
-	Addressing    int
 	UpperAddress  int
 	LowerAddress  int
 	ClientAddress int
@@ -39,7 +35,6 @@ type ReceivedFrame struct {
 
 type hdlc struct {
 	maxInfoFieldLengthSend int
-	addressing             int
 	upperAddress           int
 	lowerAddress           int
 	clientAddress          int
@@ -58,7 +53,6 @@ type hdlc struct {
 func New(transport dlms.Transport, address int, client int, server int) dlms.Transport {
 	h := &hdlc{
 		maxInfoFieldLengthSend: maxInfoFieldLength,
-		addressing:             addressingTwoBytes,
 		upperAddress:           server,
 		lowerAddress:           address,
 		clientAddress:          client,
@@ -75,10 +69,6 @@ func New(transport dlms.Transport, address int, client int, server int) dlms.Tra
 	}
 
 	transport.SetReception(h.tc)
-
-	if address >= 128 {
-		h.addressing = addressingFourBytes
-	}
 
 	go h.manager()
 
@@ -263,24 +253,17 @@ func (h *hdlc) createFrame(control uint8, segmented bool, data []byte) []byte {
 	}
 
 	if data != nil {
-		lenAndSeg |= 8 + h.addressing + len(data)
+		lenAndSeg |= 10 + len(data)
 	} else {
-		lenAndSeg |= 6 + h.addressing
+		lenAndSeg |= 8
 	}
 
 	frame = append(frame, byte(lenAndSeg>>8))
 	frame = append(frame, byte(lenAndSeg))
 
 	// Destination address
-	if h.addressing == addressingTwoBytes {
-		frame = append(frame, byte(h.upperAddress<<1))
-		frame = append(frame, byte(h.lowerAddress<<1)|0x01)
-	} else {
-		frame = append(frame, byte(h.upperAddress>>7)<<1)
-		frame = append(frame, byte(h.upperAddress<<1))
-		frame = append(frame, byte(h.lowerAddress>>7)<<1)
-		frame = append(frame, byte(h.lowerAddress<<1)|0x01)
-	}
+	frame = append(frame, byte(h.upperAddress<<1))
+	frame = append(frame, byte(h.lowerAddress<<1)|0x01)
 
 	// Source address
 	frame = append(frame, byte(h.clientAddress<<1)|0x01)
@@ -403,39 +386,16 @@ func (h *hdlc) parseFrame(src []byte) (*ReceivedFrame, error) {
 		return nil, fmt.Errorf("invalid client address, have %d, expected %d", clientAddress, h.clientAddress)
 	}
 
-	addressing := 1
-	for i := 0; i < 4; i++ {
-		if src[4+i]&0x01 != 0 {
-			addressing++
-		}
-	}
-
-	if addressing != h.addressing {
-		return nil, fmt.Errorf("invalid addressing, have %d, expected %d", addressing, h.addressing)
-	}
-
-	var upperAddress, lowerAddress, index int
-
-	switch addressing {
-	case addressingTwoBytes:
-		upperAddress = int(src[4]) >> 1
-		lowerAddress = int(src[5]) >> 1
-		index = 6
-	case addressingFourBytes:
-		upperAddress = int((src[4])>>1)<<7 | int(src[5])>>1
-		lowerAddress = int((src[6])>>1)<<7 | int(src[7])>>1
-		index = 8
-	default:
-		return nil, fmt.Errorf("invalid addressing, have %d, expected %d", addressing, h.addressing)
-	}
+	upperAddress := int(src[4]) >> 1
+	lowerAddress := int(src[5]) >> 1
 
 	if upperAddress != h.upperAddress || lowerAddress != h.lowerAddress {
 		return nil, fmt.Errorf("invalid source address, have %d:%d", upperAddress, lowerAddress)
 	}
 
-	control := src[index]
-	hcs := binary.BigEndian.Uint16(src[index+1:])
-	calculatedHCS := h.chksum(src[1:index])
+	control := src[6]
+	hcs := binary.LittleEndian.Uint16(src[7:])
+	calculatedHCS := h.chksum(src[1:7])
 	if hcs != calculatedHCS {
 		return nil, fmt.Errorf("HCS error, have %04X, expected %04X", hcs, calculatedHCS)
 	}
@@ -443,9 +403,9 @@ func (h *hdlc) parseFrame(src []byte) (*ReceivedFrame, error) {
 	var data []byte
 	var fcs uint16
 
-	if len(src) > index+3 {
-		data = src[index+3 : len(src)-3]
-		fcs = binary.BigEndian.Uint16(src[len(src)-2:])
+	if len(src) > 9 {
+		data = src[9 : len(src)-3]
+		fcs = binary.LittleEndian.Uint16(src[len(src)-3:])
 		calculatedFCS := h.chksum(src[1 : len(src)-3])
 		if fcs != calculatedFCS {
 			return nil, fmt.Errorf("FCS error, have %04X, expected %04X", fcs, calculatedFCS)
@@ -456,7 +416,6 @@ func (h *hdlc) parseFrame(src []byte) (*ReceivedFrame, error) {
 	}
 
 	receivedFrame := &ReceivedFrame{
-		Addressing:    addressing,
 		UpperAddress:  upperAddress,
 		LowerAddress:  lowerAddress,
 		ClientAddress: clientAddress,
