@@ -162,6 +162,10 @@ func (c *client) Associate() error {
 			return dlms.NewError(dlms.ErrorWrongKeys, fmt.Sprintf("association failed (invalid keys): %d - %d (%s)", aare.AssociationResult, aare.SourceDiagnostic, aare.ConfirmedServiceError.String()))
 		}
 
+		if aare.ConfirmedServiceError != nil && aare.ConfirmedServiceError.ServiceError == dlms.TagErrApplicationReference && aare.ConfirmedServiceError.Value == dlms.TagApplicationReferenceProviderCommunicationError {
+			return dlms.NewError(dlms.ErrorFailureInvocationCounter, fmt.Sprintf("association failed (invalid invocation counter): %d - %d (%s)", aare.AssociationResult, aare.SourceDiagnostic, aare.ConfirmedServiceError.String()))
+		}
+
 		if aare.ConfirmedServiceError != nil {
 			return dlms.NewError(dlms.ErrorAuthenticationFailed, fmt.Sprintf("association failed: %d - %d (%s)", aare.AssociationResult, aare.SourceDiagnostic, aare.ConfirmedServiceError.String()))
 		}
