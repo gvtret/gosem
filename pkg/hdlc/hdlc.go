@@ -14,6 +14,8 @@ const (
 	maxInfoFieldLength = 512
 	minInfoFieldLength = 32
 
+	sequenceNumberLimit = 7
+
 	startAndEndFlag                = 0x7E
 	frameFormatWithoutSegmentation = 0xA000
 	frameFormatWithSegmentation    = 0xA800
@@ -65,7 +67,7 @@ func New(transport dlms.Transport, address int, client int, server int) dlms.Tra
 		transport:              transport,
 		dc:                     nil,
 		tc:                     make(dlms.DataChannel, 10),
-		fc:                     nil,
+		fc:                     make(chan *ReceivedFrame, 1),
 		logger:                 nil,
 		mutex:                  sync.Mutex{},
 	}
@@ -86,6 +88,9 @@ func (h *hdlc) Close() {
 		close(h.dc)
 		h.dc = nil
 	}
+
+	close(h.fc)
+	close(h.tc)
 }
 
 func (h *hdlc) Connect() error {
@@ -159,12 +164,41 @@ func (h *hdlc) SetReception(dc dlms.DataChannel) {
 	h.dc = dc
 }
 
-func (h *hdlc) Send(_ []byte) error {
+func (h *hdlc) Send(src []byte) error {
 	h.mutex.Lock()
 	defer h.mutex.Unlock()
 
+	if len(src) == 0 {
+		return fmt.Errorf("empty data")
+	}
+
 	if !h.transport.IsConnected() {
 		return fmt.Errorf("not connected")
+	}
+
+	src = append([]byte{0xE6, 0xE6, 0x00}, src...)
+
+	// Create control byte for I Frame
+	control := uint8((h.rrr << 5) | (h.sss << 1))
+
+	h.sss++
+	if h.sss > sequenceNumberLimit {
+		h.sss = 0
+	}
+
+	// We only use one window, so add the final window bit
+	control |= 0x10
+
+	frameToSend := h.createFrame(control, false, src)
+
+	rf, err := h.sendReceive(frameToSend)
+	if err != nil {
+		return fmt.Errorf("send error: %w", err)
+	}
+
+	err = h.handleSendReply(rf)
+	if err != nil {
+		return fmt.Errorf("send reply error: %w", err)
 	}
 
 	return nil
@@ -196,7 +230,7 @@ func (h *hdlc) manager() {
 
 			rf := h.searchFrame(&frame)
 
-			if rf != nil && h.fc != nil {
+			if rf != nil {
 				h.fc <- rf
 			}
 		}
@@ -394,9 +428,6 @@ func (h *hdlc) createFrame(control uint8, segmented bool, data []byte) []byte {
 }
 
 func (h *hdlc) sendReceive(src []byte) (*ReceivedFrame, error) {
-	h.fc = make(chan *ReceivedFrame, 1)
-	defer func() { h.fc = nil }()
-
 	err := h.transport.Send(src)
 	if err != nil {
 		return nil, fmt.Errorf("send error: %w", err)
@@ -464,6 +495,34 @@ func (h *hdlc) handleConnectReply(rf *ReceivedFrame) error {
 		}
 
 		data = data[length+2:]
+	}
+
+	return nil
+}
+
+func (h *hdlc) handleSendReply(rf *ReceivedFrame) error {
+	rrr := int(rf.Control>>1) & 0x07
+	sss := int(rf.Control>>5) & 0x07
+
+	if rrr != h.rrr || sss != h.sss {
+		return fmt.Errorf("invalid control byte, have %02X, expected %02X", rf.Control, (h.rrr<<5)|(h.sss<<1))
+	}
+
+	h.rrr++
+	if h.rrr > sequenceNumberLimit {
+		h.rrr = 0
+	}
+
+	if len(rf.Data) < 3 {
+		return fmt.Errorf("invalid I frame data, have %d", len(rf.Data))
+	}
+
+	if rf.Data[0] != 0xE6 || rf.Data[1] != 0xE7 || rf.Data[2] != 0x00 {
+		return fmt.Errorf("invalid I frame data, have %02X:%02X:%02X", rf.Data[0], rf.Data[1], rf.Data[2])
+	}
+
+	if h.dc != nil {
+		h.dc <- rf.Data[3:]
 	}
 
 	return nil
