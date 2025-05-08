@@ -19,7 +19,9 @@ const (
 	frameFormatWithSegmentation    = 0xA800
 
 	controlSNRM = 0x93
+	controlDISC = 0x53
 	controlUA   = 0x73
+	controlDM   = 0x1F
 )
 
 type ReceivedFrame struct {
@@ -114,66 +116,28 @@ func (h *hdlc) Connect() error {
 	return nil
 }
 
-func (h *hdlc) handleConnectReply(rf *ReceivedFrame) error {
-	if rf.Control != controlUA {
-		return fmt.Errorf("invalid control byte, have %02X, expected %02X", rf.Control, controlUA)
-	}
-
-	data := rf.Data
-
-	if len(data) < 3 {
-		return fmt.Errorf("invalid UA data, have %d", len(data))
-	}
-
-	if data[0] != 0x81 || data[1] != 0x80 || data[2] != byte(len(data)-3) {
-		return fmt.Errorf("invalid UA data, have %02X:%02X:%02X", data[0], data[1], data[2])
-	}
-
-	data = data[3:]
-
-	for {
-		if len(data) < 2 {
-			break
-		}
-
-		code := data[0]
-		length := int(data[1])
-
-		if len(data) < length+2 {
-			return fmt.Errorf("invalid UA data, have %d", len(data))
-		}
-
-		if code == 0x06 {
-			var maxInfoFieldLengthSend int
-
-			switch length {
-			case 0x01:
-				maxInfoFieldLengthSend = int(data[2])
-			case 0x02:
-				maxInfoFieldLengthSend = int(binary.BigEndian.Uint16(data[2:]))
-			default:
-				return fmt.Errorf("invalid UA data, have %d", length)
-			}
-
-			if maxInfoFieldLengthSend > maxInfoFieldLength {
-				maxInfoFieldLengthSend = maxInfoFieldLength
-			}
-			if maxInfoFieldLengthSend < minInfoFieldLength {
-				maxInfoFieldLengthSend = minInfoFieldLength
-			}
-		}
-
-		data = data[length+2:]
-	}
-
-	return nil
-}
-
 func (h *hdlc) Disconnect() error {
 	h.mutex.Lock()
 	defer h.mutex.Unlock()
 
-	return h.transport.Disconnect()
+	if !h.transport.IsConnected() {
+		return fmt.Errorf("not connected")
+	}
+
+	defer h.transport.Disconnect()
+
+	frameToSend := h.createFrame(controlDISC, false, nil)
+
+	rf, err := h.sendReceive(frameToSend)
+	if err != nil {
+		return fmt.Errorf("send error: %w", err)
+	}
+
+	if rf.Control != controlUA && rf.Control != controlDM {
+		return fmt.Errorf("invalid control byte, have %02X", rf.Control)
+	}
+
+	return nil
 }
 
 func (h *hdlc) IsConnected() bool {
@@ -237,86 +201,6 @@ func (h *hdlc) manager() {
 			}
 		}
 	}
-}
-
-func (h *hdlc) createFrame(control uint8, segmented bool, data []byte) []byte {
-	frame := make([]byte, 0, 8+len(data))
-
-	// Starting flag
-	frame = append(frame, startAndEndFlag)
-
-	// Frame length and segmentation
-	lenAndSeg := frameFormatWithoutSegmentation
-
-	if segmented {
-		lenAndSeg = frameFormatWithSegmentation
-	}
-
-	if data != nil {
-		lenAndSeg |= 10 + len(data)
-	} else {
-		lenAndSeg |= 8
-	}
-
-	frame = append(frame, byte(lenAndSeg>>8))
-	frame = append(frame, byte(lenAndSeg))
-
-	// Destination address
-	frame = append(frame, byte(h.upperAddress<<1))
-	frame = append(frame, byte(h.lowerAddress<<1)|0x01)
-
-	// Source address
-	frame = append(frame, byte(h.clientAddress<<1)|0x01)
-
-	// Control byte
-	frame = append(frame, control)
-
-	// HCS
-	checksum := h.chksum(frame[1:])
-	frame = append(frame, byte(checksum))
-	frame = append(frame, byte(checksum>>8))
-
-	// Data
-	if data != nil {
-		frame = append(frame, data...)
-
-		// FCS
-		checksum = h.chksum(frame[1:])
-		frame = append(frame, byte(checksum))
-		frame = append(frame, byte(checksum>>8))
-	}
-
-	// Closing flag
-	frame = append(frame, startAndEndFlag)
-
-	return frame
-}
-
-func generateFCSTable() [256]uint16 {
-	var table [256]uint16
-	for i := 0; i < 256; i++ {
-		crc := uint16(i)
-		for j := 0; j < 8; j++ {
-			if crc&1 != 0 {
-				crc = (crc >> 1) ^ 0x8408
-			} else {
-				crc >>= 1
-			}
-		}
-		table[i] = crc
-	}
-
-	return table
-}
-
-func (h *hdlc) chksum(data []byte) uint16 {
-	fcs := uint16(0xFFFF)
-
-	for _, b := range data {
-		fcs = (fcs >> 8) ^ h.fcsTable[(fcs^uint16(b))&0xFF]
-	}
-
-	return fcs ^ 0xFFFF
 }
 
 func (h *hdlc) searchFrame(frame *[]byte) *ReceivedFrame {
@@ -429,6 +313,86 @@ func (h *hdlc) parseFrame(src []byte) (*ReceivedFrame, error) {
 	return receivedFrame, nil
 }
 
+func generateFCSTable() [256]uint16 {
+	var table [256]uint16
+	for i := 0; i < 256; i++ {
+		crc := uint16(i)
+		for j := 0; j < 8; j++ {
+			if crc&1 != 0 {
+				crc = (crc >> 1) ^ 0x8408
+			} else {
+				crc >>= 1
+			}
+		}
+		table[i] = crc
+	}
+
+	return table
+}
+
+func (h *hdlc) chksum(data []byte) uint16 {
+	fcs := uint16(0xFFFF)
+
+	for _, b := range data {
+		fcs = (fcs >> 8) ^ h.fcsTable[(fcs^uint16(b))&0xFF]
+	}
+
+	return fcs ^ 0xFFFF
+}
+
+func (h *hdlc) createFrame(control uint8, segmented bool, data []byte) []byte {
+	frame := make([]byte, 0, 8+len(data))
+
+	// Starting flag
+	frame = append(frame, startAndEndFlag)
+
+	// Frame length and segmentation
+	lenAndSeg := frameFormatWithoutSegmentation
+
+	if segmented {
+		lenAndSeg = frameFormatWithSegmentation
+	}
+
+	if data != nil {
+		lenAndSeg |= 10 + len(data)
+	} else {
+		lenAndSeg |= 8
+	}
+
+	frame = append(frame, byte(lenAndSeg>>8))
+	frame = append(frame, byte(lenAndSeg))
+
+	// Destination address
+	frame = append(frame, byte(h.upperAddress<<1))
+	frame = append(frame, byte(h.lowerAddress<<1)|0x01)
+
+	// Source address
+	frame = append(frame, byte(h.clientAddress<<1)|0x01)
+
+	// Control byte
+	frame = append(frame, control)
+
+	// HCS
+	checksum := h.chksum(frame[1:])
+	frame = append(frame, byte(checksum))
+	frame = append(frame, byte(checksum>>8))
+
+	// Data
+	if data != nil {
+		frame = append(frame, data...)
+
+		// FCS
+		checksum = h.chksum(frame[1:])
+		frame = append(frame, byte(checksum))
+		frame = append(frame, byte(checksum>>8))
+	}
+
+	// Closing flag
+	frame = append(frame, startAndEndFlag)
+
+	return frame
+}
+
 func (h *hdlc) sendReceive(src []byte) (*ReceivedFrame, error) {
 	h.fc = make(chan *ReceivedFrame, 1)
 	defer func() { h.fc = nil }()
@@ -448,4 +412,59 @@ func (h *hdlc) sendReceive(src []byte) (*ReceivedFrame, error) {
 	case <-timeout.C:
 		return nil, fmt.Errorf("timeout waiting for response")
 	}
+}
+
+func (h *hdlc) handleConnectReply(rf *ReceivedFrame) error {
+	if rf.Control != controlUA {
+		return fmt.Errorf("invalid control byte, have %02X, expected %02X", rf.Control, controlUA)
+	}
+
+	data := rf.Data
+
+	if len(data) < 3 {
+		return fmt.Errorf("invalid UA data, have %d", len(data))
+	}
+
+	if data[0] != 0x81 || data[1] != 0x80 || data[2] != byte(len(data)-3) {
+		return fmt.Errorf("invalid UA data, have %02X:%02X:%02X", data[0], data[1], data[2])
+	}
+
+	data = data[3:]
+
+	for {
+		if len(data) < 2 {
+			break
+		}
+
+		code := data[0]
+		length := int(data[1])
+
+		if len(data) < length+2 {
+			return fmt.Errorf("invalid UA data, have %d", len(data))
+		}
+
+		if code == 0x06 {
+			var maxInfoFieldLengthSend int
+
+			switch length {
+			case 0x01:
+				maxInfoFieldLengthSend = int(data[2])
+			case 0x02:
+				maxInfoFieldLengthSend = int(binary.BigEndian.Uint16(data[2:]))
+			default:
+				return fmt.Errorf("invalid UA data, have %d", length)
+			}
+
+			if maxInfoFieldLengthSend > maxInfoFieldLength {
+				maxInfoFieldLengthSend = maxInfoFieldLength
+			}
+			if maxInfoFieldLengthSend < minInfoFieldLength {
+				maxInfoFieldLengthSend = minInfoFieldLength
+			}
+		}
+
+		data = data[length+2:]
+	}
+
+	return nil
 }

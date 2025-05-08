@@ -21,15 +21,16 @@ func TestHDLC_Connect(t *testing.T) {
 
 	w := hdlc.New(transportMock, 16, 73, 1)
 
-	sendReceive(transportMock, rdc, "7EA00802219393DBD87E", "7EA01F93022173BCAC8180120501F80601F00704000000010804000000013D9B7E")
-
 	transportMock.On("Connect").Return(nil).Once()
+	sendReceive(transportMock, rdc, "7EA00802219393DBD87E", "7EA01F93022173BCAC8180120501F80601F00704000000010804000000013D9B7E")
 	assert.NoError(t, w.Connect())
 
 	transportMock.On("IsConnected").Return(true).Once()
 	assert.True(t, w.IsConnected())
 
+	transportMock.On("IsConnected").Return(true).Once()
 	transportMock.On("Disconnect").Return(nil).Once()
+	sendReceive(transportMock, rdc, "7EA00802219353D71E7E", "7EA01F93022173BCAC8180120501F80601F00704000000010804000000013D9B7E")
 	assert.NoError(t, w.Disconnect())
 
 	transportMock.On("Close").Return(nil).Once()
