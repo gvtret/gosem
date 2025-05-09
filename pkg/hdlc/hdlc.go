@@ -2,8 +2,10 @@ package hdlc
 
 import (
 	"encoding/binary"
+	"encoding/hex"
 	"fmt"
 	"log"
+	"strings"
 	"sync"
 	"time"
 
@@ -46,6 +48,7 @@ type hdlc struct {
 	lowerAddress           int
 	clientAddress          int
 	replyTimeout           time.Duration
+	interOctetTimeout      time.Duration
 	rrr                    int
 	sss                    int
 	fcsTable               [256]uint16
@@ -57,13 +60,14 @@ type hdlc struct {
 	mutex                  sync.Mutex
 }
 
-func New(transport dlms.Transport, replyTimeout time.Duration, address int, client int, server int) dlms.Transport {
+func New(transport dlms.Transport, replyTimeout time.Duration, interOctetTimeout time.Duration, address int, client int, server int) dlms.Transport {
 	h := &hdlc{
 		maxInfoFieldLengthSend: maxInfoFieldLength,
 		upperAddress:           server,
 		lowerAddress:           address,
 		clientAddress:          client,
 		replyTimeout:           replyTimeout,
+		interOctetTimeout:      interOctetTimeout,
 		rrr:                    0,
 		sss:                    0,
 		fcsTable:               generateFCSTable(),
@@ -216,27 +220,38 @@ func (h *hdlc) SetLogger(logger *log.Logger) {
 	defer h.mutex.Unlock()
 
 	h.logger = logger
-	h.transport.SetLogger(logger)
 }
 
 func (h *hdlc) manager() {
 	frame := make([]byte, 0, maxFrameLength)
 
+	timer := time.NewTimer(h.interOctetTimeout)
+	defer timer.Stop()
+
 	for {
-		data, ok := <-h.tc
-		if !ok {
-			return
-		}
-
-		frame = append(frame, data...)
-
-		for len(frame) > 0 {
-			rf := h.searchFrame(&frame)
-			if rf == nil {
-				break
+		select {
+		case data, ok := <-h.tc:
+			if !ok {
+				return
 			}
 
-			h.fc <- rf
+			frame = append(frame, data...)
+			timer.Reset(h.interOctetTimeout)
+
+			for len(frame) > 0 {
+				rf := h.searchFrame(&frame)
+				if rf == nil {
+					break
+				}
+
+				h.fc <- rf
+			}
+
+		case <-timer.C:
+			if len(frame) > 0 {
+				frame = make([]byte, 0, maxFrameLength)
+			}
+			timer.Reset(h.interOctetTimeout)
 		}
 	}
 }
@@ -276,6 +291,10 @@ func (h *hdlc) searchFrame(frame *[]byte) *ReceivedFrame {
 	// Remove the frame from the buffer
 	src := (*frame)[:length+2]
 	*frame = (*frame)[length+2:]
+
+	if h.logger != nil {
+		h.logger.Printf("RX: %s", encodeHexString(src))
+	}
 
 	// Parse received frame
 	receivedFrame, err := h.parseFrame(src)
@@ -430,6 +449,10 @@ func (h *hdlc) createFrame(control uint8, segmented bool, data []byte) []byte {
 }
 
 func (h *hdlc) sendReceive(src []byte) (*ReceivedFrame, error) {
+	if h.logger != nil {
+		h.logger.Printf("TX: %s", encodeHexString(src))
+	}
+
 	err := h.transport.Send(src)
 	if err != nil {
 		return nil, fmt.Errorf("send error: %w", err)
@@ -529,4 +552,8 @@ func (h *hdlc) handleSendReply(rf *ReceivedFrame) error {
 	}
 
 	return nil
+}
+
+func encodeHexString(b []byte) string {
+	return strings.ToUpper(hex.EncodeToString(b))
 }

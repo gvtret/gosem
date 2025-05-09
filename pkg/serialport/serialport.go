@@ -1,4 +1,4 @@
-package hdlc
+package serialport
 
 import (
 	"encoding/hex"
@@ -176,7 +176,7 @@ func (sp *serialport) read() ([]byte, error) {
 	rxBuffer := make([]byte, maxLength)
 
 	port := sp.port
-	if sp.port == nil {
+	if port == nil {
 		return nil, fmt.Errorf("connection is nil")
 	}
 
@@ -185,7 +185,7 @@ func (sp *serialport) read() ([]byte, error) {
 		return nil, fmt.Errorf("read failed: %w", err)
 	}
 
-	if sp.logger != nil {
+	if sp.logger != nil && rxLen > 0 {
 		sp.logger.Printf("RX (%s): %s", sp.serialPort, encodeHexString(rxBuffer[:rxLen]))
 	}
 
