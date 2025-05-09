@@ -310,7 +310,7 @@ func (h *hdlc) searchFrame(frame *[]byte) *ReceivedFrame {
 }
 
 func (h *hdlc) parseFrame(src []byte) (*ReceivedFrame, error) {
-	if len(src) < 9 {
+	if len(src) < 10 {
 		return nil, fmt.Errorf("frame too short, have %d", len(src))
 	}
 
@@ -342,7 +342,7 @@ func (h *hdlc) parseFrame(src []byte) (*ReceivedFrame, error) {
 	var data []byte
 	var fcs uint16
 
-	if len(src) > 9 {
+	if len(src) > 12 {
 		data = src[9 : len(src)-3]
 		fcs = binary.LittleEndian.Uint16(src[len(src)-3:])
 		calculatedFCS := h.chksum(src[1 : len(src)-3])
