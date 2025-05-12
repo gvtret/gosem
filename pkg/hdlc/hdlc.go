@@ -21,9 +21,8 @@ const (
 
 	sequenceNumberLimit = 7
 
-	startAndEndFlag                = 0x7E
-	frameFormatWithoutSegmentation = 0xA000
-	frameFormatWithSegmentation    = 0xA800
+	startAndEndFlag  = 0x7E
+	frameFormatField = 0xA000
 
 	controlI    = 0x00 // Information
 	controlRR   = 0x01 // Receive Ready
@@ -175,6 +174,13 @@ func (h *hdlc) SetAddress(client int, server int) {
 }
 
 func (h *hdlc) SetReception(dc dlms.DataChannel) {
+	h.mutex.Lock()
+	defer h.mutex.Unlock()
+
+	if h.dc != nil {
+		close(h.dc)
+	}
+
 	h.dc = dc
 }
 
@@ -451,8 +457,8 @@ func (h *hdlc) createFrame(control uint8, data []byte) []byte {
 	// Starting flag
 	frame = append(frame, startAndEndFlag)
 
-	// Frame length and segmentation
-	lenAndSeg := frameFormatWithoutSegmentation
+	// Frame format, segmentation and length
+	lenAndSeg := frameFormatField
 
 	if data != nil {
 		lenAndSeg |= 10 + len(data)
