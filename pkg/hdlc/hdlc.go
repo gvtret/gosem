@@ -119,7 +119,7 @@ func (h *hdlc) Connect() error {
 	h.rrr = 0
 	h.sss = 0
 
-	frameToSend := h.createFrame(controlSNRM, false, nil)
+	frameToSend := h.createFrame(controlSNRM, nil)
 
 	rf, err := h.sendReceive(frameToSend)
 	if err != nil {
@@ -145,7 +145,7 @@ func (h *hdlc) Disconnect() error {
 
 	defer h.transport.Disconnect()
 
-	frameToSend := h.createFrame(controlDISC, false, nil)
+	frameToSend := h.createFrame(controlDISC, nil)
 
 	rf, err := h.sendReceive(frameToSend)
 	if err != nil {
@@ -208,12 +208,12 @@ func (h *hdlc) Send(src []byte) error {
 			control := uint8((h.rrr << 5) | (h.sss << 1) | finalWindowBit | controlI)
 			h.sss = h.increaseSequenceNumber(h.sss)
 
-			frameToSend = h.createFrame(control, false, src)
+			frameToSend = h.createFrame(control, src)
 		} else {
 			// Create control byte for RR Frame
 			control := uint8((h.rrr << 5) | finalWindowBit | controlRR)
 
-			frameToSend = h.createFrame(control, false, nil)
+			frameToSend = h.createFrame(control, nil)
 		}
 
 		rf, err := h.sendReceive(frameToSend)
@@ -445,7 +445,7 @@ func (h *hdlc) chksum(data []byte) uint16 {
 	return fcs ^ 0xFFFF
 }
 
-func (h *hdlc) createFrame(control uint8, segmented bool, data []byte) []byte {
+func (h *hdlc) createFrame(control uint8, data []byte) []byte {
 	frame := make([]byte, 0, 12+len(data))
 
 	// Starting flag
@@ -453,10 +453,6 @@ func (h *hdlc) createFrame(control uint8, segmented bool, data []byte) []byte {
 
 	// Frame length and segmentation
 	lenAndSeg := frameFormatWithoutSegmentation
-
-	if segmented {
-		lenAndSeg = frameFormatWithSegmentation
-	}
 
 	if data != nil {
 		lenAndSeg |= 10 + len(data)
