@@ -2,7 +2,6 @@ package wrapper_test
 
 import (
 	"encoding/hex"
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -11,8 +10,6 @@ import (
 	"gitlab.com/circutor-library/gosem/pkg/dlms/mocks"
 	"gitlab.com/circutor-library/gosem/pkg/wrapper"
 )
-
-var errFoo = fmt.Errorf("foo")
 
 func TestWrapper_Connect(t *testing.T) {
 	transportMock := mocks.NewTransportMock(t)
@@ -41,7 +38,7 @@ func TestWrapper_ConnectFail(t *testing.T) {
 	transportMock.On("SetReception", mock.Anything).Once()
 	w := wrapper.New(transportMock, 1, 3)
 
-	transportMock.On("Connect").Return(errFoo).Once()
+	transportMock.On("Connect").Return(assert.AnError).Once()
 	assert.Error(t, w.Connect())
 
 	transportMock.On("IsConnected").Return(false).Once()
@@ -84,7 +81,7 @@ func TestWrapper_SendFailed(t *testing.T) {
 
 	// Send failed
 	in := decodeHexString("0001000100030006AABBCCDDEEFF")
-	transportMock.On("Send", in).Return(errFoo).Once()
+	transportMock.On("Send", in).Return(assert.AnError).Once()
 	transportMock.On("IsConnected").Return(true).Once()
 
 	src := decodeHexString("AABBCCDDEEFF")

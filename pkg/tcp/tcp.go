@@ -35,6 +35,7 @@ func New(port int, host string, timeout time.Duration) dlms.Transport {
 		host:        host,
 		timeout:     timeout,
 		dc:          nil,
+		conn:        nil,
 		isConnected: false,
 		logger:      nil,
 		mutex:       sync.Mutex{},
@@ -87,7 +88,9 @@ func (t *tcp) Disconnect() error {
 	t.mutex.Lock()
 	defer t.mutex.Unlock()
 
-	return t.disconnect()
+	t.disconnect()
+
+	return nil
 }
 
 func (t *tcp) IsConnected() bool {
@@ -103,6 +106,10 @@ func (t *tcp) SetAddress(_ int, _ int) {
 func (t *tcp) SetReception(dc dlms.DataChannel) {
 	t.mutex.Lock()
 	defer t.mutex.Unlock()
+
+	if t.dc != nil {
+		close(t.dc)
+	}
 
 	t.dc = dc
 }
@@ -158,7 +165,7 @@ func (t *tcp) manager() {
 	}
 }
 
-func (t *tcp) disconnect() error {
+func (t *tcp) disconnect() {
 	if t.isConnected {
 		t.isConnected = false
 
@@ -171,8 +178,6 @@ func (t *tcp) disconnect() error {
 			t.logger.Printf("Disconnected from %s", t.host)
 		}
 	}
-
-	return nil
 }
 
 func (t *tcp) read() ([]byte, error) {
