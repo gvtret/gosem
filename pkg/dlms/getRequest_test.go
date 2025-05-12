@@ -124,7 +124,6 @@ func TestDecode_GetRequestNormal(t *testing.T) {
 
 	src = []byte{192, 1, 81, 0, 1, 1, 0, 0, 3, 0, 255, 2, 0}
 	a, err = DecodeGetRequestNormal(&src)
-
 	if err != nil {
 		t.Errorf("t1 Failed to DecodeGetRequestNormal. err:%v", err)
 	}

@@ -194,7 +194,6 @@ func TestDecode_SetRequestNormal(t *testing.T) {
 
 	src = []byte{193, 1, 81, 0, 1, 1, 0, 0, 3, 0, 255, 2, 0, 9, 5, 1, 2, 3, 4, 5}
 	a, err = DecodeSetRequestNormal(&src)
-
 	if err != nil {
 		t.Errorf("t2 Failed to DecodeGetRequestNormal. err:%v", err)
 	}
@@ -262,7 +261,6 @@ func TestDecode_SetRequestWithFirstDataBlock(t *testing.T) {
 
 	src = []byte{193, 2, 81, 0, 1, 1, 0, 0, 3, 0, 255, 2, 0, 1, 0, 0, 0, 1, 5, 1, 2, 3, 4, 5}
 	a, err = DecodeSetRequestWithFirstDataBlock(&src)
-
 	if err != nil {
 		t.Errorf("t2 Failed to DecodeSetRequestWithFirstDataBlock. err:%v", err)
 	}
