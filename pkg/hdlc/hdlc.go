@@ -25,10 +25,17 @@ const (
 	frameFormatWithoutSegmentation = 0xA000
 	frameFormatWithSegmentation    = 0xA800
 
-	controlSNRM = 0x93
-	controlDISC = 0x53
-	controlUA   = 0x73
-	controlDM   = 0x1F
+	controlI    = 0x00 // Information
+	controlRR   = 0x01 // Receive Ready
+	controlSNRM = 0x93 // Set Normal Response Mode
+	controlDISC = 0x53 // Disconnect
+	controlUA   = 0x73 // Unnumbered Acknowledge
+	controlDM   = 0x1F // Disconnect Mode
+
+	controlMaskI  = 0x01
+	controlMaskRR = 0x0F
+
+	finalWindowBit = 0x10
 )
 
 type ReceivedFrame struct {
@@ -189,30 +196,73 @@ func (h *hdlc) Send(src []byte) error {
 
 	src = append([]byte{0xE6, 0xE6, 0x00}, src...)
 
-	// Create control byte for I Frame
-	control := uint8((h.rrr << 5) | (h.sss << 1))
+	retries := 0
+	remoteReady := true
 
-	h.sss++
-	if h.sss > sequenceNumberLimit {
-		h.sss = 0
+	for retries < 3 {
+		var frameToSend []byte
+
+		// Send I frame if remote is ready, otherwise send RR frame
+		if remoteReady {
+			// Create control byte for I Frame
+			control := uint8((h.rrr << 5) | (h.sss << 1) | finalWindowBit | controlI)
+			h.sss = h.increaseSequenceNumber(h.sss)
+
+			frameToSend = h.createFrame(control, false, src)
+		} else {
+			// Create control byte for RR Frame
+			control := uint8((h.rrr << 5) | finalWindowBit | controlRR)
+
+			frameToSend = h.createFrame(control, false, nil)
+		}
+
+		rf, err := h.sendReceive(frameToSend)
+
+		switch {
+		case err != nil || rf == nil:
+			// Nothing valid received
+			remoteReady = false
+		case (rf.Control & controlMaskI) == controlI:
+			// I frame
+			if err = h.handleDataReply(rf); err == nil {
+				// Everything is ok
+				return nil
+			}
+
+			remoteReady = false
+		case (rf.Control & controlMaskRR) == controlRR:
+			// RR frame
+			if sss := int(rf.Control>>5) & 0x07; sss != h.sss {
+				h.sss = h.decreaseSequenceNumber(h.sss)
+			}
+
+			remoteReady = true
+		default:
+			return fmt.Errorf("unexpected frame with control %02X", rf.Control)
+		}
+
+		retries++
 	}
 
-	// We only use one window, so add the final window bit
-	control |= 0x10
+	return fmt.Errorf("maximum retries reached")
+}
 
-	frameToSend := h.createFrame(control, false, src)
-
-	rf, err := h.sendReceive(frameToSend)
-	if err != nil {
-		return fmt.Errorf("send error: %w", err)
+func (h *hdlc) increaseSequenceNumber(seq int) int {
+	seq++
+	if seq > sequenceNumberLimit {
+		seq = 0
 	}
 
-	err = h.handleSendReply(rf)
-	if err != nil {
-		return fmt.Errorf("send reply error: %w", err)
+	return seq
+}
+
+func (h *hdlc) decreaseSequenceNumber(seq int) int {
+	seq--
+	if seq < 0 {
+		seq = sequenceNumberLimit
 	}
 
-	return nil
+	return seq
 }
 
 func (h *hdlc) SetLogger(logger *log.Logger) {
@@ -526,7 +576,7 @@ func (h *hdlc) handleConnectReply(rf *ReceivedFrame) error {
 	return nil
 }
 
-func (h *hdlc) handleSendReply(rf *ReceivedFrame) error {
+func (h *hdlc) handleDataReply(rf *ReceivedFrame) error {
 	rrr := int(rf.Control>>1) & 0x07
 	sss := int(rf.Control>>5) & 0x07
 
@@ -534,10 +584,7 @@ func (h *hdlc) handleSendReply(rf *ReceivedFrame) error {
 		return fmt.Errorf("invalid control byte, have %02X, expected %02X", rf.Control, (h.rrr<<5)|(h.sss<<1))
 	}
 
-	h.rrr++
-	if h.rrr > sequenceNumberLimit {
-		h.rrr = 0
-	}
+	h.rrr = h.increaseSequenceNumber(h.rrr)
 
 	if len(rf.Data) < 3 {
 		return fmt.Errorf("invalid I frame data, have %d", len(rf.Data))
