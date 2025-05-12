@@ -5,7 +5,6 @@ linters:
     - dogsled
     - durationcheck
     - errorlint
-    - exportloopref
     - forbidigo
     - gochecknoglobals
     - gochecknoinits
@@ -34,17 +33,12 @@ linters:
     - whitespace
   disable:
     - depguard
-    - gomnd
     - gci
     - testpackage
     - paralleltest
     - nlreturn
-    - ifshort
-    - goerr113
-    - exhaustivestruct
     - cyclop
     - wsl
-    - maligned
     - lll
     - godot
     - nakedret
@@ -55,3 +49,8 @@ linters:
     - errcheck
     - dupl
     - exhaustive
+
+linters-settings:
+  gosec:
+    excludes:
+      - G115 # Potential integer overflow when converting between integer types
