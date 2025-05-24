@@ -2,6 +2,8 @@ package main
 
 import (
 	"log"
+	"net/http"
+	_ "net/http/pprof"
 	"time"
 
 	"gitlab.com/circutor-library/gosem/pkg/dlms"
@@ -44,6 +46,9 @@ type Instantaneous struct {
 }
 
 func main() {
+	go func() {
+		log.Println(http.ListenAndServe("localhost:6060", nil))
+	}()
 	l := log.New(log.Writer(), "", log.Ldate|log.Ltime|log.Lmicroseconds)
 
 	settings, err := dlms.NewSettingsWithLowAuthentication([]byte("TSCLBT01"))
