@@ -676,7 +676,51 @@ func DecodeDateTime(src *[]byte) (outByte []byte, outVal time.Time, err error) {
 		location = time.FixedZone(utc, d*60)
 	}
 
-	str := fmt.Sprintf("%04d-%02d-%02dT%02d:%02d:%02d.%02dZ", year, month, day, hour, minute, second, hundredths)
+	var buf []byte
+	// Pre-allocate a reasonable capacity if possible, e.g., around 23-27 bytes for "YYYY-MM-DDTHH:MM:SS.FFZ"
+	// buf = make([]byte, 0, 27) // Example pre-allocation
+
+	// Year (assuming year is typically 4 digits, no padding needed by AppendInt for that)
+	buf = strconv.AppendInt(buf, int64(year), 10)
+	buf = append(buf, '-')
+	// Month
+	if month < 10 {
+		buf = append(buf, '0')
+	}
+	buf = strconv.AppendInt(buf, int64(month), 10)
+	buf = append(buf, '-')
+	// Day
+	if day < 10 {
+		buf = append(buf, '0')
+	}
+	buf = strconv.AppendInt(buf, int64(day), 10)
+	buf = append(buf, 'T')
+	// Hour
+	if hour < 10 {
+		buf = append(buf, '0')
+	}
+	buf = strconv.AppendInt(buf, int64(hour), 10)
+	buf = append(buf, ':')
+	// Minute
+	if minute < 10 {
+		buf = append(buf, '0')
+	}
+	buf = strconv.AppendInt(buf, int64(minute), 10)
+	buf = append(buf, ':')
+	// Second
+	if second < 10 {
+		buf = append(buf, '0')
+	}
+	buf = strconv.AppendInt(buf, int64(second), 10)
+	buf = append(buf, '.')
+	// Hundredths
+	if hundredths < 10 {
+		buf = append(buf, '0')
+	}
+	buf = strconv.AppendInt(buf, int64(hundredths), 10)
+	buf = append(buf, 'Z')
+	str := string(buf)
+
 	if _, err := time.Parse(time.RFC3339Nano, str); err != nil {
 		outVal = time.Time{}
 	} else {

@@ -128,23 +128,26 @@ func EncodeBoolean(data bool) ([]byte, error) {
 // Sample: "111"-> E0
 func EncodeBitString(data string) ([]byte, error) {
 	var dataBytes bytes.Buffer
-	var str string
+	// var str string // Original variable, replaced by currentSegment
 
 	data = strings.ReplaceAll(data, " ", "")
 	if len(strings.Trim(data, "01")) > 0 {
 		return []byte{}, fmt.Errorf("data must be a string of binary, example: 11100000")
 	}
 
+	var tempStr [8]byte // Use a small array for building the 8-char string
 	for i := 0; i < len(data); i += 8 {
+		var currentSegment string
 		if i+8 > len(data) {
-			str = data[i:]
-			for len(str) < 8 {
-				str += "0"
+			n := copy(tempStr[:], data[i:])
+			for j := n; j < 8; j++ {
+				tempStr[j] = '0' // Pad with '0' characters
 			}
+			currentSegment = string(tempStr[:8])
 		} else {
-			str = data[i : i+8]
+			currentSegment = data[i : i+8]
 		}
-		thisByte, err := strconv.ParseUint(str, 2, 8)
+		thisByte, err := strconv.ParseUint(currentSegment, 2, 8)
 		if err != nil {
 			return []byte{}, fmt.Errorf("error encoding bit string: %w", err)
 		}
