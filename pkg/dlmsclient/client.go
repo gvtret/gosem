@@ -89,6 +89,11 @@ func (c *client) Disconnect() error {
 		return dlms.NewError(dlms.ErrorCommunicationFailed, fmt.Sprintf("error disconnecting: %v", err))
 	}
 
+	if c.tc != nil {
+		close(c.tc)
+		c.tc = nil
+	}
+
 	return nil
 }
 

@@ -26,6 +26,7 @@ type tcp struct {
 	conn        net.Conn
 	isConnected bool
 	logger      *log.Logger
+	wg          sync.WaitGroup // Add this line
 	mutex       sync.Mutex
 }
 
@@ -45,10 +46,11 @@ func New(port int, host string, timeout time.Duration) dlms.Transport {
 }
 
 func (t *tcp) Close() {
-	t.mutex.Lock()
-	defer t.mutex.Unlock()
+	t.disconnect() // This already acquires mutex, sets isConnected=false, closes conn
+	t.wg.Wait()   // Wait for manager goroutine to exit
 
-	t.disconnect()
+	t.mutex.Lock() // Lock specifically for dc manipulation
+	defer t.mutex.Unlock()
 	if t.dc != nil {
 		close(t.dc)
 		t.dc = nil
@@ -78,6 +80,7 @@ func (t *tcp) Connect() error {
 		t.conn = conn
 		t.isConnected = true
 
+		t.wg.Add(1) // Add this before starting manager
 		go t.manager()
 	}
 
@@ -145,35 +148,42 @@ func (t *tcp) SetLogger(logger *log.Logger) {
 }
 
 func (t *tcp) manager() {
+	defer t.wg.Done() // Add this line
 	for {
-		if !t.isConnected {
+		// Early exit if not connected, reduces lock contention.
+		// The critical check is before sending to t.dc.
+		t.mutex.Lock()
+		isConnected := t.isConnected
+		t.mutex.Unlock()
+		if !isConnected {
 			return
 		}
 
-		data, err := t.read()
+		data, err := t.read() // This can block.
 		if err != nil {
-			t.mutex.Lock()
+			// disconnect acquires its own lock
 			t.disconnect()
-			t.mutex.Unlock()
-
-			return
+			return // Exit manager if read fails or conn is closed.
 		}
 
-		if len(data) > 0 && t.dc != nil {
+		t.mutex.Lock()
+		if t.isConnected && len(data) > 0 && t.dc != nil {
 			t.dc <- data
 		}
+		t.mutex.Unlock()
 	}
 }
 
 func (t *tcp) disconnect() {
+	t.mutex.Lock()
+	defer t.mutex.Unlock()
+
 	if t.isConnected {
 		t.isConnected = false
-
 		if t.conn != nil {
-			t.conn.Close()
+			t.conn.Close() // This helps unblock manager's read
 			t.conn = nil
 		}
-
 		if t.logger != nil {
 			t.logger.Printf("Disconnected from %s", t.host)
 		}

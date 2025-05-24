@@ -22,6 +22,7 @@ type serialport struct {
 	port        serial.Port
 	isConnected bool
 	logger      *log.Logger
+	wg          sync.WaitGroup
 	mutex       sync.Mutex
 }
 
@@ -40,10 +41,11 @@ func New(serialPort string, baudRate int) dlms.Transport {
 }
 
 func (sp *serialport) Close() {
-	sp.mutex.Lock()
-	defer sp.mutex.Unlock()
+	sp.disconnect() // This already acquires mutex, sets isConnected=false, closes port
+	sp.wg.Wait()   // Wait for manager goroutine to exit
 
-	sp.disconnect()
+	sp.mutex.Lock() // Lock specifically for dc manipulation
+	defer sp.mutex.Unlock()
 	if sp.dc != nil {
 		close(sp.dc)
 		sp.dc = nil
@@ -73,6 +75,7 @@ func (sp *serialport) Connect() error {
 	sp.port = port
 	sp.isConnected = true
 
+	sp.wg.Add(1)
 	go sp.manager()
 
 	return nil
@@ -137,35 +140,42 @@ func (sp *serialport) SetLogger(logger *log.Logger) {
 }
 
 func (sp *serialport) manager() {
+	defer sp.wg.Done()
 	for {
-		if !sp.isConnected {
+		// Early exit if not connected, reduces lock contention.
+		// The critical check is before sending to sp.dc.
+		sp.mutex.Lock()
+		isConnected := sp.isConnected
+		sp.mutex.Unlock()
+		if !isConnected {
 			return
 		}
 
-		data, err := sp.read()
+		data, err := sp.read() // This can block.
 		if err != nil {
-			sp.mutex.Lock()
+			// disconnect acquires its own lock
 			sp.disconnect()
-			sp.mutex.Unlock()
-
-			return
+			return // Exit manager if read fails or port is closed.
 		}
 
-		if len(data) > 0 && sp.dc != nil {
+		sp.mutex.Lock()
+		if sp.isConnected && len(data) > 0 && sp.dc != nil {
 			sp.dc <- data
 		}
+		sp.mutex.Unlock()
 	}
 }
 
 func (sp *serialport) disconnect() {
+	sp.mutex.Lock()
+	defer sp.mutex.Unlock()
+
 	if sp.isConnected {
 		sp.isConnected = false
-
 		if sp.port != nil {
-			sp.port.Close()
+			sp.port.Close() // This helps unblock manager's read
 			sp.port = nil
 		}
-
 		if sp.logger != nil {
 			sp.logger.Printf("Closed port %s", sp.serialPort)
 		}
